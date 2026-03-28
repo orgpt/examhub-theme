@@ -42,7 +42,9 @@
   });
 
   function bindSystemButtons() {
-    $(document).on('click', '.eh-system-btn', function() {
+    $(document).on('click', '.eh-system-btn', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
       const id = parseInt($(this).data('id'), 10);
       const isActive = $(this).hasClass('active');
 
@@ -284,7 +286,9 @@
         `<button class="btn badge" data-id="${s.id}" style="background:${s.color}20; color:${s.color}; border:1px solid ${s.color}40;">${escHtml(s.label)}</button>`
       );
 
-      $chip.on('click', function() {
+      $chip.on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         if (state.subject_id === s.id) {
           state.subject_id = 0;
           state.unit_id = 0;

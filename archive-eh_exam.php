@@ -1,6 +1,6 @@
-<?php
+﻿<?php
 /**
- * ExamHub — archive-eh_exam.php
+ * ExamHub â€” archive-eh_exam.php
  * Exam listing page with cascade filter and AJAX loading.
  *
  * @package ExamHub
@@ -35,12 +35,12 @@ $edu_systems = get_posts( [
       <div>
         <h1 class="eh-page-title">
           <i class="bi bi-clipboard-check me-2 text-accent"></i>
-          <?php esc_html_e( 'الامتحانات', 'examhub' ); ?>
+          <?php esc_html_e( 'Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†Ø§Øª', 'examhub' ); ?>
         </h1>
         <p class="eh-page-subtitle mb-0">
           <?php
           $total = wp_count_posts( 'eh_exam' )->publish;
-          printf( esc_html__( '%s امتحان متاح للتدريب', 'examhub' ), number_format( $total ) );
+          printf( esc_html__( '%s Ø§Ù…ØªØ­Ø§Ù† Ù…ØªØ§Ø­ Ù„Ù„ØªØ¯Ø±ÙŠØ¨', 'examhub' ), number_format( $total ) );
           ?>
         </p>
       </div>
@@ -51,7 +51,7 @@ $edu_systems = get_posts( [
             <i class="bi bi-search"></i>
           </span>
           <input type="search" id="eh-exam-search" class="form-control"
-            placeholder="<?php esc_attr_e( 'ابحث عن امتحان...', 'examhub' ); ?>"
+            placeholder="<?php esc_attr_e( 'Ø§Ø¨Ø­Ø« Ø¹Ù† Ø§Ù…ØªØ­Ø§Ù†...', 'examhub' ); ?>"
             value="<?php echo esc_attr( $_GET['s'] ?? '' ); ?>">
         </div>
       </div>
@@ -60,7 +60,7 @@ $edu_systems = get_posts( [
 
   <div class="row g-4">
 
-    <!-- ─── Filter Sidebar (desktop) ─────────────────────────────────── -->
+    <!-- â”€â”€â”€ Filter Sidebar (desktop) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="col-lg-3 d-none d-lg-block">
       <div class="eh-filter-sidebar" id="eh-filter-sidebar">
 
@@ -69,7 +69,7 @@ $edu_systems = get_posts( [
           <div class="card-body p-3">
             <h6 class="eh-section-title mb-3">
               <i class="bi bi-mortarboard icon"></i>
-              <?php esc_html_e( 'النظام التعليمي', 'examhub' ); ?>
+              <?php esc_html_e( 'Ø§Ù„Ù†Ø¸Ø§Ù… Ø§Ù„ØªØ¹Ù„ÙŠÙ…ÙŠ', 'examhub' ); ?>
             </h6>
             <div class="d-flex flex-column gap-2" id="system-buttons">
               <?php foreach ( $edu_systems as $sys ) :
@@ -77,7 +77,7 @@ $edu_systems = get_posts( [
                 $name  = get_field( 'name_ar', $sys->ID ) ?: $sys->post_title;
                 $active = $sel_system === $sys->ID;
               ?>
-              <button class="btn btn-ghost text-start eh-system-btn <?php echo $active ? 'active' : ''; ?>"
+              <button type="button" class="btn btn-ghost text-start eh-system-btn <?php echo $active ? 'active' : ''; ?>"
                 data-id="<?php echo esc_attr( $sys->ID ); ?>"
                 style="<?php echo $active ? "border-color:{$color}; color:{$color}; background: rgba(" . examhub_hex_to_rgb( $color ) . ", .12);" : ''; ?>">
                 <i class="bi bi-circle-fill me-2" style="color:<?php echo esc_attr( $color ); ?>; font-size:0.5rem;"></i>
@@ -91,43 +91,43 @@ $edu_systems = get_posts( [
         <!-- Cascade selects -->
         <div class="card mb-3" id="stage-card" style="display:none!important;">
           <div class="card-body p-3">
-            <label class="form-label"><?php esc_html_e( 'المرحلة', 'examhub' ); ?></label>
+            <label class="form-label"><?php esc_html_e( 'Ø§Ù„Ù…Ø±Ø­Ù„Ø©', 'examhub' ); ?></label>
             <select class="form-select" id="sel-stage">
-              <option value=""><?php esc_html_e( 'اختر المرحلة', 'examhub' ); ?></option>
+              <option value=""><?php esc_html_e( 'Ø§Ø®ØªØ± Ø§Ù„Ù…Ø±Ø­Ù„Ø©', 'examhub' ); ?></option>
             </select>
           </div>
         </div>
 
         <div class="card mb-3" id="grade-card" style="display:none!important;">
           <div class="card-body p-3">
-            <label class="form-label"><?php esc_html_e( 'الصف', 'examhub' ); ?></label>
+            <label class="form-label"><?php esc_html_e( 'Ø§Ù„ØµÙ', 'examhub' ); ?></label>
             <select class="form-select" id="sel-grade">
-              <option value=""><?php esc_html_e( 'اختر الصف', 'examhub' ); ?></option>
+              <option value=""><?php esc_html_e( 'Ø§Ø®ØªØ± Ø§Ù„ØµÙ', 'examhub' ); ?></option>
             </select>
           </div>
         </div>
 
         <div class="card mb-3" id="subject-card" style="display:none!important;">
           <div class="card-body p-3">
-            <label class="form-label"><?php esc_html_e( 'المادة', 'examhub' ); ?></label>
+            <label class="form-label"><?php esc_html_e( 'Ø§Ù„Ù…Ø§Ø¯Ø©', 'examhub' ); ?></label>
             <div id="subject-chips" class="d-flex flex-wrap gap-2"></div>
           </div>
         </div>
 
         <div class="card mb-3" id="unit-card" style="display:none!important;">
           <div class="card-body p-3">
-            <label class="form-label"><?php esc_html_e( 'الوحدة', 'examhub' ); ?></label>
+            <label class="form-label"><?php esc_html_e( 'Ø§Ù„ÙˆØ­Ø¯Ø©', 'examhub' ); ?></label>
             <select class="form-select" id="sel-unit">
-              <option value=""><?php esc_html_e( 'كل الوحدات', 'examhub' ); ?></option>
+              <option value=""><?php esc_html_e( 'ÙƒÙ„ Ø§Ù„ÙˆØ­Ø¯Ø§Øª', 'examhub' ); ?></option>
             </select>
           </div>
         </div>
 
         <div class="card mb-3" id="lesson-card" style="display:none!important;">
           <div class="card-body p-3">
-            <label class="form-label"><?php esc_html_e( 'الدرس', 'examhub' ); ?></label>
+            <label class="form-label"><?php esc_html_e( 'Ø§Ù„Ø¯Ø±Ø³', 'examhub' ); ?></label>
             <select class="form-select" id="sel-lesson">
-              <option value=""><?php esc_html_e( 'كل الدروس', 'examhub' ); ?></option>
+              <option value=""><?php esc_html_e( 'ÙƒÙ„ Ø§Ù„Ø¯Ø±ÙˆØ³', 'examhub' ); ?></option>
             </select>
           </div>
         </div>
@@ -137,39 +137,39 @@ $edu_systems = get_posts( [
           <div class="card-body p-3">
             <h6 class="eh-section-title mb-3">
               <i class="bi bi-bar-chart-fill icon"></i>
-              <?php esc_html_e( 'مستوى الصعوبة', 'examhub' ); ?>
+              <?php esc_html_e( 'Ù…Ø³ØªÙˆÙ‰ Ø§Ù„ØµØ¹ÙˆØ¨Ø©', 'examhub' ); ?>
             </h6>
             <div class="d-flex flex-wrap gap-2">
-              <button class="btn badge badge-easy eh-diff-btn <?php echo $sel_diff === 'easy' ? 'active' : ''; ?>" data-diff="easy">
-                <?php esc_html_e( 'سهل', 'examhub' ); ?>
+              <button type="button" class="btn badge badge-easy eh-diff-btn <?php echo $sel_diff === 'easy' ? 'active' : ''; ?>" data-diff="easy">
+                <?php esc_html_e( 'Ø³Ù‡Ù„', 'examhub' ); ?>
               </button>
-              <button class="btn badge badge-medium eh-diff-btn <?php echo $sel_diff === 'medium' ? 'active' : ''; ?>" data-diff="medium">
-                <?php esc_html_e( 'متوسط', 'examhub' ); ?>
+              <button type="button" class="btn badge badge-medium eh-diff-btn <?php echo $sel_diff === 'medium' ? 'active' : ''; ?>" data-diff="medium">
+                <?php esc_html_e( 'Ù…ØªÙˆØ³Ø·', 'examhub' ); ?>
               </button>
-              <button class="btn badge badge-hard eh-diff-btn <?php echo $sel_diff === 'hard' ? 'active' : ''; ?>" data-diff="hard">
-                <?php esc_html_e( 'صعب', 'examhub' ); ?>
+              <button type="button" class="btn badge badge-hard eh-diff-btn <?php echo $sel_diff === 'hard' ? 'active' : ''; ?>" data-diff="hard">
+                <?php esc_html_e( 'ØµØ¹Ø¨', 'examhub' ); ?>
               </button>
             </div>
           </div>
         </div>
 
         <!-- Clear filters -->
-        <button class="btn btn-ghost btn-sm w-100" id="btn-clear-filters">
+        <button type="button" class="btn btn-ghost btn-sm w-100" id="btn-clear-filters">
           <i class="bi bi-x-circle me-1"></i>
-          <?php esc_html_e( 'مسح التصفية', 'examhub' ); ?>
+          <?php esc_html_e( 'Ù…Ø³Ø­ Ø§Ù„ØªØµÙÙŠØ©', 'examhub' ); ?>
         </button>
 
       </div>
     </div>
 
-    <!-- ─── Exam Grid ─────────────────────────────────────────────────── -->
+    <!-- â”€â”€â”€ Exam Grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ -->
     <div class="col-lg-9">
 
       <!-- Mobile filter bar (compact) -->
       <div class="d-lg-none mb-3">
         <button class="btn btn-ghost btn-sm w-100" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas">
           <i class="bi bi-sliders me-2"></i>
-          <?php esc_html_e( 'تصفية النتائج', 'examhub' ); ?>
+          <?php esc_html_e( 'ØªØµÙÙŠØ© Ø§Ù„Ù†ØªØ§Ø¦Ø¬', 'examhub' ); ?>
           <span id="mobile-filter-count" class="badge badge-accent ms-2" style="display:none;">0</span>
         </button>
       </div>
@@ -181,9 +181,9 @@ $edu_systems = get_posts( [
       <div class="d-flex align-items-center justify-content-between mb-3">
         <span id="results-count" class="small text-muted"></span>
         <select class="form-select form-select-sm" id="sel-sort" style="width:auto;">
-          <option value="date_desc"><?php esc_html_e( 'الأحدث', 'examhub' ); ?></option>
-          <option value="date_asc"><?php esc_html_e( 'الأقدم', 'examhub' ); ?></option>
-          <option value="popular"><?php esc_html_e( 'الأكثر محاولة', 'examhub' ); ?></option>
+          <option value="date_desc"><?php esc_html_e( 'Ø§Ù„Ø£Ø­Ø¯Ø«', 'examhub' ); ?></option>
+          <option value="date_asc"><?php esc_html_e( 'Ø§Ù„Ø£Ù‚Ø¯Ù…', 'examhub' ); ?></option>
+          <option value="popular"><?php esc_html_e( 'Ø§Ù„Ø£ÙƒØ«Ø± Ù…Ø­Ø§ÙˆÙ„Ø©', 'examhub' ); ?></option>
         </select>
       </div>
 
@@ -250,7 +250,7 @@ $edu_systems = get_posts( [
 <div class="offcanvas offcanvas-start" tabindex="-1" id="filterOffcanvas"
   style="background:var(--eh-bg-secondary); max-width:320px; width:90vw;">
   <div class="offcanvas-header border-bottom" style="border-color:var(--eh-border)!important;">
-    <h5 class="offcanvas-title text-light"><?php esc_html_e( 'تصفية', 'examhub' ); ?></h5>
+    <h5 class="offcanvas-title text-light"><?php esc_html_e( 'ØªØµÙÙŠØ©', 'examhub' ); ?></h5>
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
   </div>
   <div class="offcanvas-body" id="mobile-filter-body">
@@ -279,3 +279,4 @@ function wp_footer_data( $key, $data ) {
         echo '<script>window.' . esc_js( $key ) . ' = ' . json_encode( $data ) . ';</script>';
     } );
 }
+

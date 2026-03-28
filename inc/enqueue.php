@@ -12,6 +12,9 @@ function examhub_enqueue_assets() {
 
     $ver = EXAMHUB_VERSION;
     $is_rtl = is_rtl();
+    $main_css_ver   = file_exists( EXAMHUB_DIR . '/assets/css/main.css' ) ? filemtime( EXAMHUB_DIR . '/assets/css/main.css' ) : $ver;
+    $main_js_ver    = file_exists( EXAMHUB_DIR . '/assets/js/main.js' ) ? filemtime( EXAMHUB_DIR . '/assets/js/main.js' ) : $ver;
+    $filter_js_ver  = file_exists( EXAMHUB_DIR . '/assets/js/filter.js' ) ? filemtime( EXAMHUB_DIR . '/assets/js/filter.js' ) : $ver;
 
     // ─── Styles ────────────────────────────────────────────────────────────
 
@@ -32,7 +35,7 @@ function examhub_enqueue_assets() {
     );
 
     // Chart.js for analytics
-    wp_enqueue_style( 'examhub-main', EXAMHUB_ASSETS . 'css/main.css', [ 'bootstrap' ], $ver );
+    wp_enqueue_style( 'examhub-main', EXAMHUB_ASSETS . 'css/main.css', [ 'bootstrap' ], $main_css_ver );
 
     // Exam-specific styles (only on exam pages)
     if ( is_singular( 'eh_exam' ) || examhub_is_exam_page() ) {
@@ -66,11 +69,11 @@ function examhub_enqueue_assets() {
     }
 
     // Main theme JS
-    wp_enqueue_script( 'examhub-main', EXAMHUB_ASSETS . 'js/main.js', [ 'jquery', 'bootstrap' ], $ver, true );
+    wp_enqueue_script( 'examhub-main', EXAMHUB_ASSETS . 'js/main.js', [ 'jquery', 'bootstrap' ], $main_js_ver, true );
 
     // Archive exam filter (system > stage > grade > ...)
-    if ( is_post_type_archive( 'eh_exam' ) ) {
-        wp_enqueue_script( 'examhub-filter', EXAMHUB_ASSETS . 'js/filter.js', [ 'jquery', 'examhub-main' ], $ver, true );
+    if ( is_post_type_archive( 'eh_exam' ) || examhub_is_exam_page() ) {
+        wp_enqueue_script( 'examhub-filter', EXAMHUB_ASSETS . 'js/filter.js', [ 'jquery', 'examhub-main' ], $filter_js_ver, true );
     }
 
     // Exam engine JS (only on exam pages)
