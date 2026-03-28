@@ -113,7 +113,10 @@ function examhub_register_options_fields() {
               'choices' => [ 'EGP' => 'جنيه مصري (EGP)', 'USD' => 'دولار (USD)', 'SAR' => 'ريال (SAR)' ], 'default_value' => 'EGP' ],
             [ 'key' => 'field_notify_email',   'label' => 'إيميل الإشعارات',         'name' => 'payment_notify_email', 'type' => 'email' ],
         ],
-        'location' => [ [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-payment-settings' ] ] ],
+        'location' => [
+            [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-payment-settings' ] ],
+            [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-payments' ] ],
+        ],
     ] );
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -160,6 +163,9 @@ function examhub_register_options_fields() {
             [ 'key' => 'field_gam_leaderboard',   'label' => 'تفعيل المتصدرين',            'name' => 'leaderboard_enabled',      'type' => 'true_false', 'ui' => 1, 'default_value' => 1 ],
             [ 'key' => 'field_gam_lb_top',        'label' => 'عدد المتصدرين المعروضين',   'name' => 'leaderboard_top_count',    'type' => 'number', 'default_value' => 50 ],
         ],
-        'location' => [ [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-gamification-settings' ] ] ],
+        'location' => [
+            [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-gamification-settings' ] ],
+            [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-gamification' ] ],
+        ],
     ] );
 }
