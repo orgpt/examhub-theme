@@ -358,8 +358,10 @@ function examhub_ajax_submit_exam() {
     examhub_add_xp( $user_id, $xp_earned, "امتحان #{$exam_id}" );
     update_field( 'xp_earned', $xp_earned, $result_id );
 
-    // Update streak
-    examhub_update_streak( $user_id );
+    // Update streak/activity (the old examhub_update_streak() helper does not exist).
+    if ( function_exists( 'examhub_record_daily_activity' ) ) {
+        examhub_record_daily_activity( $user_id );
+    }
 
     // Check badges
     do_action( 'examhub_exam_submitted', $result_id, $user_id, $grading );
