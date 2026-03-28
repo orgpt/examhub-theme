@@ -28,6 +28,7 @@ $examhub_includes = [
     'inc/ajax-handlers.php',      // AJAX endpoints
     'inc/rest-api.php',           // REST API extensions
     'inc/user-roles.php',         // Custom roles & capabilities
+    'inc/auth.php',               // Custom auth pages and OAuth login
     'inc/subscription.php',       // Subscription logic
     'inc/payment.php',            // Payment gateway routing
     'inc/payment-fawaterk.php',   // Fawaterk integration
