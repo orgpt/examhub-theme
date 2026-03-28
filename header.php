@@ -75,6 +75,18 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
           $sub       = examhub_get_user_subscription_status( $user_id );
           ?>
 
+          <div class="eh-desktop-quick-links d-none d-xl-flex align-items-center gap-2">
+            <a href="<?php echo esc_url( home_url( '/dashboard' ) ); ?>" class="eh-quick-link">
+              <i class="bi bi-speedometer2"></i><span><?php esc_html_e( 'لوحة التحكم', 'examhub' ); ?></span>
+            </a>
+            <a href="<?php echo esc_url( home_url( '/my-results' ) ); ?>" class="eh-quick-link">
+              <i class="bi bi-bar-chart"></i><span><?php esc_html_e( 'نتائجي', 'examhub' ); ?></span>
+            </a>
+            <a href="<?php echo esc_url( home_url( '/profile' ) ); ?>" class="eh-quick-link">
+              <i class="bi bi-person"></i><span><?php esc_html_e( 'الملف الشخصي', 'examhub' ); ?></span>
+            </a>
+          </div>
+
           <!-- XP badge -->
           <span class="eh-xp-badge d-none d-md-flex align-items-center gap-1">
             <i class="bi bi-lightning-fill"></i>

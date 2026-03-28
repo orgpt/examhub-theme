@@ -873,6 +873,43 @@ img { max-width: 100%; height: auto; }
 .eh-pricing-faq .accordion-body {
   color: var(--eh-text-secondary) !important;
 }
+
+/* Pricing subtitle readability */
+.eh-pricing-subtitle {
+  color: #aab4da !important;
+  font-size: 1.04rem;
+  line-height: 1.8;
+}
+
+/* Desktop quick menu near avatar */
+.eh-desktop-quick-links {
+  margin-inline-end: .35rem;
+}
+
+.eh-quick-link {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .38rem .72rem;
+  border-radius: 999px;
+  border: 1px solid var(--eh-border);
+  background: rgba(255,255,255,.02);
+  color: var(--eh-text-secondary);
+  font-size: .8rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.eh-quick-link:hover {
+  color: var(--eh-text-primary);
+  border-color: var(--eh-border-light);
+  background: rgba(67,97,238,.12);
+}
+
+.eh-quick-link i {
+  font-size: .86rem;
+  color: var(--eh-accent);
+}
 /* Home landing page */
 .eh-landing-page {
   position: relative;
