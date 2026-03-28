@@ -38,6 +38,8 @@ function examhub_ensure_auth_pages() {
 		'login'          => 'تسجيل الدخول',
 		'register'       => 'إنشاء حساب',
 		'reset-password' => 'استعادة كلمة المرور',
+		'google-auth-start'    => 'Google Auth Start',
+		'google-auth-callback' => 'Google Auth Callback',
 	);
 
 	foreach ( $pages as $slug => $title ) {
@@ -381,7 +383,7 @@ function examhub_google_oauth_config() {
 	return array(
 		'client_id'    => trim( $client_id ),
 		'client_secret'=> trim( $secret ),
-		'redirect_uri' => home_url( '/?examhub_google_callback=1' ),
+		'redirect_uri' => home_url( '/google-auth-callback/' ),
 		'enabled'      => ! empty( $client_id ) && ! empty( $secret ),
 	);
 }
@@ -436,7 +438,7 @@ function examhub_register_google_oauth_settings() {
 		function() {
 			$value = (string) get_option( 'examhub_google_client_secret', '' );
 			echo '<input type="text" id="examhub_google_client_secret" name="examhub_google_client_secret" value="' . esc_attr( $value ) . '" class="regular-text" dir="ltr" />';
-			echo '<p class="description">' . esc_html__( 'Google redirect URI:', 'examhub' ) . ' <code>' . esc_html( home_url( '/?examhub_google_callback=1' ) ) . '</code></p>';
+			echo '<p class="description">' . esc_html__( 'Google redirect URI:', 'examhub' ) . ' <code>' . esc_html( home_url( '/google-auth-callback/' ) ) . '</code></p>';
 		},
 		'general'
 	);
@@ -444,20 +446,20 @@ function examhub_register_google_oauth_settings() {
 add_action( 'admin_init', 'examhub_register_google_oauth_settings' );
 
 /**
- * Frontend Google OAuth endpoints to avoid /wp-admin redirects.
+ * Frontend Google OAuth endpoints to avoid /wp-admin redirects and WAF query blocking.
  */
 function examhub_google_oauth_front_controller() {
-	if ( isset( $_GET['examhub_google_start'] ) ) {
+	if ( is_page( 'google-auth-start' ) ) {
 		examhub_google_oauth_start();
 		exit;
 	}
 
-	if ( isset( $_GET['examhub_google_callback'] ) ) {
+	if ( is_page( 'google-auth-callback' ) ) {
 		examhub_google_oauth_callback();
 		exit;
 	}
 }
-add_action( 'init', 'examhub_google_oauth_front_controller' );
+add_action( 'template_redirect', 'examhub_google_oauth_front_controller' );
 
 /**
  * Start Google OAuth flow.
