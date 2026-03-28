@@ -493,7 +493,8 @@ function examhub_google_oauth_start() {
 
 	$auth_url = add_query_arg( $params, 'https://accounts.google.com/o/oauth2/v2/auth' );
 
-	wp_safe_redirect( $auth_url );
+	// External OAuth provider URL must use wp_redirect (not wp_safe_redirect).
+	wp_redirect( $auth_url );
 	exit;
 }
 add_action( 'admin_post_nopriv_examhub_google_start', 'examhub_google_oauth_start' );
