@@ -673,3 +673,150 @@ img { max-width: 100%; height: auto; }
 @media (min-width: 769px) {
   .eh-mobile-nav { display: none !important; }
 }
+/* Checkout page fixes */
+.eh-checkout-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.eh-checkout-layout h2 {
+  font-size: 1.85rem;
+  font-weight: 800;
+  margin-bottom: 1rem !important;
+}
+
+#payment-methods-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.eh-method-card {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: var(--eh-bg-card);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--eh-radius-lg);
+  padding: 0.95rem 1rem;
+  cursor: pointer;
+  transition: var(--eh-transition);
+}
+
+.eh-method-card:hover {
+  border-color: var(--eh-border-light);
+  background: var(--eh-bg-card-hover);
+}
+
+.eh-method-card.selected {
+  border-color: var(--eh-accent);
+  box-shadow: 0 0 0 2px var(--eh-accent-light);
+}
+
+.eh-method-card .method-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: var(--eh-accent);
+  background: var(--eh-accent-light);
+  flex-shrink: 0;
+}
+
+.eh-method-card .method-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--eh-text-primary);
+}
+
+.eh-method-card .method-desc {
+  font-size: 0.86rem;
+  color: var(--eh-text-secondary);
+  margin-top: 0.1rem;
+}
+
+.instant-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--eh-success);
+  background: var(--eh-success-bg);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+}
+
+#method-instructions {
+  background: var(--eh-bg-card);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--eh-radius-lg);
+}
+
+#method-instructions h5 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 0.9rem;
+}
+
+#method-instructions code {
+  color: var(--eh-text-primary);
+  background: var(--eh-bg-input);
+  border: 1px solid var(--eh-border);
+  border-radius: 8px;
+  padding: 0.2rem 0.45rem;
+}
+
+#manual-proof-form {
+  background: var(--eh-bg-card);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--eh-radius-lg);
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.eh-order-summary {
+  background: var(--eh-bg-card);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--eh-radius-lg);
+  padding: 1.15rem;
+  position: sticky;
+  top: 92px;
+}
+
+#btn-pay-now {
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .eh-checkout-layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .eh-order-summary {
+    position: static;
+  }
+
+  .eh-checkout-layout h2 {
+    font-size: 1.45rem;
+  }
+
+  .eh-method-card {
+    padding: 0.8rem;
+  }
+
+  .eh-method-card .method-name {
+    font-size: 0.95rem;
+  }
+
+  .eh-method-card .method-desc {
+    font-size: 0.8rem;
+  }
+}
