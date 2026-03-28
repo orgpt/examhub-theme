@@ -446,20 +446,38 @@ function examhub_register_google_oauth_settings() {
 add_action( 'admin_init', 'examhub_register_google_oauth_settings' );
 
 /**
+ * Current request path helper.
+ *
+ * @return string
+ */
+function examhub_auth_request_path() {
+	$uri  = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '/';
+	$path = wp_parse_url( $uri, PHP_URL_PATH );
+	if ( ! is_string( $path ) || '' === $path ) {
+		return '/';
+	}
+	return trailingslashit( $path );
+}
+
+/**
  * Frontend Google OAuth endpoints to avoid /wp-admin redirects and WAF query blocking.
  */
 function examhub_google_oauth_front_controller() {
-	if ( is_page( 'google-auth-start' ) ) {
+	$req_path  = examhub_auth_request_path();
+	$start_url = trailingslashit( wp_parse_url( home_url( '/google-auth-start/' ), PHP_URL_PATH ) );
+	$cb_url    = trailingslashit( wp_parse_url( home_url( '/google-auth-callback/' ), PHP_URL_PATH ) );
+
+	if ( $req_path === $start_url ) {
 		examhub_google_oauth_start();
 		exit;
 	}
 
-	if ( is_page( 'google-auth-callback' ) ) {
+	if ( $req_path === $cb_url ) {
 		examhub_google_oauth_callback();
 		exit;
 	}
 }
-add_action( 'template_redirect', 'examhub_google_oauth_front_controller' );
+add_action( 'init', 'examhub_google_oauth_front_controller' );
 
 /**
  * Start Google OAuth flow.
