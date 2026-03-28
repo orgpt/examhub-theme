@@ -104,8 +104,6 @@ function examhub_ajax_filter_exams() {
         'stage'            => (int) ( $_POST['stage_id']   ?? 0 ),
         'grade'            => (int) ( $_POST['grade_id']   ?? 0 ),
         'subject'          => (int) ( $_POST['subject_id'] ?? 0 ),
-        'unit'             => (int) ( $_POST['unit_id']    ?? 0 ),
-        'lesson'           => (int) ( $_POST['lesson_id']  ?? 0 ),
         'difficulty'       => sanitize_text_field( $_POST['difficulty'] ?? '' ),
         'paged'            => (int) ( $_POST['paged'] ?? 1 ),
         'per_page'         => 12,

@@ -1,7 +1,7 @@
 <?php
 /**
  * ExamHub — Filter Bar Template Part
- * Cascading filter: System → Stage → Grade → Year → Subject → Unit → Lesson → Difficulty
+ * Cascading filter: System → Stage → Grade → Year → Subject → Difficulty
  *
  * @package ExamHub
  */
@@ -83,22 +83,6 @@ $years = get_terms( [ 'taxonomy' => 'eh_year', 'hide_empty' => false, 'orderby' 
       </select>
     </div>
 
-    <!-- Unit -->
-    <div class="col-6 col-md-4 col-lg-2">
-      <label class="form-label small text-muted"><?php esc_html_e( 'الوحدة', 'examhub' ); ?></label>
-      <select id="filter-unit" class="form-select form-select-sm" data-placeholder="<?php esc_attr_e( 'كل الوحدات', 'examhub' ); ?>">
-        <option value=""><?php esc_html_e( 'كل الوحدات', 'examhub' ); ?></option>
-      </select>
-    </div>
-
-    <!-- Lesson -->
-    <div class="col-6 col-md-4 col-lg-2">
-      <label class="form-label small text-muted"><?php esc_html_e( 'الدرس', 'examhub' ); ?></label>
-      <select id="filter-lesson" class="form-select form-select-sm" data-placeholder="<?php esc_attr_e( 'كل الدروس', 'examhub' ); ?>">
-        <option value=""><?php esc_html_e( 'كل الدروس', 'examhub' ); ?></option>
-      </select>
-    </div>
-
     <!-- Difficulty -->
     <div class="col-6 col-md-4 col-lg-2">
       <label class="form-label small text-muted"><?php esc_html_e( 'الصعوبة', 'examhub' ); ?></label>
@@ -120,7 +104,7 @@ jQuery(function($){
       $(this).prop('selectedIndex', 0);
     });
     // Reset cascading selects to empty
-    ['#filter-stage','#filter-grade','#filter-subject','#filter-unit','#filter-lesson'].forEach(function(sel){
+    ['#filter-stage','#filter-grade','#filter-subject'].forEach(function(sel){
       const placeholder = $(sel).data('placeholder') || '— اختر —';
       $(sel).html(`<option value="">${placeholder}</option>`);
     });

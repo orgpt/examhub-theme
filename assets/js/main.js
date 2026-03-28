@@ -35,14 +35,12 @@
       grade:   '#filter-grade',
       year:    '#filter-year',
       subject: '#filter-subject',
-      unit:    '#filter-unit',
-      lesson:  '#filter-lesson',
     };
 
     // System → Stage
     $(document).on('change', selectors.system, function () {
       const sysId = $(this).val();
-      resetSelects(['stage', 'grade', 'subject', 'unit', 'lesson'], selectors);
+      resetSelects(['stage', 'grade', 'subject'], selectors);
       if (!sysId) return filterExams();
       loadOptions('eh_get_stages', { system_id: sysId }, selectors.stage, filterExams);
     });
@@ -50,7 +48,7 @@
     // Stage → Grade
     $(document).on('change', selectors.stage, function () {
       const stageId = $(this).val();
-      resetSelects(['grade', 'subject', 'unit', 'lesson'], selectors);
+      resetSelects(['grade', 'subject'], selectors);
       if (!stageId) return filterExams();
       loadOptions('eh_get_grades', { stage_id: stageId }, selectors.grade, filterExams);
     });
@@ -58,31 +56,18 @@
     // Grade → Subject
     $(document).on('change', selectors.grade, function () {
       const gradeId = $(this).val();
-      resetSelects(['subject', 'unit', 'lesson'], selectors);
+      resetSelects(['subject'], selectors);
       filterExams();
       if (!gradeId) return;
       loadOptions('eh_get_subjects', { grade_id: gradeId }, selectors.subject);
     });
 
-    // Subject → Unit
+    // Subject
     $(document).on('change', selectors.subject, function () {
-      const subId = $(this).val();
-      resetSelects(['unit', 'lesson'], selectors);
       filterExams();
-      if (!subId) return;
-      loadOptions('eh_get_units', { subject_id: subId }, selectors.unit);
     });
 
-    // Unit → Lesson
-    $(document).on('change', selectors.unit, function () {
-      const unitId = $(this).val();
-      resetSelect(selectors.lesson);
-      filterExams();
-      if (!unitId) return;
-      loadOptions('eh_get_lessons', { unit_id: unitId }, selectors.lesson);
-    });
-
-    $(document).on('change', [selectors.lesson, selectors.year, '#filter-difficulty'].join(','), filterExams);
+    $(document).on('change', [selectors.year, '#filter-difficulty'].join(','), filterExams);
 
     // Load more
     $(document).on('click', '#eh-load-more-exams', function () {
@@ -137,8 +122,6 @@
         stage_id:   $('#filter-stage').val()      || 0,
         grade_id:   $('#filter-grade').val()      || 0,
         subject_id: $('#filter-subject').val()    || 0,
-        unit_id:    $('#filter-unit').val()       || 0,
-        lesson_id:  $('#filter-lesson').val()     || 0,
         difficulty: $('#filter-difficulty').val() || '',
         paged,
       };

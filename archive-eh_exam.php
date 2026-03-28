@@ -14,8 +14,6 @@ $sel_system  = (int) ( $_GET['system']  ?? 0 );
 $sel_stage   = (int) ( $_GET['stage']   ?? 0 );
 $sel_grade   = (int) ( $_GET['grade']   ?? 0 );
 $sel_subject = (int) ( $_GET['subject'] ?? 0 );
-$sel_unit    = (int) ( $_GET['unit']    ?? 0 );
-$sel_lesson  = (int) ( $_GET['lesson']  ?? 0 );
 $sel_diff    = sanitize_text_field( $_GET['difficulty'] ?? '' );
 
 // Load all education systems
@@ -111,24 +109,6 @@ $edu_systems = get_posts( [
           <div class="card-body p-3">
             <label class="form-label"><?php esc_html_e( 'المادة', 'examhub' ); ?></label>
             <div id="subject-chips" class="d-flex flex-wrap gap-2"></div>
-          </div>
-        </div>
-
-        <div class="card mb-3" id="unit-card" style="display:none;">
-          <div class="card-body p-3">
-            <label class="form-label"><?php esc_html_e( 'الوحدة', 'examhub' ); ?></label>
-            <select class="form-select" id="sel-unit">
-              <option value=""><?php esc_html_e( 'كل الوحدات', 'examhub' ); ?></option>
-            </select>
-          </div>
-        </div>
-
-        <div class="card mb-3" id="lesson-card" style="display:none;">
-          <div class="card-body p-3">
-            <label class="form-label"><?php esc_html_e( 'الدرس', 'examhub' ); ?></label>
-            <select class="form-select" id="sel-lesson">
-              <option value=""><?php esc_html_e( 'كل الدروس', 'examhub' ); ?></option>
-            </select>
           </div>
         </div>
 
@@ -264,8 +244,6 @@ wp_footer_data( 'examhubFilterConfig', [
     'initial_stage'   => $sel_stage,
     'initial_grade'   => $sel_grade,
     'initial_subject' => $sel_subject,
-    'initial_unit'    => $sel_unit,
-    'initial_lesson'  => $sel_lesson,
     'initial_diff'    => $sel_diff,
 ] );
 

@@ -386,8 +386,6 @@ function examhub_get_exams_query( $args = [] ) {
         'stage'            => 0,
         'grade'            => 0,
         'subject'          => 0,
-        'unit'             => 0,
-        'lesson'           => 0,
         'year'             => '',
         'difficulty'       => '',
         'paged'            => 1,
@@ -411,12 +409,6 @@ function examhub_get_exams_query( $args = [] ) {
     }
     if ( $args['subject'] ) {
         $meta_query[] = [ 'key' => 'exam_subject', 'value' => $args['subject'] ];
-    }
-    if ( $args['unit'] ) {
-        $meta_query[] = [ 'key' => 'exam_unit', 'value' => $args['unit'] ];
-    }
-    if ( $args['lesson'] ) {
-        $meta_query[] = [ 'key' => 'exam_lesson', 'value' => $args['lesson'] ];
     }
     if ( $args['difficulty'] ) {
         $meta_query[] = [ 'key' => 'exam_difficulty', 'value' => $args['difficulty'] ];

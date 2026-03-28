@@ -10,8 +10,6 @@
     stage_id:   window.examhubFilterConfig?.initial_stage   || 0,
     grade_id:   window.examhubFilterConfig?.initial_grade   || 0,
     subject_id: window.examhubFilterConfig?.initial_subject || 0,
-    unit_id:    window.examhubFilterConfig?.initial_unit    || 0,
-    lesson_id:  window.examhubFilterConfig?.initial_lesson  || 0,
     difficulty: window.examhubFilterConfig?.initial_diff    || '',
     paged: 1,
     loading: false,
@@ -26,7 +24,7 @@
 
     // Restore values from query string.
     const params = new URLSearchParams(window.location.search);
-    ['system_id', 'stage_id', 'grade_id', 'subject_id', 'unit_id', 'lesson_id', 'difficulty'].forEach(k => {
+    ['system_id', 'stage_id', 'grade_id', 'subject_id', 'difficulty'].forEach(k => {
       const v = params.get(k.replace('_id', ''));
       if (v) state[k] = parseInt(v, 10) || v;
     });
@@ -70,12 +68,10 @@
       state.stage_id = 0;
       state.grade_id = 0;
       state.subject_id = 0;
-      state.unit_id = 0;
-      state.lesson_id = 0;
       state.paged = 1;
 
-      hideCards(['#stage-card', '#grade-card', '#subject-card', '#unit-card', '#lesson-card']);
-      $('#sel-stage, #sel-grade, #sel-unit, #sel-lesson').val('');
+      hideCards(['#stage-card', '#grade-card', '#subject-card']);
+      $('#sel-stage, #sel-grade').val('');
       $('#subject-chips').empty();
 
       loadStages(id).then(() => fetchExams());
@@ -88,12 +84,10 @@
       state.stage_id = id;
       state.grade_id = 0;
       state.subject_id = 0;
-      state.unit_id = 0;
-      state.lesson_id = 0;
       state.paged = 1;
 
-      hideCards(['#grade-card', '#subject-card', '#unit-card', '#lesson-card']);
-      $('#sel-grade, #sel-unit, #sel-lesson').val('');
+      hideCards(['#grade-card', '#subject-card']);
+      $('#sel-grade').val('');
       $('#subject-chips').empty();
 
       if (id) {
@@ -107,12 +101,9 @@
       const id = parseInt($(this).val(), 10) || 0;
       state.grade_id = id;
       state.subject_id = 0;
-      state.unit_id = 0;
-      state.lesson_id = 0;
       state.paged = 1;
 
-      hideCards(['#subject-card', '#unit-card', '#lesson-card']);
-      $('#sel-unit, #sel-lesson').val('');
+      hideCards(['#subject-card']);
       $('#subject-chips').empty();
 
       if (id) {
@@ -120,28 +111,6 @@
       } else {
         fetchExams();
       }
-    });
-
-    $('#sel-unit').on('change', function() {
-      const id = parseInt($(this).val(), 10) || 0;
-      state.unit_id = id;
-      state.lesson_id = 0;
-      state.paged = 1;
-
-      hideCards(['#lesson-card']);
-      $('#sel-lesson').val('');
-
-      if (id) {
-        loadLessons(id).then(() => fetchExams());
-      } else {
-        fetchExams();
-      }
-    });
-
-    $('#sel-lesson').on('change', function() {
-      state.lesson_id = parseInt($(this).val(), 10) || 0;
-      state.paged = 1;
-      fetchExams();
     });
   }
 
@@ -188,7 +157,7 @@
       $('.eh-system-btn').removeClass('active').removeAttr('style');
       $('.eh-diff-btn').removeClass('active');
       $('#eh-exam-search').val('');
-      $('#sel-stage, #sel-grade, #sel-unit, #sel-lesson').val('');
+      $('#sel-stage, #sel-grade').val('');
       $('#subject-chips').empty();
       fetchExams();
     });
@@ -218,22 +187,6 @@
     });
   }
 
-  function loadUnits(subjectId) {
-    return ajaxGet('eh_get_units', { subject_id: subjectId }).then(items => {
-      populateSelect('#sel-unit', items, 'كل الوحدات');
-      if (items.length) showCard('#unit-card');
-      return items;
-    });
-  }
-
-  function loadLessons(unitId) {
-    return ajaxGet('eh_get_lessons', { unit_id: unitId }).then(items => {
-      populateSelect('#sel-lesson', items, 'كل الدروس');
-      if (items.length) showCard('#lesson-card');
-      return items;
-    });
-  }
-
   function fetchExams() {
     if (state.loading) return;
     state.loading = true;
@@ -251,8 +204,6 @@
         stage_id: state.stage_id,
         grade_id: state.grade_id,
         subject_id: state.subject_id,
-        unit_id: state.unit_id,
-        lesson_id: state.lesson_id,
         difficulty: state.difficulty,
         search: state.search || '',
         sort: state.sort || 'date_desc',
@@ -291,20 +242,12 @@
         e.stopPropagation();
         if (state.subject_id === s.id) {
           state.subject_id = 0;
-          state.unit_id = 0;
-          state.lesson_id = 0;
           $(this).removeClass('active').css({ borderWidth: '1px', fontWeight: '600' });
-          hideCards(['#unit-card', '#lesson-card']);
-          $('#sel-unit, #sel-lesson').val('');
         } else {
           state.subject_id = s.id;
-          state.unit_id = 0;
-          state.lesson_id = 0;
 
           $('#subject-chips .badge').removeClass('active').css({ borderWidth: '1px', fontWeight: '600' });
           $(this).addClass('active').css({ borderWidth: '2px', fontWeight: '700' });
-
-          loadUnits(s.id);
         }
 
         state.paged = 1;
@@ -359,7 +302,7 @@
   }
 
   function resetFrom(level) {
-    const levels = ['system', 'stage', 'grade', 'subject', 'unit', 'lesson'];
+    const levels = ['system', 'stage', 'grade', 'subject'];
     const idx = levels.indexOf(level);
 
     levels.slice(idx).forEach(l => {
@@ -368,7 +311,7 @@
 
     state.difficulty = '';
     state.paged = 1;
-    hideCards(['#stage-card', '#grade-card', '#subject-card', '#unit-card', '#lesson-card']);
+    hideCards(['#stage-card', '#grade-card', '#subject-card']);
   }
 
   function restoreInitialState() {
@@ -435,8 +378,6 @@
     if (state.stage_id) params.set('stage', state.stage_id);
     if (state.grade_id) params.set('grade', state.grade_id);
     if (state.subject_id) params.set('subject', state.subject_id);
-    if (state.unit_id) params.set('unit', state.unit_id);
-    if (state.lesson_id) params.set('lesson', state.lesson_id);
     if (state.difficulty) params.set('difficulty', state.difficulty);
 
     const newUrl = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
