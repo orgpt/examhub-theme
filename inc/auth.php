@@ -381,7 +381,7 @@ function examhub_google_oauth_config() {
 	return array(
 		'client_id'    => trim( $client_id ),
 		'client_secret'=> trim( $secret ),
-		'redirect_uri' => admin_url( 'admin-post.php?action=examhub_google_callback' ),
+		'redirect_uri' => home_url( '/?examhub_google_callback=1' ),
 		'enabled'      => ! empty( $client_id ) && ! empty( $secret ),
 	);
 }
@@ -436,12 +436,28 @@ function examhub_register_google_oauth_settings() {
 		function() {
 			$value = (string) get_option( 'examhub_google_client_secret', '' );
 			echo '<input type="text" id="examhub_google_client_secret" name="examhub_google_client_secret" value="' . esc_attr( $value ) . '" class="regular-text" dir="ltr" />';
-			echo '<p class="description">' . esc_html__( 'Google redirect URI:', 'examhub' ) . ' <code>' . esc_html( admin_url( 'admin-post.php?action=examhub_google_callback' ) ) . '</code></p>';
+			echo '<p class="description">' . esc_html__( 'Google redirect URI:', 'examhub' ) . ' <code>' . esc_html( home_url( '/?examhub_google_callback=1' ) ) . '</code></p>';
 		},
 		'general'
 	);
 }
 add_action( 'admin_init', 'examhub_register_google_oauth_settings' );
+
+/**
+ * Frontend Google OAuth endpoints to avoid /wp-admin redirects.
+ */
+function examhub_google_oauth_front_controller() {
+	if ( isset( $_GET['examhub_google_start'] ) ) {
+		examhub_google_oauth_start();
+		exit;
+	}
+
+	if ( isset( $_GET['examhub_google_callback'] ) ) {
+		examhub_google_oauth_callback();
+		exit;
+	}
+}
+add_action( 'init', 'examhub_google_oauth_front_controller' );
 
 /**
  * Start Google OAuth flow.

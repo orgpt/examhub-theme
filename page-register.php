@@ -78,7 +78,7 @@ get_header();
 
 				<?php if ( function_exists( 'examhub_is_google_login_enabled' ) && examhub_is_google_login_enabled() ) : ?>
 					<div class="eh-auth-sep"><span><?php esc_html_e( 'أو', 'examhub' ); ?></span></div>
-					<a class="btn eh-google-btn w-100" href="<?php echo esc_url( add_query_arg( array( 'action' => 'examhub_google_start', 'redirect_to' => $redirect_to ), admin_url( 'admin-post.php' ) ) ); ?>">
+					<a class="btn eh-google-btn w-100" href="<?php echo esc_url( add_query_arg( array( 'examhub_google_start' => 1, 'redirect_to' => $redirect_to ), home_url( '/' ) ) ); ?>">
 						<i class="bi bi-google me-2"></i><?php esc_html_e( 'إنشاء حساب عبر Google', 'examhub' ); ?>
 					</a>
 				<?php endif; ?>
@@ -93,4 +93,3 @@ get_header();
 </div>
 
 <?php get_footer(); ?>
-
