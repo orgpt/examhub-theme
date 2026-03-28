@@ -259,7 +259,7 @@ $edu_systems = get_posts( [
 </div>
 
 <?php
-wp_footer_data( 'examhub_filter_config', [
+wp_footer_data( 'examhubFilterConfig', [
     'initial_system'  => $sel_system,
     'initial_stage'   => $sel_stage,
     'initial_grade'   => $sel_grade,

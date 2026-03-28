@@ -68,6 +68,11 @@ function examhub_enqueue_assets() {
     // Main theme JS
     wp_enqueue_script( 'examhub-main', EXAMHUB_ASSETS . 'js/main.js', [ 'jquery', 'bootstrap' ], $ver, true );
 
+    // Archive exam filter (system > stage > grade > ...)
+    if ( is_post_type_archive( 'eh_exam' ) ) {
+        wp_enqueue_script( 'examhub-filter', EXAMHUB_ASSETS . 'js/filter.js', [ 'jquery', 'examhub-main' ], $ver, true );
+    }
+
     // Exam engine JS (only on exam pages)
     if ( is_singular( 'eh_exam' ) || examhub_is_exam_page() ) {
         wp_enqueue_script( 'examhub-exam-engine', EXAMHUB_ASSETS . 'js/exam-engine.js', [ 'examhub-main', 'sortablejs' ], $ver, true );
