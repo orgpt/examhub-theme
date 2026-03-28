@@ -26,7 +26,7 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
       if ( $logo_url ) : ?>
         <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php bloginfo( 'name' ); ?>" height="36">
       <?php else : ?>
-        <span><?php echo esc_html( get_field( 'site_display_name', 'option' ) ?: get_bloginfo( 'name' ) ); ?></span>
+        <span>المراجعة النهائية</span>
       <?php endif; ?>
     </a>
 
