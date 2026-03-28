@@ -309,8 +309,8 @@ function examhub_payment_column_content( $col, $post_id ) {
         case 'pay_actions':
             $status = get_field( 'payment_status', $post_id );
             if ( $status === 'awaiting_review' ) {
-                echo '<button class="button button-primary eh-approve-payment" data-id="' . $post_id . '">' . esc_html__( '✓ قبول', 'examhub' ) . '</button> ';
-                echo '<button class="button eh-reject-payment" data-id="' . $post_id . '">' . esc_html__( '✗ رفض', 'examhub' ) . '</button>';
+                echo '<button type="button" class="button button-primary eh-approve-payment" data-id="' . $post_id . '">' . esc_html__( '✓ قبول', 'examhub' ) . '</button> ';
+                echo '<button type="button" class="button eh-reject-payment" data-id="' . $post_id . '">' . esc_html__( '✗ رفض', 'examhub' ) . '</button>';
 
                 $proof_id = get_field( 'payment_proof', $post_id );
                 if ( $proof_id ) {

@@ -1,6 +1,6 @@
 <?php
 /**
- * ExamHub — Admin Columns Extra (payment approve JS)
+ * ExamHub - Admin Columns Extra (payment approve JS)
  *
  * @package ExamHub
  */
@@ -13,20 +13,39 @@ add_action( 'admin_footer', function() {
     ?>
     <script>
     jQuery(function($){
-        $(document).on('click','.eh-approve-payment', function(){
+        $(document).on('click', '.eh-approve-payment', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+
             const id  = $(this).data('id');
-            const txn = prompt('رقم المعاملة (اختياري):','');
-            if(txn === null) return;
-            $.post(ajaxurl,{action:'eh_admin_approve_payment',nonce:'<?php echo wp_create_nonce("examhub_admin_ajax"); ?>',payment_id:id,transaction_id:txn},function(r){
-                r.success ? location.reload() : alert(r.data?.message || 'خطأ');
+            const txn = prompt('Transaction ID (optional):', '');
+            if (txn === null) return;
+
+            $.post(ajaxurl, {
+                action: 'eh_admin_approve_payment',
+                nonce: '<?php echo wp_create_nonce("examhub_admin_ajax"); ?>',
+                payment_id: id,
+                transaction_id: txn
+            }, function(r){
+                r.success ? location.reload() : alert(r.data?.message || 'Error');
             });
         });
-        $(document).on('click','.eh-reject-payment', function(){
+
+        $(document).on('click', '.eh-reject-payment', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+
             const id  = $(this).data('id');
-            const why = prompt('سبب الرفض:','');
-            if(!why) return;
-            $.post(ajaxurl,{action:'eh_admin_reject_payment',nonce:'<?php echo wp_create_nonce("examhub_admin_ajax"); ?>',payment_id:id,reason:why},function(r){
-                r.success ? location.reload() : alert(r.data?.message || 'خطأ');
+            const why = prompt('Reject reason:', '');
+            if (!why) return;
+
+            $.post(ajaxurl, {
+                action: 'eh_admin_reject_payment',
+                nonce: '<?php echo wp_create_nonce("examhub_admin_ajax"); ?>',
+                payment_id: id,
+                reason: why
+            }, function(r){
+                r.success ? location.reload() : alert(r.data?.message || 'Error');
             });
         });
     });
