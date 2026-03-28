@@ -89,7 +89,7 @@ $best_pct    = $best_result ? (float) get_field( 'percentage', $best_result ) : 
 
       <!-- Title -->
       <h3 class="exam-title">
-        <a href="<?php the_permalink(); ?>" class="text-light stretched-link">
+        <a href="<?php the_permalink(); ?>" class="text-light">
           <?php the_title(); ?>
         </a>
       </h3>
