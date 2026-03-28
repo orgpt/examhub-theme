@@ -1,0 +1,3 @@
+- [x] Remove duplicate function `examhub_build_exam_question_list()` from `inc/ajax-handlers.php`
+- [x] Verify only one declaration of `examhub_build_exam_question_list()` remains in project
+- [x] Update this TODO after each completed step

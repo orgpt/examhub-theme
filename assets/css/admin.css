@@ -1,0 +1,90 @@
+/**
+ * ExamHub — Admin CSS
+ * Custom styles for WordPress admin area.
+ */
+
+/* ── Admin Menu ── */
+#adminmenu .toplevel_page_examhub-content .wp-menu-image,
+#adminmenu .toplevel_page_examhub-settings .wp-menu-image {
+  color: #4361ee !important;
+}
+
+/* ── ACF question fields enhanced ── */
+.acf-field[data-name="question_text"] .acf-input textarea,
+.acf-field[data-name="explanation"] .acf-input iframe {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  direction: rtl;
+  font-size: 14px;
+}
+
+/* ── Question type field highlight ── */
+.acf-field[data-name="question_type"] .acf-select {
+  font-weight: bold;
+  border: 2px solid #4361ee;
+}
+
+/* ── PDF import page ── */
+#eh-pdf-upload-form .form-table th {
+  width: 160px;
+  font-weight: 600;
+}
+
+#extracted-questions-list {
+  max-height: 600px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px;
+  background: #fafafa;
+}
+
+/* ── Payment management ── */
+.eh-approve-payment {
+  background: #22c55e;
+  color: #fff;
+  border-color: #22c55e;
+}
+.eh-reject-payment {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}
+
+/* ── Question list column icons ── */
+.column-q_type, .column-q_ai, .column-q_dup { width: 80px; text-align: center; }
+.column-q_difficulty { width: 90px; }
+.column-q_usage { width: 70px; text-align: center; }
+.column-q_subject, .column-q_grade { width: 120px; }
+.column-q_book { width: 90px; }
+
+/* ── Result details in admin ── */
+.eh-result-breakdown {
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 12px;
+  margin: 8px 0;
+  font-family: monospace;
+  font-size: 12px;
+  max-height: 300px;
+  overflow: auto;
+}
+
+/* ── AI buttons ── */
+#eh-gen-explanation,
+#eh-gen-similar {
+  background: linear-gradient(135deg, #4361ee, #7c3aed);
+  color: #fff;
+  border: none;
+  margin-top: 6px;
+}
+#eh-gen-explanation:hover,
+#eh-gen-similar:hover {
+  opacity: 0.9;
+}
+
+/* ── Similar questions preview ── */
+#eh-similar-results {
+  font-size: 13px;
+  direction: rtl;
+}

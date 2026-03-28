@@ -1,0 +1,197 @@
+/**
+ * ExamHub — Dashboard Styles
+ * Analytics, charts, weak area bars, recent results.
+ */
+
+/* ── Dashboard welcome strip ── */
+.eh-dashboard-welcome {
+  background: linear-gradient(135deg, var(--eh-accent-light) 0%, transparent 60%);
+  border: 1px solid var(--eh-accent-glow);
+  border-radius: var(--eh-radius-xl);
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.eh-dashboard-welcome .welcome-avatar {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--eh-accent);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.eh-dashboard-welcome h2 { font-size: 1.3rem; font-weight: 800; margin: 0 0 .25rem; }
+@media (max-width: 576px) {
+  .eh-dashboard-welcome { flex-direction: column; text-align: center; padding: 1.25rem; }
+}
+
+/* ── Analytics section ── */
+.eh-analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+@media (max-width: 768px) {
+  .eh-analytics-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Performance donut ── */
+.eh-donut-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .5rem;
+}
+.eh-donut-label {
+  font-size: .78rem;
+  color: var(--eh-text-muted);
+  text-align: center;
+}
+
+/* ── Progress chart ── */
+.eh-chart-card {
+  background: var(--eh-bg-card);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--eh-radius-lg);
+  padding: 1.25rem;
+}
+.eh-chart-title {
+  font-size: .9rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.eh-chart-container { position: relative; height: 220px; }
+
+/* ── Recent result rows ── */
+.eh-result-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .75rem 0;
+  border-bottom: 1px solid var(--eh-border);
+  transition: var(--eh-transition);
+}
+.eh-result-row:last-child { border-bottom: none; }
+.eh-result-row:hover { background: var(--eh-bg-tertiary); margin: 0 -.5rem; padding-left: .5rem; padding-right: .5rem; border-radius: var(--eh-radius-sm); }
+
+.eh-result-icon {
+  width: 38px; height: 38px;
+  border-radius: var(--eh-radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.eh-result-info { flex: 1; min-width: 0; }
+.eh-result-title { font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eh-result-meta  { font-size: .75rem; color: var(--eh-text-muted); }
+.eh-result-score { text-align: left; flex-shrink: 0; font-size: .9rem; font-weight: 700; }
+
+/* ── In-progress exam pill ── */
+.eh-in-progress-card {
+  background: var(--eh-accent-light);
+  border: 1px solid var(--eh-accent-glow);
+  border-radius: var(--eh-radius-lg);
+  padding: .875rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: .75rem;
+  transition: var(--eh-transition);
+}
+.eh-in-progress-card:hover { border-color: var(--eh-accent); }
+.eh-in-progress-card .exam-name { font-weight: 600; font-size: .9rem; }
+.eh-in-progress-card .exam-progress { font-size: .78rem; color: var(--eh-text-muted); }
+.eh-in-progress-card .btn-resume { margin-right: auto; margin-left: 0; flex-shrink: 0; }
+
+/* ── Weak subject list ── */
+.eh-weak-subjects {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.eh-weak-item {
+  padding: .75rem;
+  background: var(--eh-bg-tertiary);
+  border-radius: var(--eh-radius);
+  border: 1px solid var(--eh-border);
+}
+.eh-weak-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .4rem;
+}
+.eh-weak-item-name { font-size: .88rem; font-weight: 600; }
+.eh-weak-item-pct  { font-size: .85rem; font-weight: 700; color: var(--eh-danger); }
+.eh-weak-item .progress { height: 5px; }
+
+/* ── Recommended exam horizontal scroll ── */
+.eh-recommended-scroll {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  padding-bottom: .5rem;
+  scrollbar-width: thin;
+}
+.eh-recommended-scroll::-webkit-scrollbar { height: 4px; }
+.eh-recommended-card {
+  min-width: 220px;
+  max-width: 220px;
+  background: var(--eh-bg-card);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--eh-radius-lg);
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: var(--eh-transition);
+  text-decoration: none;
+  color: inherit;
+}
+.eh-recommended-card:hover { border-color: var(--eh-accent); transform: translateY(-2px); color: inherit; }
+.eh-recommended-card .card-thumb { height: 100px; background: var(--eh-bg-tertiary); overflow: hidden; }
+.eh-recommended-card .card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.eh-recommended-card .card-info { padding: .75rem; }
+.eh-recommended-card .card-title { font-size: .85rem; font-weight: 600; margin: 0 0 .25rem; }
+.eh-recommended-card .card-meta  { font-size: .72rem; color: var(--eh-text-muted); }
+
+/* ── Daily progress ring ── */
+.eh-daily-ring {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+.eh-daily-ring svg { transform: rotate(-90deg); }
+.eh-daily-ring-label {
+  position: absolute;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--eh-text-primary);
+}
+
+/* ── Quick action buttons ── */
+.eh-quick-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+}
+.eh-quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  padding: .875rem 1rem;
+  background: var(--eh-bg-card);
+  border: 1px solid var(--eh-border);
+  border-radius: var(--eh-radius-lg);
+  text-decoration: none;
+  color: var(--eh-text-secondary);
+  transition: var(--eh-transition);
+  font-size: .88rem;
+  font-weight: 500;
+}
+.eh-quick-action-btn:hover { border-color: var(--eh-accent); color: var(--eh-accent); background: var(--eh-accent-light); }
+.eh-quick-action-btn .btn-icon { font-size: 1.3rem; flex-shrink: 0; }

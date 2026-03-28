@@ -1,0 +1,102 @@
+<?php
+/**
+ * ExamHub Pro — functions.php
+ * Main theme bootstrap file. Loads all modules in correct order.
+ *
+ * @package ExamHub
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+define( 'EXAMHUB_VERSION',   '1.0.0' );
+define( 'EXAMHUB_DIR',       get_template_directory() );
+define( 'EXAMHUB_URL',       get_template_directory_uri() );
+define( 'EXAMHUB_INC',       EXAMHUB_DIR . '/inc/' );
+define( 'EXAMHUB_ASSETS',    EXAMHUB_URL . '/assets/' );
+define( 'EXAMHUB_TEXT',      'examhub' );
+
+// ─── Core Includes ─────────────────────────────────────────────────────────────
+$examhub_includes = [
+    'inc/helpers.php',            // Utility functions
+    'inc/cpt-registration.php',   // All Custom Post Types
+    'inc/acf-fields.php',         // ACF field group registration
+    'inc/acf-options.php',        // ACF options pages
+    'inc/taxonomies.php',         // Custom taxonomies
+    'inc/theme-setup.php',        // Theme supports, nav menus
+    'inc/enqueue.php',            // Scripts & styles
+    'inc/ajax-handlers.php',      // AJAX endpoints
+    'inc/rest-api.php',           // REST API extensions
+    'inc/user-roles.php',         // Custom roles & capabilities
+    'inc/subscription.php',       // Subscription logic
+    'inc/payment.php',            // Payment gateway routing
+    'inc/payment-fawaterk.php',   // Fawaterk integration
+    'inc/payment-vodafone.php',   // Vodafone Cash
+    'inc/payment-manual.php',     // Manual payment
+    'inc/exam-engine.php',        // Exam session logic
+    'inc/question-bank.php',      // Question bank utilities
+    'inc/ai-integration.php',     // DeepSeek AI
+    'inc/gamification.php',       // XP, badges, leaderboard
+    'inc/analytics.php',          // Performance analytics
+    'inc/pdf-import.php',         // PDF upload & OCR
+    'inc/admin-columns.php',      // Admin list improvements
+    'inc/shortcodes.php',         // Theme shortcodes
+    'inc/template-hooks.php',     // Action/filter hooks
+    'inc/security.php',           // Nonces, validation, rate limiting
+];
+
+foreach ( $examhub_includes as $file ) {
+    $path = EXAMHUB_DIR . '/' . $file;
+    if ( file_exists( $path ) ) {
+        require_once $path;
+    } else {
+        // Log missing file in debug mode only
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+            error_log( 'ExamHub: Missing include file: ' . $file );
+        }
+    }
+}
+
+// ─── ACF JSON Save/Load Point ─────────────────────────────────────────────────
+add_filter( 'acf/settings/save_json', function() {
+    return EXAMHUB_DIR . '/acf-json';
+} );
+
+add_filter( 'acf/settings/load_json', function( $paths ) {
+    $paths[] = EXAMHUB_DIR . '/acf-json';
+    return $paths;
+} );
+
+// ─── ACF Options Page ─────────────────────────────────────────────────────────
+add_action( 'acf/init', function() {
+    if ( function_exists( 'acf_add_options_page' ) ) {
+        acf_add_options_page( [
+            'page_title' => __( 'ExamHub Settings', 'examhub' ),
+            'menu_title' => __( 'ExamHub', 'examhub' ),
+            'menu_slug'  => 'examhub-settings',
+            'capability' => 'manage_options',
+            'icon_url'   => 'dashicons-welcome-learn-more',
+            'position'   => 3,
+        ] );
+        acf_add_options_sub_page( [
+            'page_title'  => __( 'Payment Settings', 'examhub' ),
+            'menu_title'  => __( 'Payments', 'examhub' ),
+            'parent_slug' => 'examhub-settings',
+        ] );
+        acf_add_options_sub_page( [
+            'page_title'  => __( 'AI Settings', 'examhub' ),
+            'menu_title'  => __( 'AI / DeepSeek', 'examhub' ),
+            'parent_slug' => 'examhub-settings',
+        ] );
+        acf_add_options_sub_page( [
+            'page_title'  => __( 'Subscription Plans', 'examhub' ),
+            'menu_title'  => __( 'Plans', 'examhub' ),
+            'parent_slug' => 'examhub-settings',
+        ] );
+        acf_add_options_sub_page( [
+            'page_title'  => __( 'Gamification Settings', 'examhub' ),
+            'menu_title'  => __( 'Gamification', 'examhub' ),
+            'parent_slug' => 'examhub-settings',
+        ] );
+    }
+} );
