@@ -1078,6 +1078,26 @@ img { max-width: 100%; height: auto; }
   font-weight: 700;
 }
 
+/* Grade select readability fixes (profile/register) */
+.eh-grade-select,
+select[name="default_grade"] {
+  color: var(--eh-text-primary) !important;
+  background-color: var(--eh-bg-input) !important;
+  border-color: var(--eh-border) !important;
+}
+
+.eh-grade-select option,
+select[name="default_grade"] option {
+  color: #e8eaf6 !important;
+  background-color: #161923 !important;
+}
+
+.eh-grade-select:focus,
+select[name="default_grade"]:focus {
+  border-color: var(--eh-border-focus) !important;
+  box-shadow: 0 0 0 3px var(--eh-accent-light) !important;
+}
+
 @media (max-width: 575px) {
   .eh-auth-wrap {
     min-height: auto;

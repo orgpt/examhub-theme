@@ -1,6 +1,6 @@
-<?php
+﻿<?php
 /**
- * ExamHub — page-dashboard.php
+ * ExamHub - page-dashboard.php
  * Student dashboard: stats, recent exams, charts, achievements.
  * Apply to any page with slug 'dashboard'.
  *
@@ -54,12 +54,14 @@ $recent_results = get_posts( [
 
 // Recommended exams (based on grade)
 $user_grade  = get_user_meta( $user_id, 'eh_default_grade', true );
+$user_grade_name = $user_grade ? ( get_field( 'grade_name_ar', $user_grade ) ?: get_the_title( $user_grade ) ) : '';
 $recommended = get_posts( [
     'post_type'      => 'eh_exam',
-    'posts_per_page' => 4,
+    'posts_per_page' => $user_grade ? 8 : 4,
     'post_status'    => 'publish',
     'meta_query'     => $user_grade ? [ [ 'key' => 'exam_grade', 'value' => $user_grade ] ] : [],
-    'orderby'        => 'rand',
+    'orderby'        => $user_grade ? 'date' : 'rand',
+    'order'          => 'DESC',
 ] );
 
 get_header();
@@ -71,7 +73,7 @@ get_header();
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
       <div>
         <h1 class="eh-page-title">
-          <?php printf( esc_html__( 'مرحباً، %s 👋', 'examhub' ), esc_html( $user->display_name ) ); ?>
+          <?php printf( esc_html__( 'مرحباً، %s', 'examhub' ), esc_html( $user->display_name ) ); ?>
         </h1>
         <p class="eh-page-subtitle mb-0">
           <?php esc_html_e( 'لوحة التحكم الخاصة بك', 'examhub' ); ?>
@@ -93,14 +95,14 @@ get_header();
     </div>
   </div>
 
-  <!-- ─── Stats Row ───────────────────────────────────────────────── -->
+  <!-- إحصائيات -->
   <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3">
       <div class="eh-stat-card">
         <div class="stat-icon icon-accent"><i class="bi bi-clipboard-check-fill"></i></div>
         <div>
           <div class="stat-value"><?php echo number_format( $analytics['total_exams'] ); ?></div>
-          <div class="stat-label"><?php esc_html_e( 'امتحان أديت', 'examhub' ); ?></div>
+          <div class="stat-label"><?php esc_html_e( 'امتحان أديته', 'examhub' ); ?></div>
         </div>
       </div>
     </div>
@@ -135,7 +137,7 @@ get_header();
 
   <div class="row g-4">
 
-    <!-- ─── Left column ─────────────────────────────────────────── -->
+    <!-- العمود الأيسر -->
     <div class="col-lg-8">
 
       <!-- XP Level Card -->
@@ -220,12 +222,23 @@ get_header();
           <div class="d-flex justify-content-between align-items-center mb-3">
             <h6 class="eh-section-title mb-0">
               <i class="bi bi-stars icon"></i>
-              <?php esc_html_e( 'امتحانات مقترحة لك', 'examhub' ); ?>
+              <?php
+              if ( $user_grade_name ) {
+                printf( esc_html__( 'امتحانات صفك: %s', 'examhub' ), esc_html( $user_grade_name ) );
+              } else {
+                esc_html_e( 'امتحانات مقترحة لك', 'examhub' );
+              }
+              ?>
             </h6>
             <a href="<?php echo get_post_type_archive_link( 'eh_exam' ); ?>" class="small text-accent">
               <?php esc_html_e( 'الكل', 'examhub' ); ?>
             </a>
           </div>
+          <?php if ( ! $user_grade_name ) : ?>
+            <div class="alert alert-info py-2 px-3 mb-3">
+              <?php esc_html_e( 'لإظهار امتحانات صفك مباشرة، اختر صفك الدراسي من الملف الشخصي.', 'examhub' ); ?>
+            </div>
+          <?php endif; ?>
           <div class="row g-2">
             <?php foreach ( $recommended as $rec_exam ) :
               setup_postdata( $GLOBALS['post'] = $rec_exam );
@@ -239,7 +252,7 @@ get_header();
 
     </div>
 
-    <!-- ─── Right column ─────────────────────────────────────────── -->
+    <!-- العمود الأيمن -->
     <div class="col-lg-4">
 
       <!-- Continue exams -->
@@ -426,3 +439,4 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php get_footer(); ?>
+

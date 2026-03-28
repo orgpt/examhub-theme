@@ -206,6 +206,7 @@ function examhub_handle_auth_register() {
 
 	$name       = isset( $_POST['display_name'] ) ? sanitize_text_field( wp_unslash( $_POST['display_name'] ) ) : '';
 	$email      = isset( $_POST['user_email'] ) ? sanitize_email( wp_unslash( $_POST['user_email'] ) ) : '';
+	$grade_id   = isset( $_POST['default_grade'] ) ? (int) wp_unslash( $_POST['default_grade'] ) : 0;
 	$password   = isset( $_POST['user_pass'] ) ? (string) $_POST['user_pass'] : '';
 	$confirm    = isset( $_POST['user_pass_confirm'] ) ? (string) $_POST['user_pass_confirm'] : '';
 	$redirect   = isset( $_POST['redirect_to'] ) ? esc_url_raw( wp_unslash( $_POST['redirect_to'] ) ) : home_url( '/dashboard' );
@@ -235,6 +236,11 @@ function examhub_handle_auth_register() {
 		exit;
 	}
 
+	if ( $grade_id <= 0 || 'eh_grade' !== get_post_type( $grade_id ) ) {
+		wp_safe_redirect( examhub_auth_page_url( 'register', array( 'auth_error' => 'missing_grade' ) ) );
+		exit;
+	}
+
 	$base_username = sanitize_user( current( explode( '@', $email ) ), true );
 	$username      = $base_username ? $base_username : 'student';
 	$suffix        = 1;
@@ -259,6 +265,9 @@ function examhub_handle_auth_register() {
 		wp_safe_redirect( examhub_auth_page_url( 'register', array( 'auth_error' => 'register_failed' ) ) );
 		exit;
 	}
+
+	update_user_meta( $user_id, 'eh_default_grade', $grade_id );
+	update_user_meta( $user_id, 'eh_grade_id', $grade_id );
 
 	wp_set_current_user( $user_id );
 	wp_set_auth_cookie( $user_id, true );

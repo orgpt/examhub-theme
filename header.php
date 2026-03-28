@@ -71,7 +71,7 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
           $user      = wp_get_current_user();
           $xp        = (int) get_user_meta( $user_id, 'eh_xp', true );
           $level     = examhub_get_user_level( $xp );
-          $avatar    = get_avatar_url( $user_id, [ 'size' => 72 ] );
+          $avatar    = function_exists( 'examhub_get_user_avatar_url' ) ? examhub_get_user_avatar_url( $user_id, 72 ) : get_avatar_url( $user_id, [ 'size' => 72 ] );
           $sub       = examhub_get_user_subscription_status( $user_id );
           ?>
 

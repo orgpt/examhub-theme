@@ -516,3 +516,73 @@ function examhub_log( $message, $context = [] ) {
     $ctx_str = $context ? ' ' . json_encode( $context, JSON_UNESCAPED_UNICODE ) : '';
     error_log( '[ExamHub] ' . $message . $ctx_str );
 }
+
+/**
+ * Get a deterministic fallback avatar SVG as data URI.
+ *
+ * @param string $text
+ * @param int    $size
+ * @return string
+ */
+function examhub_avatar_placeholder_data_uri( $text = 'U', $size = 96 ) {
+    $char = strtoupper( trim( (string) $text ) );
+    if ( function_exists( 'mb_substr' ) ) {
+        $char = mb_substr( $char, 0, 1 );
+    } else {
+        $char = substr( $char, 0, 1 );
+    }
+    if ( '' === $char ) {
+        $char = 'U';
+    }
+
+    $safe_char = esc_html( $char );
+    $font_size = max( 14, (int) round( $size * 0.44 ) );
+
+    $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' . (int) $size . '" height="' . (int) $size . '" viewBox="0 0 100 100">'
+        . '<defs><linearGradient id="g" x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stop-color="#4361ee"/><stop offset="100%" stop-color="#1f2b5c"/></linearGradient></defs>'
+        . '<rect width="100" height="100" rx="50" fill="url(#g)"/>'
+        . '<text x="50" y="57" dominant-baseline="middle" text-anchor="middle" font-family="Cairo,Tajawal,Arial,sans-serif" font-size="' . $font_size . '" font-weight="700" fill="#ffffff">'
+        . $safe_char
+        . '</text></svg>';
+
+    return 'data:image/svg+xml;base64,' . base64_encode( $svg );
+}
+
+/**
+ * Get user avatar URL with robust fallback.
+ * Priority: Google image meta > real WP avatar > generated initials avatar.
+ *
+ * @param int $user_id
+ * @param int $size
+ * @return string
+ */
+function examhub_get_user_avatar_url( $user_id = 0, $size = 96 ) {
+    if ( ! $user_id ) {
+        $user_id = get_current_user_id();
+    }
+
+    $user = get_userdata( $user_id );
+    if ( ! $user ) {
+        return examhub_avatar_placeholder_data_uri( 'U', $size );
+    }
+
+    $google_avatar = (string) get_user_meta( $user_id, 'examhub_google_picture', true );
+    if ( $google_avatar && filter_var( $google_avatar, FILTER_VALIDATE_URL ) ) {
+        return add_query_arg( 'sz', (int) $size, $google_avatar );
+    }
+
+    $avatar_data = get_avatar_data(
+        $user_id,
+        array(
+            'size'    => (int) $size,
+            'default' => '404',
+        )
+    );
+
+    if ( ! empty( $avatar_data['found_avatar'] ) && ! empty( $avatar_data['url'] ) ) {
+        return $avatar_data['url'];
+    }
+
+    $name = $user->display_name ? $user->display_name : $user->user_login;
+    return examhub_avatar_placeholder_data_uri( $name, $size );
+}

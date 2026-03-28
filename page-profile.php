@@ -21,7 +21,7 @@ $streak   = (int) get_user_meta( $user_id, 'eh_streak', true );
 $sub      = examhub_get_user_subscription_status( $user_id );
 $badges   = examhub_get_user_badges( $user_id );
 $my_rank  = examhub_get_user_rank( $user_id );
-$avatar   = get_avatar_url( $user_id, [ 'size' => 200 ] );
+$avatar   = function_exists( 'examhub_get_user_avatar_url' ) ? examhub_get_user_avatar_url( $user_id, 200 ) : get_avatar_url( $user_id, [ 'size' => 200 ] );
 
 // All grades for default grade picker
 $all_grades = get_posts( [

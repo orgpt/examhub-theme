@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * ExamHub - page-register.php
  *
@@ -14,6 +14,16 @@ if ( is_user_logged_in() ) {
 
 $error_code  = isset( $_GET['auth_error'] ) ? sanitize_key( wp_unslash( $_GET['auth_error'] ) ) : '';
 $redirect_to = isset( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : home_url( '/dashboard' );
+$all_grades  = get_posts(
+	array(
+		'post_type'      => 'eh_grade',
+		'posts_per_page' => 200,
+		'orderby'        => 'meta_value_num',
+		'meta_key'       => 'grade_number',
+		'order'          => 'ASC',
+		'post_status'    => 'publish',
+	)
+);
 
 $error_map = array(
 	'registration_disabled' => __( 'تسجيل الحسابات الجديدة متوقف حالياً.', 'examhub' ),
@@ -23,6 +33,7 @@ $error_map = array(
 	'email_exists'          => __( 'هذا البريد مستخدم بالفعل.', 'examhub' ),
 	'weak_password'         => __( 'كلمة المرور يجب أن تكون 8 أحرف أو أكثر.', 'examhub' ),
 	'password_mismatch'     => __( 'كلمتا المرور غير متطابقتين.', 'examhub' ),
+	'missing_grade'         => __( 'من فضلك اختر صفك الدراسي.', 'examhub' ),
 	'register_failed'       => __( 'تعذر إنشاء الحساب. حاول مرة أخرى.', 'examhub' ),
 );
 
@@ -58,6 +69,17 @@ get_header();
 					<div>
 						<label class="form-label"><?php esc_html_e( 'البريد الإلكتروني', 'examhub' ); ?></label>
 						<input class="form-control" type="email" name="user_email" required dir="ltr">
+					</div>
+
+					<div>
+						<label class="form-label"><?php esc_html_e( 'اختر صفك الدراسي', 'examhub' ); ?></label>
+						<select class="form-select eh-grade-select" name="default_grade" required>
+							<option value=""><?php esc_html_e( '— اختر الصف —', 'examhub' ); ?></option>
+							<?php foreach ( $all_grades as $grade ) : ?>
+								<?php $grade_name = get_field( 'grade_name_ar', $grade->ID ) ?: $grade->post_title; ?>
+								<option value="<?php echo esc_attr( $grade->ID ); ?>"><?php echo esc_html( $grade_name ); ?></option>
+							<?php endforeach; ?>
+						</select>
 					</div>
 
 					<div>
