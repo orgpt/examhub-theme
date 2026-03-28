@@ -111,7 +111,7 @@ get_header();
       <div class="card mb-3">
         <div class="card-body text-center py-4">
           <div class="position-relative d-inline-block mb-3">
-            <img src="<?php echo esc_url( $avatar ); ?>" alt="" class="rounded-circle border" style="width:90px;height:90px;object-fit:cover;border-color:var(--eh-accent)!important;border-width:3px!important;">
+            <img src="<?php echo esc_url( $avatar ); ?>" alt="" class="eh-avatar rounded-circle border" style="width:90px;height:90px;border-color:var(--eh-accent)!important;border-width:3px!important;" loading="lazy" decoding="async">
             <span class="position-absolute bottom-0 end-0 badge rounded-pill" style="background:var(--eh-accent);font-size:.65rem;padding:.3em .5em;">
               <?php echo esc_html( $level['name'] ); ?>
             </span>

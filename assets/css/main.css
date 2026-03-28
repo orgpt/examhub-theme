@@ -288,6 +288,18 @@ img { max-width: 100%; height: auto; }
   border-radius: 50%;
   border: 2px solid var(--eh-accent);
   object-fit: cover;
+  object-position: center;
+  display: block;
+  min-width: 36px;
+  min-height: 36px;
+  background: var(--eh-bg-tertiary);
+}
+
+.eh-avatar {
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+  background: var(--eh-bg-tertiary);
 }
 
 /* XP badge in navbar */

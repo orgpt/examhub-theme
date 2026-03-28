@@ -146,6 +146,31 @@ add_filter(
 );
 
 /**
+ * Disable admin bar on frontend for non-admin users.
+ *
+ * @param bool $show
+ * @return bool
+ */
+function examhub_filter_show_admin_bar( $show ) {
+	if ( ! is_user_logged_in() ) {
+		return false;
+	}
+	return current_user_can( 'manage_options' ) ? $show : false;
+}
+add_filter( 'show_admin_bar', 'examhub_filter_show_admin_bar', 20 );
+
+/**
+ * Ensure new users have admin bar disabled on frontend.
+ *
+ * @param int $user_id
+ * @return void
+ */
+function examhub_disable_admin_bar_for_new_user( $user_id ) {
+	update_user_meta( $user_id, 'show_admin_bar_front', 'false' );
+}
+add_action( 'user_register', 'examhub_disable_admin_bar_for_new_user' );
+
+/**
  * Login action.
  */
 function examhub_handle_auth_login() {

@@ -105,7 +105,7 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
           <div class="dropdown">
             <button class="btn btn-ghost btn-sm d-flex align-items-center gap-2 p-1 pe-2"
               data-bs-toggle="dropdown" aria-expanded="false">
-              <img src="<?php echo esc_url( $avatar ); ?>" alt="" class="eh-navbar nav-user-avatar rounded-circle" width="34" height="34">
+              <img src="<?php echo esc_url( $avatar ); ?>" alt="" class="eh-navbar nav-user-avatar eh-avatar rounded-circle" width="34" height="34" loading="lazy" decoding="async">
               <span class="d-none d-lg-block text-light small"><?php echo esc_html( $user->display_name ); ?></span>
               <i class="bi bi-chevron-down small text-muted"></i>
             </button>
