@@ -68,10 +68,7 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
 
         <?php if ( is_user_logged_in() ) :
           $user_id   = get_current_user_id();
-          $user      = wp_get_current_user();
           $xp        = (int) get_user_meta( $user_id, 'eh_xp', true );
-          $level     = examhub_get_user_level( $xp );
-          $avatar    = function_exists( 'examhub_get_user_avatar_url' ) ? examhub_get_user_avatar_url( $user_id, 72 ) : get_avatar_url( $user_id, [ 'size' => 72 ] );
           $sub       = examhub_get_user_subscription_status( $user_id );
           ?>
 
@@ -113,35 +110,10 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
             </a>
           <?php endif; ?>
 
-          <!-- User dropdown -->
-          <div class="dropdown">
-            <button class="btn btn-ghost btn-sm d-flex align-items-center gap-2 p-1 pe-2"
-              data-bs-toggle="dropdown" aria-expanded="false">
-              <img src="<?php echo esc_url( $avatar ); ?>" alt="" class="eh-navbar nav-user-avatar eh-avatar rounded-circle" width="34" height="34" loading="lazy" decoding="async">
-              <span class="d-none d-lg-block text-light small"><?php echo esc_html( $user->display_name ); ?></span>
-              <i class="bi bi-chevron-down small text-muted"></i>
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li>
-                <div class="px-3 py-2">
-                  <div class="fw-bold text-light"><?php echo esc_html( $user->display_name ); ?></div>
-                  <div class="small text-muted"><?php echo esc_html( $user->user_email ); ?></div>
-                  <div class="mt-1 small text-accent"><?php echo esc_html( $level['name'] ); ?> · <?php echo number_format( $xp ); ?> XP</div>
-                </div>
-              </li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="<?php echo home_url( '/dashboard' ); ?>"><i class="bi bi-speedometer2 me-2"></i><?php esc_html_e( 'لوحة التحكم', 'examhub' ); ?></a></li>
-              <li><a class="dropdown-item" href="<?php echo home_url( '/my-results' ); ?>"><i class="bi bi-bar-chart me-2"></i><?php esc_html_e( 'نتائجي', 'examhub' ); ?></a></li>
-              <li><a class="dropdown-item" href="<?php echo home_url( '/subscription' ); ?>"><i class="bi bi-credit-card me-2"></i><?php esc_html_e( 'اشتراكي', 'examhub' ); ?></a></li>
-              <li><a class="dropdown-item" href="<?php echo home_url( '/profile' ); ?>"><i class="bi bi-person me-2"></i><?php esc_html_e( 'الملف الشخصي', 'examhub' ); ?></a></li>
-              <li><hr class="dropdown-divider"></li>
-              <li>
-                <a class="dropdown-item text-danger" href="<?php echo wp_logout_url( home_url() ); ?>">
-                  <i class="bi bi-box-arrow-right me-2"></i><?php esc_html_e( 'تسجيل الخروج', 'examhub' ); ?>
-                </a>
-              </li>
-            </ul>
-          </div>
+          <!-- Logout icon -->
+          <a class="btn btn-ghost btn-sm p-2" href="<?php echo esc_url( wp_logout_url( home_url() ) ); ?>" title="<?php esc_attr_e( 'تسجيل الخروج', 'examhub' ); ?>" aria-label="<?php esc_attr_e( 'تسجيل الخروج', 'examhub' ); ?>">
+            <i class="bi bi-box-arrow-right"></i>
+          </a>
 
         <?php else : ?>
           <a href="<?php echo wp_login_url( get_permalink() ); ?>" class="btn btn-ghost btn-sm">
