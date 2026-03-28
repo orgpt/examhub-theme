@@ -146,7 +146,7 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
     <div class="card-body p-0">
       <h4 class="p-4 mb-0 border-bottom border-eh"><?php esc_html_e( 'مقارنة الخطط', 'examhub' ); ?></h4>
       <div class="table-responsive">
-        <table class="table mb-0">
+        <table class="table mb-0 eh-pricing-compare-table">
           <thead>
             <tr>
               <th><?php esc_html_e( 'الميزة', 'examhub' ); ?></th>
@@ -207,7 +207,7 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
   <div class="row justify-content-center">
     <div class="col-lg-8">
       <h3 class="mb-4"><?php esc_html_e( 'أسئلة شائعة', 'examhub' ); ?></h3>
-      <div class="accordion" id="pricingFAQ">
+      <div class="accordion eh-pricing-faq" id="pricingFAQ">
         <?php
         $faqs = [
           [ __('هل يمكنني الإلغاء في أي وقت؟','examhub'), __('نعم، يمكنك إلغاء اشتراكك في أي وقت من لوحة التحكم. ستستمر في الاستفادة حتى نهاية فترة الفوترة الحالية.','examhub') ],
@@ -224,7 +224,7 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
             </button>
           </h2>
           <div id="faq<?php echo $i; ?>" class="accordion-collapse collapse <?php echo $i === 0 ? 'show' : ''; ?>" data-bs-parent="#pricingFAQ">
-            <div class="accordion-body text-muted"><?php echo esc_html( $faq[1] ); ?></div>
+            <div class="accordion-body"><?php echo esc_html( $faq[1] ); ?></div>
           </div>
         </div>
         <?php endforeach; ?>

@@ -820,3 +820,44 @@ img { max-width: 100%; height: auto; }
     font-size: 0.8rem;
   }
 }
+/* Pricing table + FAQ color fixes */
+.eh-pricing-compare-table,
+.eh-pricing-compare-table th,
+.eh-pricing-compare-table td {
+  color: var(--eh-text-primary) !important;
+}
+
+.eh-pricing-compare-table thead th {
+  color: var(--eh-text-primary) !important;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.eh-pricing-compare-table tbody td:first-child {
+  color: var(--eh-text-primary) !important;
+  font-weight: 600;
+}
+
+.eh-pricing-compare-table .text-muted {
+  color: var(--eh-text-muted) !important;
+}
+
+.eh-pricing-faq .accordion-item {
+  background: var(--eh-bg-card);
+  border: 1px solid var(--eh-border);
+}
+
+.eh-pricing-faq .accordion-button,
+.eh-pricing-faq .accordion-button:not(.collapsed) {
+  color: var(--eh-text-primary) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.eh-pricing-faq .accordion-button::after {
+  filter: invert(75%) sepia(18%) saturate(597%) hue-rotate(191deg) brightness(96%) contrast(87%);
+}
+
+.eh-pricing-faq .accordion-body {
+  color: var(--eh-text-secondary) !important;
+}
