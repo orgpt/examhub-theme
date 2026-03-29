@@ -139,6 +139,28 @@ function examhub_question_sortable_columns( $cols ) {
     return $cols;
 }
 
+// Lesson admin columns (for easier data auditing)
+add_filter( 'manage_eh_lesson_posts_columns', function( $cols ) {
+    return [
+        'cb'         => $cols['cb'],
+        'title'      => __( 'الدرس', 'examhub' ),
+        'les_subject'=> __( 'المادة', 'examhub' ),
+        'les_unit'   => __( 'الوحدة', 'examhub' ),
+        'date'       => __( 'التاريخ', 'examhub' ),
+    ];
+} );
+
+add_action( 'manage_eh_lesson_posts_custom_column', function( $col, $post_id ) {
+    if ( $col === 'les_subject' ) {
+        $sid = (int) get_field( 'lesson_subject', $post_id );
+        echo $sid ? esc_html( get_the_title( $sid ) ) : '—';
+    }
+    if ( $col === 'les_unit' ) {
+        $uid = (int) get_field( 'lesson_unit', $post_id );
+        echo $uid ? esc_html( get_the_title( $uid ) ) : '—';
+    }
+}, 10, 2 );
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ADMIN COLUMNS — EXAMS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -236,6 +258,31 @@ function examhub_get_acf_request_value( $field_key, $saved_field_name, $post_id,
     }
 
     return (int) get_field( $saved_field_name, $post_id );
+}
+
+/**
+ * Check if lesson belongs to the selected subject.
+ */
+function examhub_lesson_matches_subject( $lesson_id, $subject_id ) {
+    $lesson_id  = (int) $lesson_id;
+    $subject_id = (int) $subject_id;
+
+    if ( ! $lesson_id || ! $subject_id ) {
+        return false;
+    }
+
+    $lesson_subject = (int) get_field( 'lesson_subject', $lesson_id );
+    if ( $lesson_subject === $subject_id ) {
+        return true;
+    }
+
+    $lesson_unit = (int) get_field( 'lesson_unit', $lesson_id );
+    if ( ! $lesson_unit ) {
+        return false;
+    }
+
+    $unit_subject = (int) get_field( 'unit_subject', $lesson_unit );
+    return $unit_subject === $subject_id;
 }
 
 /**
@@ -340,6 +387,36 @@ function examhub_filter_lesson_by_subject( $args, $field, $post_id ) {
 }
 add_filter( 'acf/fields/post_object/query/key=field_ex_lesson', 'examhub_filter_lesson_by_subject', 10, 3 );
 add_filter( 'acf/fields/post_object/query/key=field_q_lesson', 'examhub_filter_lesson_by_subject', 10, 3 );
+
+/**
+ * Ensure selected exam lesson is compatible with selected exam subject.
+ */
+add_filter( 'acf/update_value/key=field_ex_lesson', 'examhub_validate_exam_lesson_subject', 10, 3 );
+function examhub_validate_exam_lesson_subject( $value, $post_id, $field ) {
+    $lesson_id  = (int) $value;
+    $subject_id = examhub_get_acf_request_value( 'field_ex_subject', 'exam_subject', $post_id, [ 'subject_id' ] );
+
+    if ( ! $lesson_id || ! $subject_id ) {
+        return $value;
+    }
+
+    return examhub_lesson_matches_subject( $lesson_id, $subject_id ) ? $value : '';
+}
+
+/**
+ * Ensure selected question lesson is compatible with selected question subject.
+ */
+add_filter( 'acf/update_value/key=field_q_lesson', 'examhub_validate_question_lesson_subject', 10, 3 );
+function examhub_validate_question_lesson_subject( $value, $post_id, $field ) {
+    $lesson_id  = (int) $value;
+    $subject_id = examhub_get_acf_request_value( 'field_q_subject', 'subject', $post_id, [ 'subject_id' ] );
+
+    if ( ! $lesson_id || ! $subject_id ) {
+        return $value;
+    }
+
+    return examhub_lesson_matches_subject( $lesson_id, $subject_id ) ? $value : '';
+}
 
 /**
  * Filter exam question picker by selected grade + subject + lesson.

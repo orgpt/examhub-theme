@@ -65,13 +65,12 @@ function examhub_register_cpts() {
         'rewrite'      => [ 'slug' => 'subject' ],
         'has_archive'  => true,
     ] );
-
-    // ─── 5. Unit (الوحدة) ──────────────────────────────────────────────────
+    // 5. Unit
     register_post_type( 'eh_unit', [
         'labels'       => examhub_cpt_labels( 'وحدة', 'وحدات', 'Unit', 'Units' ),
         'public'       => false,
-        'show_ui'      => false,
-        'show_in_menu' => false,
+        'show_ui'      => true,
+        'show_in_menu' => 'examhub-content',
         'show_in_rest' => false,
         'supports'     => [ 'title', 'page-attributes' ],
         'menu_icon'    => 'dashicons-networking',
@@ -79,20 +78,18 @@ function examhub_register_cpts() {
         'has_archive'  => false,
     ] );
 
-    // ─── 6. Lesson (الدرس) ─────────────────────────────────────────────────
+    // 6. Lesson
     register_post_type( 'eh_lesson', [
         'labels'       => examhub_cpt_labels( 'درس', 'دروس', 'Lesson', 'Lessons' ),
         'public'       => false,
-        'show_ui'      => false,
-        'show_in_menu' => false,
+        'show_ui'      => true,
+        'show_in_menu' => 'examhub-content',
         'show_in_rest' => false,
         'supports'     => [ 'title', 'editor', 'thumbnail', 'page-attributes' ],
         'menu_icon'    => 'dashicons-media-document',
         'rewrite'      => [ 'slug' => 'lesson' ],
         'has_archive'  => false,
     ] );
-
-    // ─── 7. Exam (الامتحان) ────────────────────────────────────────────────
     register_post_type( 'eh_exam', [
         'labels'       => examhub_cpt_labels( 'امتحان', 'امتحانات', 'Exam', 'Exams' ),
         'public'       => true,
