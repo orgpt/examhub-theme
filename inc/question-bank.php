@@ -252,13 +252,25 @@ function examhub_filter_subject_by_grade( $args, $field, $post_id ) {
         return $args;
     }
 
-    $args['meta_query'] = [
-        [
-            'key'     => 'subject_grade',
-            'value'   => $grade_id,
-            'compare' => '=',
+    $subject_ids = get_posts( [
+        'post_type'      => 'eh_subject',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'meta_query'     => [
+            [
+                'key'     => 'subject_grade',
+                'value'   => $grade_id,
+                'compare' => '=',
+            ],
         ],
-    ];
+    ] );
+
+    $args['post__in']     = ! empty( $subject_ids ) ? $subject_ids : [ 0 ];
+    $args['post_status']  = 'publish';
+    $args['orderby']      = 'title';
+    $args['order']        = 'ASC';
+    unset( $args['meta_query'] );
 
     return $args;
 }
@@ -279,13 +291,50 @@ function examhub_filter_lesson_by_subject( $args, $field, $post_id ) {
         return $args;
     }
 
-    $args['meta_query'] = [
+    $unit_ids = get_posts( [
+        'post_type'      => 'eh_unit',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'meta_query'     => [
+            [
+                'key'     => 'unit_subject',
+                'value'   => $subject_id,
+                'compare' => '=',
+            ],
+        ],
+    ] );
+
+    $lesson_meta_query = [
+        'relation' => 'OR',
         [
             'key'     => 'lesson_subject',
             'value'   => $subject_id,
             'compare' => '=',
         ],
     ];
+
+    if ( ! empty( $unit_ids ) ) {
+        $lesson_meta_query[] = [
+            'key'     => 'lesson_unit',
+            'value'   => $unit_ids,
+            'compare' => 'IN',
+        ];
+    }
+
+    $lesson_ids = get_posts( [
+        'post_type'      => 'eh_lesson',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'meta_query'     => $lesson_meta_query,
+    ] );
+
+    $args['post__in']     = ! empty( $lesson_ids ) ? $lesson_ids : [ 0 ];
+    $args['post_status']  = 'publish';
+    $args['orderby']      = 'title';
+    $args['order']        = 'ASC';
+    unset( $args['meta_query'] );
 
     return $args;
 }
@@ -307,25 +356,36 @@ function examhub_filter_exam_questions_by_exam_meta( $args, $field, $post_id ) {
         return $args;
     }
 
-    $args['post_status'] = 'publish';
-    $args['meta_query']  = [
-        'relation' => 'AND',
-        [
-            'key'     => 'grade',
-            'value'   => $grade_id,
-            'compare' => '=',
+    $question_ids = get_posts( [
+        'post_type'      => 'eh_question',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'meta_query'     => [
+            'relation' => 'AND',
+            [
+                'key'     => 'grade',
+                'value'   => $grade_id,
+                'compare' => '=',
+            ],
+            [
+                'key'     => 'subject',
+                'value'   => $subject_id,
+                'compare' => '=',
+            ],
+            [
+                'key'     => 'lesson',
+                'value'   => $lesson_id,
+                'compare' => '=',
+            ],
         ],
-        [
-            'key'     => 'subject',
-            'value'   => $subject_id,
-            'compare' => '=',
-        ],
-        [
-            'key'     => 'lesson',
-            'value'   => $lesson_id,
-            'compare' => '=',
-        ],
-    ];
+    ] );
+
+    $args['post__in']     = ! empty( $question_ids ) ? $question_ids : [ 0 ];
+    $args['post_status']  = 'publish';
+    $args['orderby']      = 'date';
+    $args['order']        = 'DESC';
+    unset( $args['meta_query'] );
 
     $args['posts_per_page'] = 100;
     return $args;
