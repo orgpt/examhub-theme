@@ -418,10 +418,20 @@ function examhub_ajax_import_pdf() {
         wp_send_json_error( [ 'message' => $questions->get_error_message() ] );
     }
 
+    // Guardrail: reject hallucinated output that does not match extracted PDF text.
+    $source_check = examhub_validate_questions_against_source_text( $questions, $text );
+    if ( empty( $source_check['passed'] ) ) {
+        wp_send_json_error( [
+            'message' => __( 'تعذر مطابقة الأسئلة مع نص ملف PDF المرفوع. تأكد أن الملف يحتوي نصا واضحا (وليس صورا فقط) ثم حاول مرة أخرى.', 'examhub' ),
+            'debug'   => $source_check,
+        ] );
+    }
+
     wp_send_json_success( [
         'questions'    => $questions,
         'text_preview' => substr( $text, 0, 500 ),
         'total'        => count( $questions ),
+        'source_check' => $source_check,
     ] );
 }
 
@@ -499,6 +509,71 @@ function examhub_clean_ocr_text( $text ) {
         $text = preg_replace( '/' . $pattern . '/u', $replace, $text );
     }
     return trim( $text );
+}
+
+/**
+ * Validate that AI output is grounded in extracted source text.
+ *
+ * @param array  $questions
+ * @param string $source_text
+ * @return array
+ */
+function examhub_validate_questions_against_source_text( $questions, $source_text ) {
+    if ( ! is_array( $questions ) || empty( $questions ) ) {
+        return [ 'passed' => false, 'matched' => 0, 'total' => 0, 'ratio' => 0 ];
+    }
+
+    $source_norm = examhub_normalize_text_for_match( $source_text );
+    if ( '' === $source_norm || strlen( $source_norm ) < 120 ) {
+        return [ 'passed' => false, 'matched' => 0, 'total' => count( $questions ), 'ratio' => 0 ];
+    }
+
+    $matched = 0;
+    $total   = 0;
+
+    foreach ( $questions as $q ) {
+        if ( ! is_array( $q ) ) {
+            continue;
+        }
+
+        $q_text = (string) ( $q['question_text'] ?? '' );
+        $q_norm = examhub_normalize_text_for_match( $q_text );
+        if ( '' === $q_norm || strlen( $q_norm ) < 8 ) {
+            continue;
+        }
+
+        $total++;
+        $probe_len = min( 24, strlen( $q_norm ) );
+        $probe     = substr( $q_norm, 0, $probe_len );
+        if ( '' !== $probe && false !== strpos( $source_norm, $probe ) ) {
+            $matched++;
+        }
+    }
+
+    if ( $total < 2 ) {
+        return [ 'passed' => false, 'matched' => $matched, 'total' => $total, 'ratio' => 0 ];
+    }
+
+    $ratio = $matched / $total;
+    return [
+        'passed'  => ( $ratio >= 0.35 ),
+        'matched' => $matched,
+        'total'   => $total,
+        'ratio'   => round( $ratio, 3 ),
+    ];
+}
+
+/**
+ * Normalize text for simple source matching.
+ *
+ * @param string $text
+ * @return string
+ */
+function examhub_normalize_text_for_match( $text ) {
+    $text = wp_strip_all_tags( (string) $text );
+    $text = strtolower( $text );
+    $text = preg_replace( '/[^\p{L}\p{N}]+/u', '', $text );
+    return (string) $text;
 }
 
 add_action( 'wp_ajax_eh_admin_get_grades_by_system', 'examhub_ajax_admin_get_grades_by_system' );

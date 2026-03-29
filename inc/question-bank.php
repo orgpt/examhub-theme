@@ -205,6 +205,39 @@ function examhub_exam_column_content( $col, $post_id ) {
     }
 }
 
+/**
+ * Filter exam question picker by selected grade + subject.
+ * ACF relationship field key: field_ex_questions.
+ */
+add_filter( 'acf/fields/relationship/query/key=field_ex_questions', 'examhub_filter_exam_questions_by_exam_meta', 10, 3 );
+function examhub_filter_exam_questions_by_exam_meta( $args, $field, $post_id ) {
+    $grade_id   = (int) get_field( 'exam_grade', $post_id );
+    $subject_id = (int) get_field( 'exam_subject', $post_id );
+
+    $meta_query = [ 'relation' => 'AND' ];
+    if ( $grade_id ) {
+        $meta_query[] = [
+            'key'     => 'grade',
+            'value'   => $grade_id,
+            'compare' => '=',
+        ];
+    }
+    if ( $subject_id ) {
+        $meta_query[] = [
+            'key'     => 'subject',
+            'value'   => $subject_id,
+            'compare' => '=',
+        ];
+    }
+
+    if ( count( $meta_query ) > 1 ) {
+        $args['meta_query'] = $meta_query;
+    }
+
+    $args['posts_per_page'] = 100;
+    return $args;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ADMIN COLUMNS — SUBSCRIPTIONS
 // ═══════════════════════════════════════════════════════════════════════════════
