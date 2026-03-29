@@ -389,7 +389,8 @@ function examhub_ajax_import_pdf() {
     // Extract text from PDF
     $text = examhub_extract_pdf_text( $file['tmp_name'] );
     if ( is_wp_error( $text ) || empty( $text ) ) {
-        wp_send_json_error( [ 'message' => __( 'تعذر استخراج النص من الملف. تأكد أن الـ PDF يحتوي على نص وليس صوراً فقط.', 'examhub' ) ] );
+        $msg = is_wp_error( $text ) ? $text->get_error_message() : __( 'تعذر استخراج النص من الملف.', 'examhub' );
+        wp_send_json_error( [ 'message' => $msg ] );
     }
 
     // Clean up OCR artifacts
@@ -477,8 +478,134 @@ function examhub_extract_pdf_text( $path ) {
     // Fallback: pure-PHP extraction from PDF content streams.
     $content = file_get_contents( $path );
     $text    = examhub_extract_text_from_pdf_streams( $content );
+    if ( is_string( $text ) && strlen( trim( $text ) ) >= 120 ) {
+        return $text;
+    }
 
-    return $text ?: new WP_Error( 'no_text', __( 'تعذر العثور على نص في الملف.', 'examhub' ) );
+    // OCR fallback for scanned/image PDFs when tools are available.
+    $ocr_text = examhub_extract_pdf_text_via_ocr( $path );
+    if ( is_string( $ocr_text ) && strlen( trim( $ocr_text ) ) >= 40 ) {
+        return $ocr_text;
+    }
+
+    if ( is_wp_error( $ocr_text ) ) {
+        return $ocr_text;
+    }
+
+    return new WP_Error(
+        'no_text',
+        __( 'تعذر استخراج النص من الملف. يبدو أن الملف ممسوح ضوئيا/صوري ويحتاج OCR. ثبّت أدوات OCR على السيرفر: tesseract + pdftoppm (poppler) أو ImageMagick.', 'examhub' )
+    );
+}
+
+/**
+ * OCR fallback for scanned PDFs.
+ *
+ * @param string $path
+ * @return string|WP_Error
+ */
+function examhub_extract_pdf_text_via_ocr( $path ) {
+    $tesseract = examhub_find_binary( 'tesseract' );
+    if ( ! $tesseract ) {
+        return new WP_Error( 'ocr_missing_tesseract', __( 'تعذر استخراج النص: أداة OCR (tesseract) غير مثبتة على السيرفر.', 'examhub' ) );
+    }
+
+    $pdftoppm = examhub_find_binary( 'pdftoppm' );
+    $magick   = examhub_find_binary( 'magick' );
+    if ( ! $pdftoppm && ! $magick ) {
+        return new WP_Error( 'ocr_missing_renderer', __( 'تعذر استخراج النص: لا يوجد pdftoppm أو ImageMagick لتحويل صفحات PDF إلى صور.', 'examhub' ) );
+    }
+
+    $tmp_dir = trailingslashit( sys_get_temp_dir() ) . 'examhub-ocr-' . wp_generate_password( 8, false, false );
+    if ( ! wp_mkdir_p( $tmp_dir ) ) {
+        return new WP_Error( 'ocr_tmp', __( 'تعذر إنشاء مجلد مؤقت للـ OCR.', 'examhub' ) );
+    }
+
+    $prefix = $tmp_dir . DIRECTORY_SEPARATOR . 'page';
+    $images = [];
+
+    if ( $pdftoppm ) {
+        // Render up to first 8 pages to keep response time reasonable.
+        $cmd = sprintf(
+            '%s -png -f 1 -l 8 %s %s 2>%s',
+            escapeshellarg( $pdftoppm ),
+            escapeshellarg( $path ),
+            escapeshellarg( $prefix ),
+            ( 'Windows' === PHP_OS_FAMILY ? 'NUL' : '/dev/null' )
+        );
+        @exec( $cmd );
+        $images = glob( $prefix . '-*.png' ) ?: [];
+    } elseif ( $magick ) {
+        $out_pattern = $prefix . '-%d.png';
+        $cmd = sprintf(
+            '%s -density 220 %s[0-7] -quality 90 %s 2>%s',
+            escapeshellarg( $magick ),
+            escapeshellarg( $path ),
+            escapeshellarg( $out_pattern ),
+            ( 'Windows' === PHP_OS_FAMILY ? 'NUL' : '/dev/null' )
+        );
+        @exec( $cmd );
+        $images = glob( $prefix . '-*.png' ) ?: [];
+    }
+
+    if ( empty( $images ) ) {
+        examhub_cleanup_temp_dir( $tmp_dir );
+        return new WP_Error( 'ocr_no_images', __( 'تعذر تجهيز صور الصفحات للـ OCR.', 'examhub' ) );
+    }
+
+    natsort( $images );
+    $text = '';
+    foreach ( $images as $img ) {
+        $cmd = sprintf(
+            '%s %s stdout -l ara+eng --psm 6 2>%s',
+            escapeshellarg( $tesseract ),
+            escapeshellarg( $img ),
+            ( 'Windows' === PHP_OS_FAMILY ? 'NUL' : '/dev/null' )
+        );
+        $page_out = [];
+        @exec( $cmd, $page_out );
+        if ( ! empty( $page_out ) ) {
+            $text .= "\n" . implode( "\n", $page_out );
+        }
+    }
+
+    examhub_cleanup_temp_dir( $tmp_dir );
+    return trim( $text );
+}
+
+/**
+ * Find executable path across OSes.
+ *
+ * @param string $binary
+ * @return string
+ */
+function examhub_find_binary( $binary ) {
+    $null = ( 'Windows' === PHP_OS_FAMILY ) ? 'NUL' : '/dev/null';
+    $cmd  = ( 'Windows' === PHP_OS_FAMILY ) ? "where {$binary} 2>{$null}" : "command -v {$binary} 2>{$null}";
+    $out  = trim( (string) shell_exec( $cmd ) );
+    if ( '' === $out ) {
+        return '';
+    }
+    $lines = preg_split( '/\r\n|\r|\n/', $out );
+    return trim( (string) ( $lines[0] ?? '' ) );
+}
+
+/**
+ * Recursively cleanup OCR temp folder.
+ *
+ * @param string $dir
+ * @return void
+ */
+function examhub_cleanup_temp_dir( $dir ) {
+    if ( ! is_dir( $dir ) ) {
+        return;
+    }
+    foreach ( glob( $dir . DIRECTORY_SEPARATOR . '*' ) as $f ) {
+        if ( is_file( $f ) ) {
+            @unlink( $f );
+        }
+    }
+    @rmdir( $dir );
 }
 
 /**
