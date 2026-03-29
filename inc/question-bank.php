@@ -206,33 +206,120 @@ function examhub_exam_column_content( $col, $post_id ) {
 }
 
 /**
- * Filter exam question picker by selected grade + subject.
- * ACF relationship field key: field_ex_questions.
+ * Read field value from current ACF request (if present), fallback to saved value.
+ */
+function examhub_get_acf_request_value( $field_key, $saved_field_name, $post_id ) {
+    $candidates = [];
+
+    if ( isset( $_POST['acf'] ) && is_array( $_POST['acf'] ) ) {
+        $candidates[] = $_POST['acf'][ $field_key ] ?? null;
+    }
+    if ( isset( $_POST['query']['acf'] ) && is_array( $_POST['query']['acf'] ) ) {
+        $candidates[] = $_POST['query']['acf'][ $field_key ] ?? null;
+    }
+    if ( isset( $_POST[ $field_key ] ) ) {
+        $candidates[] = $_POST[ $field_key ];
+    }
+
+    foreach ( $candidates as $value ) {
+        $value = is_array( $value ) ? reset( $value ) : $value;
+        $value = (int) $value;
+        if ( $value > 0 ) {
+            return $value;
+        }
+    }
+
+    return (int) get_field( $saved_field_name, $post_id );
+}
+
+/**
+ * Filter "subject" picker to selected grade.
+ */
+function examhub_filter_subject_by_grade( $args, $field, $post_id ) {
+    $is_exam_field     = ( $field['key'] ?? '' ) === 'field_ex_subject';
+    $grade_field_key   = $is_exam_field ? 'field_ex_grade' : 'field_q_grade';
+    $saved_grade_field = $is_exam_field ? 'exam_grade' : 'grade';
+    $grade_id          = examhub_get_acf_request_value( $grade_field_key, $saved_grade_field, $post_id );
+
+    if ( ! $grade_id ) {
+        $args['post__in'] = [ 0 ];
+        return $args;
+    }
+
+    $args['meta_query'] = [
+        [
+            'key'     => 'subject_grade',
+            'value'   => $grade_id,
+            'compare' => '=',
+        ],
+    ];
+
+    return $args;
+}
+add_filter( 'acf/fields/post_object/query/key=field_ex_subject', 'examhub_filter_subject_by_grade', 10, 3 );
+add_filter( 'acf/fields/post_object/query/key=field_q_subject', 'examhub_filter_subject_by_grade', 10, 3 );
+
+/**
+ * Filter "lesson" picker to selected subject.
+ */
+function examhub_filter_lesson_by_subject( $args, $field, $post_id ) {
+    $is_exam_field      = ( $field['key'] ?? '' ) === 'field_ex_lesson';
+    $subject_field_key  = $is_exam_field ? 'field_ex_subject' : 'field_q_subject';
+    $saved_subject_name = $is_exam_field ? 'exam_subject' : 'subject';
+    $subject_id         = examhub_get_acf_request_value( $subject_field_key, $saved_subject_name, $post_id );
+
+    if ( ! $subject_id ) {
+        $args['post__in'] = [ 0 ];
+        return $args;
+    }
+
+    $args['meta_query'] = [
+        [
+            'key'     => 'lesson_subject',
+            'value'   => $subject_id,
+            'compare' => '=',
+        ],
+    ];
+
+    return $args;
+}
+add_filter( 'acf/fields/post_object/query/key=field_ex_lesson', 'examhub_filter_lesson_by_subject', 10, 3 );
+add_filter( 'acf/fields/post_object/query/key=field_q_lesson', 'examhub_filter_lesson_by_subject', 10, 3 );
+
+/**
+ * Filter exam question picker by selected grade + subject + lesson.
+ * Show published questions only.
  */
 add_filter( 'acf/fields/relationship/query/key=field_ex_questions', 'examhub_filter_exam_questions_by_exam_meta', 10, 3 );
 function examhub_filter_exam_questions_by_exam_meta( $args, $field, $post_id ) {
-    $grade_id   = (int) get_field( 'exam_grade', $post_id );
-    $subject_id = (int) get_field( 'exam_subject', $post_id );
+    $grade_id   = examhub_get_acf_request_value( 'field_ex_grade', 'exam_grade', $post_id );
+    $subject_id = examhub_get_acf_request_value( 'field_ex_subject', 'exam_subject', $post_id );
+    $lesson_id  = examhub_get_acf_request_value( 'field_ex_lesson', 'exam_lesson', $post_id );
 
-    $meta_query = [ 'relation' => 'AND' ];
-    if ( $grade_id ) {
-        $meta_query[] = [
+    if ( ! $grade_id || ! $subject_id || ! $lesson_id ) {
+        $args['post__in'] = [ 0 ];
+        return $args;
+    }
+
+    $args['post_status'] = 'publish';
+    $args['meta_query']  = [
+        'relation' => 'AND',
+        [
             'key'     => 'grade',
             'value'   => $grade_id,
             'compare' => '=',
-        ];
-    }
-    if ( $subject_id ) {
-        $meta_query[] = [
+        ],
+        [
             'key'     => 'subject',
             'value'   => $subject_id,
             'compare' => '=',
-        ];
-    }
-
-    if ( count( $meta_query ) > 1 ) {
-        $args['meta_query'] = $meta_query;
-    }
+        ],
+        [
+            'key'     => 'lesson',
+            'value'   => $lesson_id,
+            'compare' => '=',
+        ],
+    ];
 
     $args['posts_per_page'] = 100;
     return $args;

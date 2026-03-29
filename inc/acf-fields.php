@@ -232,15 +232,6 @@ function examhub_register_acf_fields() {
                 'required'      => 1,
             ],
             [
-                'key'           => 'field_q_unit',
-                'label'         => 'الوحدة',
-                'name'          => 'unit',
-                'type'          => 'post_object',
-                'post_type'     => [ 'eh_unit' ],
-                'return_format' => 'id',
-                'ui'            => 1,
-            ],
-            [
                 'key'           => 'field_q_lesson',
                 'label'         => 'الدرس',
                 'name'          => 'lesson',
@@ -405,10 +396,6 @@ function examhub_register_acf_fields() {
             [
                 'key' => 'field_ex_subject', 'label' => 'المادة', 'name' => 'exam_subject',
                 'type' => 'post_object', 'post_type' => [ 'eh_subject' ], 'return_format' => 'id', 'ui' => 1, 'required' => 1,
-            ],
-            [
-                'key' => 'field_ex_unit', 'label' => 'الوحدة', 'name' => 'exam_unit',
-                'type' => 'post_object', 'post_type' => [ 'eh_unit' ], 'return_format' => 'id', 'ui' => 1,
             ],
             [
                 'key' => 'field_ex_lesson', 'label' => 'الدرس', 'name' => 'exam_lesson',
