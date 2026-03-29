@@ -50,7 +50,7 @@ function examhub_start_exam_session( $exam_id, $user_id ) {
 
     // Count against daily limit for free_limit exams
     if ( $access_level === 'free_limit' ) {
-        if ( ! examhub_user_can_access_question( $user_id ) ) {
+        if ( ! examhub_user_can_start_exam( $user_id ) ) {
             return new WP_Error( 'limit_reached', __( 'لقد وصلت إلى الحد اليومي المجاني. يرجى الاشتراك للاستمرار.', 'examhub' ) );
         }
     }

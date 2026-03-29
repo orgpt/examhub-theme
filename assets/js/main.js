@@ -187,7 +187,7 @@
     if (!$modal.length) return;
 
     const messages = {
-      question_limit: `لقد استخدمت الحد اليومي المجاني (${AJAX.i18n?.free_limit || 10} أسئلة). اشترك للمتابعة.`,
+      question_limit: `لقد استخدمت الحد اليومي المجاني (${AJAX.i18n?.free_exam_limit || 1} امتحان). اشترك للمتابعة.`,
       subscription_required: 'هذا الامتحان للمشتركين فقط.',
       ai_required: 'الذكاء الاصطناعي متاح للمشتركين المميزين.',
     };

@@ -106,6 +106,7 @@ function examhub_enqueue_assets() {
             'connection_error' => __( 'خطأ في الاتصال. يرجى التحقق من الإنترنت.', 'examhub' ),
             'saved'            => __( 'تم الحفظ', 'examhub' ),
             'loading'          => __( 'جاري التحميل...', 'examhub' ),
+            'free_exam_limit'  => (int) ( get_field( 'free_exams_per_day', 'option' ) ?: get_field( 'free_questions_per_day', 'option' ) ?: 1 ),
         ],
         'autosave_interval' => 30, // seconds
     ] );

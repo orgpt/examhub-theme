@@ -146,6 +146,17 @@ function examhub_ajax_start_exam() {
     if ( ! $user_id ) wp_send_json_error( [ 'message' => __( 'يجب تسجيل الدخول.', 'examhub' ) ], 401 );
 
     $exam_id = examhub_post_int( 'exam_id' );
+
+    // Allow resuming an already-started session even if daily free limit is reached.
+    $allow_resume = (bool) get_field( 'allow_resume', $exam_id );
+    if ( $allow_resume ) {
+        $existing = examhub_get_in_progress_result( $exam_id, $user_id );
+        if ( $existing ) {
+            $session_data = examhub_get_exam_session_data( $existing );
+            wp_send_json_success( array_merge( $session_data, [ 'resumed' => true ] ) );
+        }
+    }
+
     $access  = examhub_verify_exam_access( $exam_id, $user_id );
     if ( is_wp_error( $access ) ) {
         wp_send_json_error( [ 'message' => $access->get_error_message(), 'code' => $access->get_error_code() ], 403 );
@@ -154,16 +165,6 @@ function examhub_ajax_start_exam() {
     // Rate limit: max 5 exam starts per minute
     if ( ! examhub_rate_limit( "start_exam_{$user_id}", 5, 60 ) ) {
         wp_send_json_error( [ 'message' => __( 'طلبات كثيرة. حاول مجدداً.', 'examhub' ) ], 429 );
-    }
-
-    // Check for existing in-progress session
-    $allow_resume = (bool) get_field( 'allow_resume', $exam_id );
-    if ( $allow_resume ) {
-        $existing = examhub_get_in_progress_result( $exam_id, $user_id );
-        if ( $existing ) {
-            $session_data = examhub_get_exam_session_data( $existing );
-            wp_send_json_success( array_merge( $session_data, [ 'resumed' => true ] ) );
-        }
     }
 
     // Build question list
