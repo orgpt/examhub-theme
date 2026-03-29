@@ -50,7 +50,7 @@ function examhub_render_pdf_import_page() {
             <tr>
               <th><?php esc_html_e( 'ملف PDF', 'examhub' ); ?></th>
               <td>
-                <input type="file" name="pdf_file" id="pdf_file" accept=".pdf" required class="regular-text">
+                <input type="file" name="import_file" id="import_file" accept=".pdf,.json,application/pdf,application/json,text/json" required class="regular-text">
                 <p class="description"><?php esc_html_e( 'الحد الأقصى: 10MB. يدعم العربية والإنجليزية.', 'examhub' ); ?></p>
               </td>
             </tr>
@@ -82,8 +82,12 @@ function examhub_render_pdf_import_page() {
               </td>
             </tr>
             <tr>
-              <th><?php esc_html_e( 'الدرس (اختياري)', 'examhub' ); ?></th>
-              <td><input type="text" name="lesson_hint" class="regular-text" placeholder="<?php esc_attr_e( 'اسم الدرس للمساعدة في التصنيف', 'examhub' ); ?>"></td>
+              <th><?php esc_html_e( 'Question Group (Optional)', 'examhub' ); ?></th>
+              <td>
+                <select name="question_group_id" id="pdf-group" class="regular-text">
+                  <option value=""><?php esc_html_e( '-- Select (Optional) --', 'examhub' ); ?></option>
+                </select>
+              </td>
             </tr>
             <tr>
               <th><?php esc_html_e( 'مصدر الكتاب', 'examhub' ); ?></th>
@@ -136,189 +140,215 @@ function examhub_render_pdf_import_page() {
     </div>
 
     <script>
-    jQuery(function($){
-      function getAdminNonce() {
-        return $('#eh-pdf-upload-form input[name="nonce"]').val() || '';
-      }
+jQuery(function($){
+  function getAdminNonce() {
+    return $('#eh-pdf-upload-form input[name="nonce"]').val() || '';
+  }
 
-      function resetSelect($select, placeholderText) {
-        $select.html(`<option value="">${placeholderText}</option>`).prop('disabled', false);
-      }
+  function resetSelect($select, placeholderText) {
+    $select.html(`<option value="">${placeholderText}</option>`).prop('disabled', false);
+  }
 
-      function setSelectOptions($select, items, placeholderText) {
-        let html = `<option value="">${placeholderText}</option>`;
-        (items || []).forEach(function(item){
-          const id = item.id || '';
-          const label = item.label || item.name || '';
-          html += `<option value="${id}">${$('<div>').text(label).html()}</option>`;
-        });
-        $select.html(html).prop('disabled', false);
-      }
-
-      $('#pdf-edu-system').on('change', function(){
-        const systemId = $(this).val();
-        const $grade   = $('#pdf-grade');
-        const $subject = $('#pdf-subject');
-
-        resetSelect($grade, '-- اختر (اختياري)');
-        resetSelect($subject, '-- اختر (اختياري)');
-        if (!systemId) return;
-
-        $grade.html('<option value="">جاري التحميل...</option>').prop('disabled', true);
-        $.post(ajaxurl, {
-          action: 'eh_admin_get_grades_by_system',
-          nonce: getAdminNonce(),
-          system_id: systemId
-        }, function(res){
-          if (res && res.success) {
-            setSelectOptions($grade, res.data, '-- اختر (اختياري)');
-          } else {
-            resetSelect($grade, '-- لا يوجد صفوف --');
-          }
-        }).fail(function(){
-          resetSelect($grade, '-- حدث خطأ --');
-        });
-      });
-
-      $('#pdf-grade').on('change', function(){
-        const gradeId  = $(this).val();
-        const $subject = $('#pdf-subject');
-        resetSelect($subject, '-- اختر (اختياري)');
-        if (!gradeId) return;
-
-        $subject.html('<option value="">جاري التحميل...</option>').prop('disabled', true);
-        $.post(ajaxurl, {
-          action: 'eh_admin_get_subjects_by_grade',
-          nonce: getAdminNonce(),
-          grade_id: gradeId
-        }, function(res){
-          if (res && res.success) {
-            setSelectOptions($subject, res.data, '-- اختر (اختياري)');
-          } else {
-            resetSelect($subject, '-- لا يوجد مواد --');
-          }
-        }).fail(function(){
-          resetSelect($subject, '-- حدث خطأ --');
-        });
-      });
-
-      $('#eh-pdf-upload-form').on('submit', function(e){
-        e.preventDefault();
-        const formData = new FormData(this);
-        formData.append('action', 'eh_import_pdf');
-
-        $('#pdf-progress').show();
-        $('#eh-pdf-submit').prop('disabled', true);
-        updateProgress(10, 'جاري رفع الملف...');
-
-        $.ajax({
-          url: ajaxurl,
-          type: 'POST',
-          data: formData,
-          processData: false,
-          contentType: false,
-          xhr: function(){
-            const xhr = new window.XMLHttpRequest();
-            xhr.upload.addEventListener('progress', function(e){
-              if(e.lengthComputable){ updateProgress(Math.round(e.loaded/e.total*30)+10, 'جاري الرفع...'); }
-            });
-            return xhr;
-          },
-          success: function(res){
-            if(res.success){
-              updateProgress(100, 'تم الاستخراج!');
-              renderExtractedQuestions(res.data.questions);
-            } else {
-              alert('خطأ: ' + (res.data?.message || 'حدث خطأ غير متوقع'));
-              resetForm();
-            }
-          },
-          error: function(){ alert('خطأ في الاتصال'); resetForm(); }
-        });
-
-        // Simulate AI processing progress
-        let prog = 30;
-        const interval = setInterval(function(){
-          prog = Math.min(90, prog + Math.random()*5);
-          const msgs = ['جاري معالجة النص...','يعمل الذكاء الاصطناعي...','استخراج الأسئلة...','تحليل الإجابات...'];
-          updateProgress(prog, msgs[Math.floor(prog/25)]);
-        }, 1500);
-        setTimeout(() => clearInterval(interval), 60000);
-      });
-
-      function updateProgress(pct, msg){
-        $('#pdf-progress-bar').css('width', pct+'%');
-        $('#pdf-status-text').text(msg);
-      }
-
-      function resetForm(){
-        $('#eh-pdf-submit').prop('disabled', false);
-        $('#pdf-progress').hide();
-      }
-
-      function renderExtractedQuestions(questions){
-        $('#pdf-results').show();
-        let html = `<p><strong>${questions.length} سؤال تم استخراجه</strong> — حدد الأسئلة التي تريد حفظها:</p>`;
-        html += '<label style="margin-bottom:10px;display:block;"><input type="checkbox" id="select-all-q"> تحديد الكل</label>';
-
-        questions.forEach(function(q, i){
-          const typeLabel = {mcq:'اختيار متعدد',true_false:'صح/خطأ',fill_blank:'اكمل الفراغ'}[q.type] || q.type;
-          const diffLabel = {easy:'سهل',medium:'متوسط',hard:'صعب'}[q.difficulty] || q.difficulty;
-          html += `
-            <div class="eh-extracted-q" style="border:1px solid #ccc;border-radius:4px;padding:12px;margin:8px 0;background:#fff;">
-              <label style="display:flex;align-items:flex-start;gap:10px;">
-                <input type="checkbox" class="q-select" value="${i}" checked style="margin-top:3px;flex-shrink:0;">
-                <div style="flex:1;">
-                  <div style="font-weight:bold;margin-bottom:6px;">${q.question_text || ''}</div>
-                  <span style="background:#e5e7eb;padding:2px 8px;border-radius:3px;font-size:12px;">${typeLabel}</span>
-                  <span style="background:#fef3c7;padding:2px 8px;border-radius:3px;font-size:12px;margin-right:4px;">${diffLabel}</span>
-                  ${q.answers ? `<div style="margin-top:6px;font-size:13px;">${q.answers.map((a,j)=>`<span style="margin-left:8px;">${a.is_correct?'✓':String.fromCharCode(0x200e)+''}${j+1}. ${a.answer_text||a}</span>`).join('')}</div>` : ''}
-                </div>
-              </label>
-            </div>`;
-        });
-
-        $('#extracted-questions-list').html(html);
-        $('#save-all-questions').show().data('questions', questions);
-
-        $('#select-all-q').on('change', function(){
-          $('.q-select').prop('checked', this.checked);
-        });
-      }
-
-      $('#save-all-questions').on('click', function(){
-        const questions    = $(this).data('questions');
-        const selected_idx = $('.q-select:checked').map((_,el) => parseInt(el.value)).get();
-        const to_save      = selected_idx.map(i => questions[i]);
-
-        if(!to_save.length){ alert('اختر أسئلة أولاً'); return; }
-
-        $(this).prop('disabled', true).text('جاري الحفظ...');
-
-        const extra = {
-          grade_id:   $('#pdf-grade').val(),
-          subject_id: $('#pdf-subject').val(),
-          book_source: $('select[name=book_source]').val(),
-          education_system: $('#pdf-edu-system').val(),
-        };
-
-        $.post(ajaxurl, {
-          action: 'eh_save_imported_questions',
-          nonce: $('input[name=nonce]').val(),
-          questions: JSON.stringify(to_save),
-          extra: JSON.stringify(extra),
-        }, function(res){
-          if(res.success){
-            alert(`تم حفظ ${res.data.saved} سؤال بنجاح!`);
-            window.location.href = '?page=examhub-review-questions';
-          } else {
-            alert('خطأ: ' + (res.data?.message || ''));
-            $('#save-all-questions').prop('disabled', false).text('💾 حفظ الأسئلة المحددة');
-          }
-        });
-      });
+  function setSelectOptions($select, items, placeholderText) {
+    let html = `<option value="">${placeholderText}</option>`;
+    (items || []).forEach(function(item){
+      const id = item.id || '';
+      const label = item.label || item.name || '';
+      html += `<option value="${id}">${$('<div>').text(label).html()}</option>`;
     });
-    </script>
+    $select.html(html).prop('disabled', false);
+  }
+
+  $('#pdf-edu-system').on('change', function(){
+    const systemId = $(this).val();
+    const $grade   = $('#pdf-grade');
+    const $subject = $('#pdf-subject');
+    const $group   = $('#pdf-group');
+
+    resetSelect($grade, '-- Select (Optional) --');
+    resetSelect($subject, '-- Select (Optional) --');
+    resetSelect($group, '-- Select (Optional) --');
+    if (!systemId) return;
+
+    $grade.html('<option value="">Loading...</option>').prop('disabled', true);
+    $.post(ajaxurl, {
+      action: 'eh_admin_get_grades_by_system',
+      nonce: getAdminNonce(),
+      system_id: systemId
+    }, function(res){
+      if (res && res.success) {
+        setSelectOptions($grade, res.data, '-- Select (Optional) --');
+      } else {
+        resetSelect($grade, '-- No grades --');
+      }
+    }).fail(function(){
+      resetSelect($grade, '-- Error --');
+    });
+  });
+
+  $('#pdf-grade').on('change', function(){
+    const gradeId  = $(this).val();
+    const $subject = $('#pdf-subject');
+    const $group   = $('#pdf-group');
+    resetSelect($subject, '-- Select (Optional) --');
+    resetSelect($group, '-- Select (Optional) --');
+    if (!gradeId) return;
+
+    $subject.html('<option value="">Loading...</option>').prop('disabled', true);
+    $.post(ajaxurl, {
+      action: 'eh_admin_get_subjects_by_grade',
+      nonce: getAdminNonce(),
+      grade_id: gradeId
+    }, function(res){
+      if (res && res.success) {
+        setSelectOptions($subject, res.data, '-- Select (Optional) --');
+      } else {
+        resetSelect($subject, '-- No subjects --');
+      }
+    }).fail(function(){
+      resetSelect($subject, '-- Error --');
+    });
+  });
+
+  $('#pdf-subject').on('change', function(){
+    const subjectId = $(this).val();
+    const $group    = $('#pdf-group');
+    resetSelect($group, '-- Select (Optional) --');
+    if (!subjectId) return;
+
+    $group.html('<option value="">Loading...</option>').prop('disabled', true);
+    $.post(ajaxurl, {
+      action: 'eh_admin_get_question_groups_by_subject',
+      nonce: getAdminNonce(),
+      subject_id: subjectId
+    }, function(res){
+      if (res && res.success) {
+        setSelectOptions($group, res.data, '-- Select (Optional) --');
+      } else {
+        resetSelect($group, '-- No groups --');
+      }
+    }).fail(function(){
+      resetSelect($group, '-- Error --');
+    });
+  });
+
+  $('#eh-pdf-upload-form').on('submit', function(e){
+    e.preventDefault();
+    const formData = new FormData(this);
+    formData.append('action', 'eh_import_pdf');
+
+    $('#pdf-progress').show();
+    $('#eh-pdf-submit').prop('disabled', true);
+    updateProgress(10, 'Uploading file...');
+
+    $.ajax({
+      url: ajaxurl,
+      type: 'POST',
+      data: formData,
+      processData: false,
+      contentType: false,
+      xhr: function(){
+        const xhr = new window.XMLHttpRequest();
+        xhr.upload.addEventListener('progress', function(e){
+          if(e.lengthComputable){ updateProgress(Math.round(e.loaded/e.total*30)+10, 'Uploading...'); }
+        });
+        return xhr;
+      },
+      success: function(res){
+        if(res.success){
+          updateProgress(100, 'Done');
+          renderExtractedQuestions(res.data.questions || []);
+        } else {
+          alert('Error: ' + (res.data?.message || 'Unexpected error'));
+          resetForm();
+        }
+      },
+      error: function(){ alert('Connection error'); resetForm(); }
+    });
+
+    let prog = 30;
+    const interval = setInterval(function(){
+      prog = Math.min(90, prog + Math.random()*5);
+      const msgs = ['Processing text...','Parsing questions...','Preparing preview...','Almost done...'];
+      updateProgress(prog, msgs[Math.floor(prog/25)] || msgs[0]);
+    }, 1500);
+    setTimeout(() => clearInterval(interval), 60000);
+  });
+
+  function updateProgress(pct, msg){
+    $('#pdf-progress-bar').css('width', pct+'%');
+    $('#pdf-status-text').text(msg);
+  }
+
+  function resetForm(){
+    $('#eh-pdf-submit').prop('disabled', false);
+    $('#pdf-progress').hide();
+  }
+
+  function renderExtractedQuestions(questions){
+    $('#pdf-results').show();
+    let html = `<p><strong>${questions.length} question(s) extracted</strong> - select what to save:</p>`;
+    html += '<label style="margin-bottom:10px;display:block;"><input type="checkbox" id="select-all-q"> Select all</label>';
+
+    questions.forEach(function(q, i){
+      const typeLabel = {mcq:'MCQ',true_false:'True/False',fill_blank:'Fill Blank',essay:'Essay'}[q.type] || q.type || 'mcq';
+      const diffLabel = {easy:'Easy',medium:'Medium',hard:'Hard'}[q.difficulty] || q.difficulty || 'medium';
+      html += `
+        <div class="eh-extracted-q" style="border:1px solid #ccc;border-radius:4px;padding:12px;margin:8px 0;background:#fff;">
+          <label style="display:flex;align-items:flex-start;gap:10px;">
+            <input type="checkbox" class="q-select" value="${i}" checked style="margin-top:3px;flex-shrink:0;">
+            <div style="flex:1;">
+              <div style="font-weight:bold;margin-bottom:6px;">${q.question_text || ''}</div>
+              <span style="background:#e5e7eb;padding:2px 8px;border-radius:3px;font-size:12px;">${typeLabel}</span>
+              <span style="background:#fef3c7;padding:2px 8px;border-radius:3px;font-size:12px;margin-right:4px;">${diffLabel}</span>
+              ${q.answers ? `<div style="margin-top:6px;font-size:13px;">${q.answers.map((a,j)=>`<span style="margin-left:8px;">${a.is_correct?'?':''}${j+1}. ${a.answer_text||a}</span>`).join('')}</div>` : ''}
+            </div>
+          </label>
+        </div>`;
+    });
+
+    $('#extracted-questions-list').html(html);
+    $('#save-all-questions').show().data('questions', questions);
+
+    $('#select-all-q').on('change', function(){
+      $('.q-select').prop('checked', this.checked);
+    });
+  }
+
+  $('#save-all-questions').on('click', function(){
+    const questions    = $(this).data('questions') || [];
+    const selected_idx = $('.q-select:checked').map((_,el) => parseInt(el.value, 10)).get();
+    const to_save      = selected_idx.map(i => questions[i]);
+
+    if(!to_save.length){ alert('Select at least one question first'); return; }
+
+    $(this).prop('disabled', true).text('Saving...');
+
+    const extra = {
+      grade_id:   $('#pdf-grade').val(),
+      subject_id: $('#pdf-subject').val(),
+      question_group_id: $('#pdf-group').val(),
+      book_source: $('select[name=book_source]').val(),
+      education_system: $('#pdf-edu-system').val(),
+    };
+
+    $.post(ajaxurl, {
+      action: 'eh_save_imported_questions',
+      nonce: $('input[name=nonce]').val(),
+      questions: JSON.stringify(to_save),
+      extra: JSON.stringify(extra),
+    }, function(res){
+      if(res.success){
+        alert(`Saved ${res.data.saved} question(s) successfully`);
+        window.location.href = '?page=examhub-review-questions';
+      } else {
+        alert('Error: ' + (res.data?.message || ''));
+        $('#save-all-questions').prop('disabled', false).text('?? Save selected questions');
+      }
+    });
+  });
+});
+</script>
     <?php
 }
 
@@ -365,65 +395,75 @@ function examhub_render_review_page() {
 add_action( 'wp_ajax_eh_import_pdf', 'examhub_ajax_import_pdf' );
 function examhub_ajax_import_pdf() {
     check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
-    if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( [], 403 );
-
-    if ( empty( $_FILES['pdf_file'] ) || $_FILES['pdf_file']['error'] !== UPLOAD_ERR_OK ) {
-        wp_send_json_error( [ 'message' => __( 'خطأ في رفع الملف.', 'examhub' ) ] );
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_send_json_error( [], 403 );
     }
 
-    $file = $_FILES['pdf_file'];
-
-    // Validate PDF
-    $finfo = finfo_open( FILEINFO_MIME_TYPE );
-    $mime  = finfo_file( $finfo, $file['tmp_name'] );
-    finfo_close( $finfo );
-
-    if ( $mime !== 'application/pdf' ) {
-        wp_send_json_error( [ 'message' => __( 'الملف ليس PDF صالحاً.', 'examhub' ) ] );
+    if ( empty( $_FILES['import_file'] ) || $_FILES['import_file']['error'] !== UPLOAD_ERR_OK ) {
+        wp_send_json_error( [ 'message' => __( 'Upload failed.', 'examhub' ) ] );
     }
 
+    $file = $_FILES['import_file'];
     if ( $file['size'] > 10 * MB_IN_BYTES ) {
-        wp_send_json_error( [ 'message' => __( 'حجم الملف يتجاوز 10MB.', 'examhub' ) ] );
+        wp_send_json_error( [ 'message' => __( 'File size exceeds 10MB.', 'examhub' ) ] );
     }
 
-    // Extract text from PDF
+    $ext = strtolower( pathinfo( $file['name'] ?? '', PATHINFO_EXTENSION ) );
+    if ( ! in_array( $ext, [ 'pdf', 'json' ], true ) ) {
+        wp_send_json_error( [ 'message' => __( 'Unsupported file type. Use PDF or JSON.', 'examhub' ) ] );
+    }
+
+    $grade_id          = (int) ( $_POST['grade_id'] ?? 0 );
+    $subject_id        = (int) ( $_POST['subject_id'] ?? 0 );
+    $question_group_id = (int) ( $_POST['question_group_id'] ?? 0 );
+
+    if ( 'json' === $ext ) {
+        $json_raw = file_get_contents( $file['tmp_name'] );
+        if ( ! is_string( $json_raw ) || '' === trim( $json_raw ) ) {
+            wp_send_json_error( [ 'message' => __( 'JSON file is empty or invalid.', 'examhub' ) ] );
+        }
+
+        $json = json_decode( $json_raw, true );
+        if ( ! is_array( $json ) ) {
+            wp_send_json_error( [ 'message' => __( 'Invalid JSON format.', 'examhub' ) ] );
+        }
+
+        $questions = examhub_parse_questions_from_import_json( $json );
+        if ( empty( $questions ) ) {
+            wp_send_json_error( [ 'message' => __( 'No valid questions found in JSON.', 'examhub' ) ] );
+        }
+
+        wp_send_json_success( [
+            'questions'    => $questions,
+            'text_preview' => '',
+            'total'        => count( $questions ),
+            'source_check' => [ 'passed' => true, 'matched' => count( $questions ), 'total' => count( $questions ), 'ratio' => 1 ],
+        ] );
+    }
+
     $text = examhub_extract_pdf_text( $file['tmp_name'] );
     if ( is_wp_error( $text ) || empty( $text ) ) {
-        $msg = is_wp_error( $text ) ? $text->get_error_message() : __( 'تعذر استخراج النص من الملف.', 'examhub' );
+        $msg = is_wp_error( $text ) ? $text->get_error_message() : __( 'Failed to extract text from PDF.', 'examhub' );
         wp_send_json_error( [ 'message' => $msg ] );
     }
 
-    // Clean up OCR artifacts
     $text = examhub_clean_ocr_text( $text );
 
-    // Context for AI
     $context = [
-        'grade'   => sanitize_text_field( $_POST['lesson_hint'] ?? '' ),
-        'subject' => '',
-        'lesson'  => sanitize_text_field( $_POST['lesson_hint'] ?? '' ),
+        'grade'   => $grade_id ? get_the_title( $grade_id ) : '',
+        'subject' => $subject_id ? get_the_title( $subject_id ) : '',
+        'lesson'  => $question_group_id ? get_the_title( $question_group_id ) : '',
     ];
 
-    $grade_id = (int) ( $_POST['grade_id'] ?? 0 );
-    if ( $grade_id ) {
-        $context['grade'] = get_the_title( $grade_id );
-    }
-
-    $subject_id = (int) ( $_POST['subject_id'] ?? 0 );
-    if ( $subject_id ) {
-        $context['subject'] = get_the_title( $subject_id );
-    }
-
-    // AI extraction
     $questions = examhub_ai_extract_questions( $text, $context );
     if ( is_wp_error( $questions ) ) {
         wp_send_json_error( [ 'message' => $questions->get_error_message() ] );
     }
 
-    // Guardrail: reject hallucinated output that does not match extracted PDF text.
     $source_check = examhub_validate_questions_against_source_text( $questions, $text );
     if ( empty( $source_check['passed'] ) ) {
         wp_send_json_error( [
-            'message' => __( 'تعذر مطابقة الأسئلة مع نص ملف PDF المرفوع. تأكد أن الملف يحتوي نصا واضحا (وليس صورا فقط) ثم حاول مرة أخرى.', 'examhub' ),
+            'message' => __( 'Could not match extracted questions with uploaded PDF text.', 'examhub' ),
             'debug'   => $source_check,
         ] );
     }
@@ -434,6 +474,72 @@ function examhub_ajax_import_pdf() {
         'total'        => count( $questions ),
         'source_check' => $source_check,
     ] );
+}
+
+/**
+ * Parse questions from import JSON (DeepSeek-style).
+ *
+ * @param array $json
+ * @return array
+ */
+function examhub_parse_questions_from_import_json( $json ) {
+    $all_blocks = [];
+
+    if ( ! empty( $json['questions'] ) && is_array( $json['questions'] ) ) {
+        $all_blocks = array_merge( $all_blocks, $json['questions'] );
+    }
+
+    if ( ! empty( $json['multiple_choice_answers_from_page4'] ) && is_array( $json['multiple_choice_answers_from_page4'] ) ) {
+        $all_blocks = array_merge( $all_blocks, $json['multiple_choice_answers_from_page4'] );
+    }
+
+    $normalized = [];
+    foreach ( $all_blocks as $q ) {
+        if ( ! is_array( $q ) ) {
+            continue;
+        }
+
+        $question_text = sanitize_textarea_field( $q['question_text'] ?? '' );
+        if ( '' === trim( $question_text ) ) {
+            continue;
+        }
+
+        $type = sanitize_text_field( $q['type'] ?? '' );
+        $answers = [];
+        $correct = $q['correct_answer'] ?? '';
+
+        if ( empty( $type ) ) {
+            $type = ( ! empty( $q['options'] ) && is_array( $q['options'] ) ) ? 'mcq' : 'essay';
+        }
+
+        if ( 'calculation' === $type || 'explanation' === $type ) {
+            $type = 'essay';
+        }
+
+        if ( 'mcq' === $type && ! empty( $q['options'] ) && is_array( $q['options'] ) ) {
+            foreach ( $q['options'] as $opt ) {
+                $opt_text = sanitize_text_field( is_string( $opt ) ? $opt : '' );
+                if ( '' === $opt_text ) {
+                    continue;
+                }
+                $is_correct = ( is_string( $correct ) && $opt_text === sanitize_text_field( $correct ) );
+                $answers[] = [
+                    'answer_text' => $opt_text,
+                    'is_correct'  => $is_correct,
+                ];
+            }
+        }
+
+        $normalized[] = [
+            'question_text' => $question_text,
+            'type'          => $type,
+            'difficulty'    => 'medium',
+            'answers'       => $answers,
+            'correct_answer'=> is_string( $correct ) ? sanitize_text_field( $correct ) : '',
+        ];
+    }
+
+    return $normalized;
 }
 
 /**
@@ -1082,6 +1188,44 @@ function examhub_ajax_admin_get_subjects_by_grade() {
     wp_send_json_success( $data );
 }
 
+add_action( 'wp_ajax_eh_admin_get_question_groups_by_subject', 'examhub_ajax_admin_get_question_groups_by_subject' );
+function examhub_ajax_admin_get_question_groups_by_subject() {
+    check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_send_json_error( [], 403 );
+    }
+
+    $subject_id = (int) ( $_POST['subject_id'] ?? 0 );
+    if ( ! $subject_id ) {
+        wp_send_json_success( [] );
+    }
+
+    $groups = get_posts( [
+        'post_type'      => 'eh_lesson',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'meta_query'     => [
+            [
+                'key'     => 'lesson_subject',
+                'value'   => $subject_id,
+                'compare' => '=',
+            ],
+        ],
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+    ] );
+
+    $data = [];
+    foreach ( $groups as $group ) {
+        $data[] = [
+            'id'    => $group->ID,
+            'label' => $group->post_title,
+        ];
+    }
+
+    wp_send_json_success( $data );
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // AJAX: SAVE IMPORTED QUESTIONS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1134,6 +1278,7 @@ function examhub_ajax_save_imported_questions() {
         if ( ! empty( $extra['education_system'] ) ) update_field( 'education_system', (int)$extra['education_system'], $post_id );
         if ( ! empty( $extra['grade_id'] ) )         update_field( 'grade',            (int)$extra['grade_id'],         $post_id );
         if ( ! empty( $extra['subject_id'] ) )       update_field( 'subject',          (int)$extra['subject_id'],       $post_id );
+        if ( ! empty( $extra['question_group_id'] ) ) update_field( 'lesson',          (int)$extra['question_group_id'], $post_id );
         if ( ! empty( $extra['book_source'] ) )      update_field( 'book_source',       $extra['book_source'],           $post_id );
 
         // Answers for MCQ
@@ -1178,3 +1323,5 @@ function examhub_ajax_save_imported_questions() {
         'message' => sprintf( __( 'تم حفظ %d سؤال. تم تخطي %d (مكررة أو فارغة).', 'examhub' ), $saved, $skipped ),
     ] );
 }
+
+
