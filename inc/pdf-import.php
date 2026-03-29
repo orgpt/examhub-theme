@@ -474,22 +474,222 @@ function examhub_extract_pdf_text( $path ) {
         }
     }
 
-    // Fallback: PHP PDF parsing (simple)
+    // Fallback: pure-PHP extraction from PDF content streams.
     $content = file_get_contents( $path );
-    $text    = '';
-
-    // Extract text objects from PDF
-    preg_match_all( '/BT(.+?)ET/s', $content, $matches );
-    foreach ( $matches[1] as $block ) {
-        preg_match_all( '/\((.+?)\)\s*Tj/', $block, $tjs );
-        $text .= implode( ' ', $tjs[1] ) . "\n";
-    }
-
-    // Also try raw parenthesized segments.
-    preg_match_all( '/\(([^\)]+)\)/', $content, $paren );
-    $text .= implode( ' ', $paren[1] ?? [] );
+    $text    = examhub_extract_text_from_pdf_streams( $content );
 
     return $text ?: new WP_Error( 'no_text', __( 'تعذر العثور على نص في الملف.', 'examhub' ) );
+}
+
+/**
+ * Extract text from PDF streams (handles common FlateDecode streams and Tj/TJ operators).
+ *
+ * @param string $pdf_content
+ * @return string
+ */
+function examhub_extract_text_from_pdf_streams( $pdf_content ) {
+    if ( ! is_string( $pdf_content ) || '' === $pdf_content ) {
+        return '';
+    }
+
+    $chunks = [];
+
+    // 1) Parse stream blocks and try to decode them.
+    if ( preg_match_all( '/(?:<<[\s\S]*?>>\s*)stream[\r\n]+([\s\S]*?)endstream/s', $pdf_content, $m, PREG_SET_ORDER ) ) {
+        foreach ( $m as $match ) {
+            $raw = $match[1];
+            $raw = preg_replace( "/^\r?\n/", '', $raw );
+            $raw = preg_replace( "/\r?\n$/", '', $raw );
+
+            $decoded = examhub_try_decode_pdf_stream( $raw );
+            if ( is_string( $decoded ) && '' !== $decoded ) {
+                $chunks[] = $decoded;
+            }
+            $chunks[] = $raw;
+        }
+    }
+
+    // 2) Also parse the raw PDF body as a fallback source.
+    $chunks[] = $pdf_content;
+
+    $text_parts = [];
+    foreach ( $chunks as $chunk ) {
+        $t = examhub_extract_text_from_pdf_chunk( $chunk );
+        if ( '' !== $t ) {
+            $text_parts[] = $t;
+        }
+    }
+
+    $text = trim( implode( "\n", $text_parts ) );
+    $text = preg_replace( '/\n{3,}/', "\n\n", $text );
+    return trim( (string) $text );
+}
+
+/**
+ * Try decoding a PDF stream payload.
+ *
+ * @param string $raw
+ * @return string
+ */
+function examhub_try_decode_pdf_stream( $raw ) {
+    if ( ! is_string( $raw ) || '' === $raw ) {
+        return '';
+    }
+
+    // Already readable.
+    if ( preg_match( '/BT[\s\S]*?ET/', $raw ) ) {
+        return $raw;
+    }
+
+    // Try zlib decode variants for Flate streams.
+    $try = @gzuncompress( $raw );
+    if ( false !== $try && '' !== $try ) {
+        return $try;
+    }
+
+    $try = @gzinflate( $raw );
+    if ( false !== $try && '' !== $try ) {
+        return $try;
+    }
+
+    $try = @gzdecode( $raw );
+    if ( false !== $try && '' !== $try ) {
+        return $try;
+    }
+
+    return '';
+}
+
+/**
+ * Extract text operands from a decoded PDF chunk.
+ *
+ * @param string $chunk
+ * @return string
+ */
+function examhub_extract_text_from_pdf_chunk( $chunk ) {
+    if ( ! is_string( $chunk ) || '' === $chunk ) {
+        return '';
+    }
+
+    $result = [];
+
+    // Text blocks between BT ... ET.
+    if ( preg_match_all( '/BT([\s\S]*?)ET/', $chunk, $blocks ) ) {
+        foreach ( $blocks[1] as $block ) {
+            $result[] = examhub_extract_operands_from_text_block( $block );
+        }
+    } else {
+        $result[] = examhub_extract_operands_from_text_block( $chunk );
+    }
+
+    $text = trim( implode( "\n", array_filter( $result ) ) );
+    $text = preg_replace( '/[ \t]{2,}/', ' ', $text );
+    return trim( (string) $text );
+}
+
+/**
+ * Parse Tj / TJ operators and decode text strings.
+ *
+ * @param string $block
+ * @return string
+ */
+function examhub_extract_operands_from_text_block( $block ) {
+    $out = [];
+
+    // Literal strings: (...) Tj
+    if ( preg_match_all( '/\(((?:\\\\.|[^\\\\)])*)\)\s*Tj/s', $block, $m1 ) ) {
+        foreach ( $m1[1] as $str ) {
+            $out[] = examhub_decode_pdf_literal_string( $str );
+        }
+    }
+
+    // Hex strings: <...> Tj
+    if ( preg_match_all( '/<([0-9A-Fa-f\s]+)>\s*Tj/s', $block, $m2 ) ) {
+        foreach ( $m2[1] as $hex ) {
+            $out[] = examhub_decode_pdf_hex_string( $hex );
+        }
+    }
+
+    // Arrays for TJ: [ ... ] TJ
+    if ( preg_match_all( '/\[(.*?)\]\s*TJ/s', $block, $m3 ) ) {
+        foreach ( $m3[1] as $arr ) {
+            if ( preg_match_all( '/\(((?:\\\\.|[^\\\\)])*)\)|<([0-9A-Fa-f\s]+)>/s', $arr, $parts, PREG_SET_ORDER ) ) {
+                foreach ( $parts as $p ) {
+                    if ( isset( $p[1] ) && '' !== $p[1] ) {
+                        $out[] = examhub_decode_pdf_literal_string( $p[1] );
+                    } elseif ( isset( $p[2] ) && '' !== $p[2] ) {
+                        $out[] = examhub_decode_pdf_hex_string( $p[2] );
+                    }
+                }
+            }
+        }
+    }
+
+    $text = trim( implode( ' ', array_filter( $out ) ) );
+    $text = preg_replace( '/\s{2,}/', ' ', $text );
+    return trim( (string) $text );
+}
+
+/**
+ * Decode PDF literal string escapes.
+ *
+ * @param string $str
+ * @return string
+ */
+function examhub_decode_pdf_literal_string( $str ) {
+    $str = preg_replace( '/\\\\([\\\\()])/', '$1', $str );
+    $str = str_replace( [ '\n', '\r', '\t', '\b', '\f' ], [ "\n", ' ', ' ', '', '' ], $str );
+    $str = preg_replace( '/\\\\[0-7]{1,3}/', ' ', $str ); // octal escapes (rare).
+    return trim( (string) $str );
+}
+
+/**
+ * Decode PDF hex string into UTF-8 text when possible.
+ *
+ * @param string $hex
+ * @return string
+ */
+function examhub_decode_pdf_hex_string( $hex ) {
+    $hex = preg_replace( '/\s+/', '', $hex );
+    if ( '' === $hex ) {
+        return '';
+    }
+    if ( strlen( $hex ) % 2 !== 0 ) {
+        $hex .= '0';
+    }
+
+    $bin = @hex2bin( $hex );
+    if ( false === $bin || '' === $bin ) {
+        return '';
+    }
+
+    // UTF-16 BOM.
+    if ( 0 === strpos( $bin, "\xFE\xFF" ) || 0 === strpos( $bin, "\xFF\xFE" ) ) {
+        $utf8 = function_exists( 'mb_convert_encoding' )
+            ? @mb_convert_encoding( $bin, 'UTF-8', 'UTF-16' )
+            : @iconv( 'UTF-16', 'UTF-8//IGNORE', $bin );
+        if ( is_string( $utf8 ) && '' !== $utf8 ) {
+            return trim( $utf8 );
+        }
+    }
+
+    // Heuristic for UTF-16BE without BOM.
+    if ( substr_count( $bin, "\x00" ) > strlen( $bin ) / 4 ) {
+        $utf8 = function_exists( 'mb_convert_encoding' )
+            ? @mb_convert_encoding( $bin, 'UTF-8', 'UTF-16BE' )
+            : @iconv( 'UTF-16BE', 'UTF-8//IGNORE', $bin );
+        if ( is_string( $utf8 ) && '' !== $utf8 ) {
+            return trim( $utf8 );
+        }
+    }
+
+    // Fallback: treat as UTF-8/latin bytes.
+    if ( function_exists( 'mb_convert_encoding' ) ) {
+        return trim( @mb_convert_encoding( $bin, 'UTF-8', 'UTF-8,ISO-8859-1,Windows-1252' ) );
+    }
+
+    $utf8 = @iconv( 'ISO-8859-1', 'UTF-8//IGNORE', $bin );
+    return trim( is_string( $utf8 ) ? $utf8 : $bin );
 }
 
 /**
@@ -523,8 +723,9 @@ function examhub_validate_questions_against_source_text( $questions, $source_tex
         return [ 'passed' => false, 'matched' => 0, 'total' => 0, 'ratio' => 0 ];
     }
 
-    $source_norm = examhub_normalize_text_for_match( $source_text );
-    if ( '' === $source_norm || strlen( $source_norm ) < 120 ) {
+    $source_norm = examhub_normalize_text_for_match( $source_text, true );
+    $source_len = function_exists( 'mb_strlen' ) ? mb_strlen( $source_norm, 'UTF-8' ) : strlen( $source_norm );
+    if ( '' === $source_norm || $source_len < 120 ) {
         return [ 'passed' => false, 'matched' => 0, 'total' => count( $questions ), 'ratio' => 0 ];
     }
 
@@ -537,15 +738,14 @@ function examhub_validate_questions_against_source_text( $questions, $source_tex
         }
 
         $q_text = (string) ( $q['question_text'] ?? '' );
-        $q_norm = examhub_normalize_text_for_match( $q_text );
-        if ( '' === $q_norm || strlen( $q_norm ) < 8 ) {
+        $q_norm = examhub_normalize_text_for_match( $q_text, true );
+        $q_len = function_exists( 'mb_strlen' ) ? mb_strlen( $q_norm, 'UTF-8' ) : strlen( $q_norm );
+        if ( '' === $q_norm || $q_len < 8 ) {
             continue;
         }
 
         $total++;
-        $probe_len = min( 24, strlen( $q_norm ) );
-        $probe     = substr( $q_norm, 0, $probe_len );
-        if ( '' !== $probe && false !== strpos( $source_norm, $probe ) ) {
+        if ( examhub_is_question_present_in_source( $q_norm, $source_norm ) ) {
             $matched++;
         }
     }
@@ -555,8 +755,9 @@ function examhub_validate_questions_against_source_text( $questions, $source_tex
     }
 
     $ratio = $matched / $total;
+    $min_required = max( 1, (int) ceil( $total * 0.15 ) );
     return [
-        'passed'  => ( $ratio >= 0.35 ),
+        'passed'  => ( $matched >= $min_required ),
         'matched' => $matched,
         'total'   => $total,
         'ratio'   => round( $ratio, 3 ),
@@ -569,11 +770,66 @@ function examhub_validate_questions_against_source_text( $questions, $source_tex
  * @param string $text
  * @return string
  */
-function examhub_normalize_text_for_match( $text ) {
+function examhub_normalize_text_for_match( $text, $keep_spaces = false ) {
     $text = wp_strip_all_tags( (string) $text );
-    $text = strtolower( $text );
+    $text = function_exists( 'mb_strtolower' ) ? mb_strtolower( $text, 'UTF-8' ) : strtolower( $text );
+
+    if ( $keep_spaces ) {
+        $text = preg_replace( '/[^\p{L}\p{N}\s]+/u', ' ', $text );
+        $text = preg_replace( '/\s+/u', ' ', $text );
+        return trim( (string) $text );
+    }
+
     $text = preg_replace( '/[^\p{L}\p{N}]+/u', '', $text );
-    return (string) $text;
+    return trim( (string) $text );
+}
+
+/**
+ * Check whether a normalized question likely exists in normalized source text.
+ *
+ * @param string $q_norm
+ * @param string $source_norm
+ * @return bool
+ */
+function examhub_is_question_present_in_source( $q_norm, $source_norm ) {
+    $str_sub = static function( $s, $start, $len ) {
+        return function_exists( 'mb_substr' ) ? mb_substr( $s, $start, $len, 'UTF-8' ) : substr( $s, $start, $len );
+    };
+    $str_pos = static function( $hay, $needle ) {
+        return function_exists( 'mb_strpos' ) ? mb_strpos( $hay, $needle, 0, 'UTF-8' ) : strpos( $hay, $needle );
+    };
+    // Direct phrase check on first meaningful segment.
+    $probe = $str_sub( $q_norm, 0, 22 );
+    if ( '' !== $probe && false !== $str_pos( $source_norm, $probe ) ) {
+        return true;
+    }
+
+    // Token overlap check for paraphrase/noise tolerance.
+    $tokens = preg_split( '/\s+/u', $q_norm, -1, PREG_SPLIT_NO_EMPTY );
+    $tokens = array_values( array_filter( $tokens, static function( $t ) {
+        return ( function_exists( 'mb_strlen' ) ? mb_strlen( $t, 'UTF-8' ) : strlen( $t ) ) >= 3;
+    } ) );
+
+    if ( count( $tokens ) < 3 ) {
+        return false;
+    }
+
+    // Pick up to 5 strongest tokens.
+    usort( $tokens, static function( $a, $b ) {
+        $lb = function_exists( 'mb_strlen' ) ? mb_strlen( $b, 'UTF-8' ) : strlen( $b );
+        $la = function_exists( 'mb_strlen' ) ? mb_strlen( $a, 'UTF-8' ) : strlen( $a );
+        return $lb - $la;
+    } );
+    $tokens = array_slice( array_unique( $tokens ), 0, 5 );
+
+    $hits = 0;
+    foreach ( $tokens as $tok ) {
+        if ( false !== $str_pos( $source_norm, $tok ) ) {
+            $hits++;
+        }
+    }
+
+    return $hits >= 2;
 }
 
 add_action( 'wp_ajax_eh_admin_get_grades_by_system', 'examhub_ajax_admin_get_grades_by_system' );
