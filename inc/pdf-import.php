@@ -446,6 +446,10 @@ function examhub_extract_pdf_text( $path ) {
         if ( is_string( $remote ) && strlen( trim( $remote ) ) >= 40 ) {
             return $remote;
         }
+        if ( is_wp_error( $remote ) ) {
+            // Do not hide API errors behind local OCR fallback errors.
+            return $remote;
+        }
     }
 
     // Try pdftotext first (Linux/macOS + Windows).
