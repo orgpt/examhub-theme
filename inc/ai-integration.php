@@ -572,15 +572,22 @@ function examhub_ai_extract_pdf_text_remote( $pdf_path ) {
     $model    = get_field( 'ai_model', 'option' ) ?: 'deepseek-chat';
     $endpoint = trim( (string) get_field( 'ai_ocr_endpoint', 'option' ) );
     if ( '' === $endpoint ) {
-        $endpoint = '/v1/ocr';
+        return new WP_Error(
+            'ocr_endpoint_missing',
+            __( 'OCR API endpoint غير مضبوط. أضف OCR Gateway endpoint في إعدادات AI أو فعّل OCR المحلي على السيرفر.', 'examhub' )
+        );
     }
 
     if ( ! $api_key ) {
         return new WP_Error( 'no_api_key', __( 'لم يتم إعداد API Key.', 'examhub' ) );
     }
 
-    if ( '/' !== substr( $endpoint, 0, 1 ) ) {
-        $endpoint = '/' . $endpoint;
+    $target_url = $endpoint;
+    if ( ! preg_match( '#^https?://#i', $endpoint ) ) {
+        if ( '/' !== substr( $endpoint, 0, 1 ) ) {
+            $endpoint = '/' . $endpoint;
+        }
+        $target_url = $base_url . $endpoint;
     }
 
     $file_bytes = file_get_contents( $pdf_path );
@@ -607,7 +614,7 @@ function examhub_ai_extract_pdf_text_remote( $pdf_path ) {
 
     $body = $parts . $file_bytes . $eol . '--' . $boundary . '--' . $eol;
 
-    $response = wp_remote_post( $base_url . $endpoint, [
+    $response = wp_remote_post( $target_url, [
         'headers' => [
             'Authorization' => 'Bearer ' . $api_key,
             'Content-Type'  => 'multipart/form-data; boundary=' . $boundary,
@@ -633,7 +640,14 @@ function examhub_ai_extract_pdf_text_remote( $pdf_path ) {
         if ( '' === $msg ) {
             $msg = 'HTTP ' . $code;
         }
-        return new WP_Error( 'ocr_api_error', sprintf( __( 'فشل OCR API: %s', 'examhub' ), $msg ) );
+        return new WP_Error(
+            'ocr_api_error',
+            sprintf(
+                __( 'فشل OCR API (%1$s): %2$s. تحقق من OCR endpoint (خطأ 404 يعني endpoint غير موجود).', 'examhub' ),
+                $target_url,
+                $msg
+            )
+        );
     }
 
     $text = '';
