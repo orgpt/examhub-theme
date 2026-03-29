@@ -440,6 +440,14 @@ function examhub_ajax_import_pdf() {
  * Extract text from PDF using pdftotext (if available) or fallback.
  */
 function examhub_extract_pdf_text( $path ) {
+    // 0) Preferred: send file to provider OCR API when enabled.
+    if ( function_exists( 'examhub_ai_extract_pdf_text_remote' ) && get_field( 'ai_ocr_enabled', 'option' ) ) {
+        $remote = examhub_ai_extract_pdf_text_remote( $path );
+        if ( is_string( $remote ) && strlen( trim( $remote ) ) >= 40 ) {
+            return $remote;
+        }
+    }
+
     // Try pdftotext first (Linux/macOS + Windows).
     $output = [];
     $status = 1;
@@ -584,6 +592,36 @@ function examhub_find_binary( $binary ) {
     $cmd  = ( 'Windows' === PHP_OS_FAMILY ) ? "where {$binary} 2>{$null}" : "command -v {$binary} 2>{$null}";
     $out  = trim( (string) shell_exec( $cmd ) );
     if ( '' === $out ) {
+        // Windows fallback: try common install locations even if PATH is not set.
+        if ( 'Windows' === PHP_OS_FAMILY ) {
+            $candidates = [];
+            if ( 'tesseract' === strtolower( $binary ) ) {
+                $candidates = [
+                    'C:\\Program Files\\Tesseract-OCR\\tesseract.exe',
+                    'C:\\Program Files (x86)\\Tesseract-OCR\\tesseract.exe',
+                ];
+            } elseif ( 'pdftoppm' === strtolower( $binary ) ) {
+                $candidates = [
+                    'C:\\Program Files\\poppler\\Library\\bin\\pdftoppm.exe',
+                    'C:\\Program Files\\poppler\\bin\\pdftoppm.exe',
+                    'C:\\poppler\\Library\\bin\\pdftoppm.exe',
+                    'C:\\poppler\\bin\\pdftoppm.exe',
+                ];
+            } elseif ( 'magick' === strtolower( $binary ) ) {
+                $candidates = [
+                    'C:\\Program Files\\ImageMagick-7.1.1-Q16-HDRI\\magick.exe',
+                    'C:\\Program Files\\ImageMagick-7.1.0-Q16-HDRI\\magick.exe',
+                    'C:\\Program Files\\ImageMagick-7.0.11-Q16\\magick.exe',
+                ];
+            }
+
+            foreach ( $candidates as $candidate ) {
+                if ( file_exists( $candidate ) ) {
+                    return $candidate;
+                }
+            }
+        }
+
         return '';
     }
     $lines = preg_split( '/\r\n|\r|\n/', $out );

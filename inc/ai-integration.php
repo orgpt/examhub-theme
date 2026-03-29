@@ -547,3 +547,156 @@ function examhub_ajax_ai_study_plan() {
 
     wp_send_json_success( [ 'plan' => $plan ] );
 }
+
+/**
+ * Upload PDF to AI OCR endpoint and return extracted text.
+ *
+ * @param string $pdf_path
+ * @return string|WP_Error
+ */
+function examhub_ai_extract_pdf_text_remote( $pdf_path ) {
+    if ( ! get_field( 'ai_enabled', 'option' ) ) {
+        return new WP_Error( 'ai_disabled', __( 'الذكاء الاصطناعي معطل.', 'examhub' ) );
+    }
+
+    if ( ! get_field( 'ai_ocr_enabled', 'option' ) ) {
+        return new WP_Error( 'ocr_disabled', __( 'OCR عبر API غير مفعل.', 'examhub' ) );
+    }
+
+    if ( ! file_exists( $pdf_path ) || ! is_readable( $pdf_path ) ) {
+        return new WP_Error( 'file_missing', __( 'ملف PDF غير متاح للقراءة.', 'examhub' ) );
+    }
+
+    $api_key  = get_field( 'ai_api_key', 'option' );
+    $base_url = rtrim( get_field( 'ai_base_url', 'option' ) ?: 'https://api.deepseek.com', '/' );
+    $model    = get_field( 'ai_model', 'option' ) ?: 'deepseek-chat';
+    $endpoint = trim( (string) get_field( 'ai_ocr_endpoint', 'option' ) );
+    if ( '' === $endpoint ) {
+        $endpoint = '/v1/ocr';
+    }
+
+    if ( ! $api_key ) {
+        return new WP_Error( 'no_api_key', __( 'لم يتم إعداد API Key.', 'examhub' ) );
+    }
+
+    if ( '/' !== substr( $endpoint, 0, 1 ) ) {
+        $endpoint = '/' . $endpoint;
+    }
+
+    $file_bytes = file_get_contents( $pdf_path );
+    if ( false === $file_bytes || '' === $file_bytes ) {
+        return new WP_Error( 'file_read', __( 'تعذر قراءة ملف PDF.', 'examhub' ) );
+    }
+
+    $boundary = '----examhub' . wp_generate_password( 16, false, false );
+    $eol      = "\r\n";
+    $fname    = basename( $pdf_path );
+
+    $parts = '';
+    $parts .= '--' . $boundary . $eol;
+    $parts .= 'Content-Disposition: form-data; name="model"' . $eol . $eol;
+    $parts .= $model . $eol;
+
+    $parts .= '--' . $boundary . $eol;
+    $parts .= 'Content-Disposition: form-data; name="language"' . $eol . $eol;
+    $parts .= 'ar,en' . $eol;
+
+    $parts .= '--' . $boundary . $eol;
+    $parts .= 'Content-Disposition: form-data; name="file"; filename="' . $fname . '"' . $eol;
+    $parts .= 'Content-Type: application/pdf' . $eol . $eol;
+
+    $body = $parts . $file_bytes . $eol . '--' . $boundary . '--' . $eol;
+
+    $response = wp_remote_post( $base_url . $endpoint, [
+        'headers' => [
+            'Authorization' => 'Bearer ' . $api_key,
+            'Content-Type'  => 'multipart/form-data; boundary=' . $boundary,
+            'Accept'        => 'application/json',
+        ],
+        'body'    => $body,
+        'timeout' => 180,
+    ] );
+
+    if ( is_wp_error( $response ) ) {
+        return $response;
+    }
+
+    $code    = wp_remote_retrieve_response_code( $response );
+    $raw     = wp_remote_retrieve_body( $response );
+    $json    = json_decode( $raw, true );
+
+    if ( $code < 200 || $code >= 300 ) {
+        $msg = '';
+        if ( is_array( $json ) ) {
+            $msg = $json['error']['message'] ?? $json['message'] ?? '';
+        }
+        if ( '' === $msg ) {
+            $msg = 'HTTP ' . $code;
+        }
+        return new WP_Error( 'ocr_api_error', sprintf( __( 'فشل OCR API: %s', 'examhub' ), $msg ) );
+    }
+
+    $text = '';
+    if ( is_array( $json ) ) {
+        $text = examhub_ai_extract_ocr_text_from_response( $json );
+    }
+    if ( '' === trim( $text ) ) {
+        // As a fallback, use raw response for endpoints that return plain text.
+        $text = is_string( $raw ) ? $raw : '';
+    }
+
+    $text = trim( (string) $text );
+    if ( '' === $text ) {
+        return new WP_Error( 'ocr_empty', __( 'OCR API returned empty text.', 'examhub' ) );
+    }
+
+    return $text;
+}
+
+/**
+ * Parse OCR response payload from different provider shapes.
+ *
+ * @param array $json
+ * @return string
+ */
+function examhub_ai_extract_ocr_text_from_response( $json ) {
+    $candidates = [];
+
+    if ( ! empty( $json['text'] ) ) {
+        $candidates[] = $json['text'];
+    }
+    if ( ! empty( $json['content'] ) ) {
+        $candidates[] = $json['content'];
+    }
+    if ( ! empty( $json['data']['text'] ) ) {
+        $candidates[] = $json['data']['text'];
+    }
+    if ( ! empty( $json['result']['text'] ) ) {
+        $candidates[] = $json['result']['text'];
+    }
+    if ( ! empty( $json['choices'][0]['message']['content'] ) ) {
+        $candidates[] = $json['choices'][0]['message']['content'];
+    }
+
+    if ( ! empty( $json['pages'] ) && is_array( $json['pages'] ) ) {
+        $pages = [];
+        foreach ( $json['pages'] as $p ) {
+            if ( is_array( $p ) && ! empty( $p['text'] ) ) {
+                $pages[] = $p['text'];
+            } elseif ( is_string( $p ) ) {
+                $pages[] = $p;
+            }
+        }
+        if ( ! empty( $pages ) ) {
+            $candidates[] = implode( "\n", $pages );
+        }
+    }
+
+    foreach ( $candidates as $value ) {
+        if ( is_string( $value ) && '' !== trim( $value ) ) {
+            return $value;
+        }
+    }
+
+    return '';
+}

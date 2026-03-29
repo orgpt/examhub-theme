@@ -135,6 +135,7 @@ function examhub_register_options_fields() {
             [ 'key' => 'field_ai_max_tokens',    'label' => 'حد الرموز',                 'name' => 'ai_max_tokens',       'type' => 'number', 'default_value' => 2000 ],
             [ 'key' => 'field_ai_temperature',   'label' => 'درجة الإبداع (0-2)',         'name' => 'ai_temperature',      'type' => 'number', 'default_value' => 0.7, 'step' => '0.1' ],
             [ 'key' => 'field_ai_ocr_enabled',   'label' => 'تفعيل OCR العربي',          'name' => 'ai_ocr_enabled',      'type' => 'true_false', 'ui' => 1, 'default_value' => 1 ],
+            [ 'key' => 'field_ai_ocr_endpoint',  'label' => 'OCR API Endpoint',          'name' => 'ai_ocr_endpoint',     'type' => 'text', 'default_value' => '/v1/ocr', 'instructions' => 'مسار OCR لرفع ملف PDF إلى مزود الذكاء الاصطناعي. مثال: /v1/ocr' ],
             [ 'key' => 'field_ai_auto_explain',  'label' => 'توليد الشرح تلقائياً',      'name' => 'ai_auto_explain',     'type' => 'true_false', 'ui' => 1, 'default_value' => 1 ],
             [ 'key' => 'field_ai_daily_limit',   'label' => 'حد الطلبات اليومية',         'name' => 'ai_daily_request_limit', 'type' => 'number', 'default_value' => 1000 ],
             [ 'key' => 'field_ai_system_prompt', 'label' => 'System Prompt الافتراضي',    'name' => 'ai_system_prompt',    'type' => 'textarea', 'rows' => 5,
