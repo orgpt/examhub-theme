@@ -195,6 +195,9 @@ function examhub_ajax_start_exam() {
 
     // Store question order in session meta
     update_post_meta( $result_id, '_eh_question_order', $question_ids );
+    if ( function_exists( 'examhub_increment_exam_count' ) ) {
+        examhub_increment_exam_count( $user_id, 1 );
+    }
 
     // Return session data
     wp_send_json_success( [
@@ -366,11 +369,6 @@ function examhub_ajax_submit_exam() {
     // Check badges
     do_action( 'examhub_exam_submitted', $result_id, $user_id, $grading );
 
-    // Update daily question count
-    $q_count = count( $question_ids );
-    $current  = (int) get_user_meta( $user_id, 'eh_daily_questions', true );
-    update_user_meta( $user_id, 'eh_daily_questions', $current + $q_count );
-
     wp_send_json_success( [
         'result_id'   => $result_id,
         'score'       => $grading['score'],
@@ -424,15 +422,16 @@ add_action( 'wp_ajax_eh_check_limit', 'examhub_ajax_check_limit' );
 function examhub_ajax_check_limit() {
     examhub_verify_ajax_nonce( 'examhub_ajax' );
     $user_id   = get_current_user_id();
-    $remaining = examhub_get_remaining_questions( $user_id );
+    $remaining = function_exists( 'examhub_get_remaining_exams' ) ? examhub_get_remaining_exams( $user_id ) : examhub_get_remaining_questions( $user_id );
     $sub       = examhub_get_user_subscription_status( $user_id );
 
     wp_send_json_success( [
-        'remaining'       => $remaining,
+        'remaining'       => $remaining, // Backward compatibility key.
+        'remaining_exams' => $remaining,
         'can_access'      => $remaining > 0,
         'subscription'    => $sub['state'],
         'plan_name'       => $sub['plan_name'],
-        'daily_limit'     => $sub['questions_limit'],
+        'daily_limit'     => (int) ( $sub['exams_limit'] ?? $sub['questions_limit'] ?? 0 ),
         'unlimited'       => $sub['unlimited'],
     ] );
 }

@@ -481,8 +481,17 @@ function examhub_register_acf_fields() {
                 'label'   => 'مستوى الوصول',
                 'name'    => 'exam_access',
                 'type'    => 'select',
-                'choices' => [ 'free' => 'مجاني للجميع', 'free_limit' => 'محدود (يطبق حد الأسئلة المجانية)', 'subscribed' => 'للمشتركين فقط' ],
+                'choices' => [ 'free' => 'مجاني للجميع', 'free_limit' => 'محدود (يطبق حد الامتحانات اليومية)', 'subscribed' => 'للمشتركين فقط' ],
                 'default_value' => 'free_limit',
+            ],
+            [
+                'key'   => 'field_ex_free_plan_enabled',
+                'label' => 'متاح للخطة المجانية',
+                'name'  => 'exam_free_plan_enabled',
+                'type'  => 'true_false',
+                'ui'    => 1,
+                'default_value' => 0,
+                'instructions'  => 'عند التفعيل: يمكن للمستخدم المجاني دخول هذا الامتحان ضمن الحد اليومي.',
             ],
 
             // Difficulty & type

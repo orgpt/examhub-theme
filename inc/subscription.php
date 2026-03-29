@@ -268,13 +268,13 @@ function examhub_send_subscription_email( $user_id, $type, $plan = [], $expires 
  */
 function examhub_render_paywall_popup( $context = 'question_limit' ) {
     $plans    = examhub_get_all_plans();
-    $limit    = (int) ( get_field( 'free_questions_per_day', 'option' ) ?: 10 );
+    $limit    = (int) ( get_field( 'free_exams_per_day', 'option' ) ?: get_field( 'free_questions_per_day', 'option' ) ?: 1 );
     $user_id  = get_current_user_id();
     $sub      = $user_id ? examhub_get_user_subscription_status( $user_id ) : [ 'state' => 'free' ];
 
     $messages = [
         'question_limit' => sprintf(
-            __( 'لقد استخدمت %d أسئلة مجانية اليوم. اشترك للوصول الكامل.', 'examhub' ),
+            __( 'لقد استخدمت %d امتحان مجاني اليوم. اشترك للوصول الكامل.', 'examhub' ),
             $limit
         ),
         'subscription_required' => __( 'هذا الامتحان للمشتركين فقط.', 'examhub' ),

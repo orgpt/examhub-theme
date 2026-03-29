@@ -143,7 +143,8 @@ function examhub_rest_get_me( WP_REST_Request $req ) {
         'level'        => examhub_get_user_level( $xp ),
         'streak'       => (int) get_user_meta( $uid, 'eh_streak', true ),
         'subscription' => $sub,
-        'remaining_questions' => examhub_get_remaining_questions( $uid ),
+        'remaining_questions' => examhub_get_remaining_questions( $uid ), // Backward compatibility.
+        'remaining_exams'     => function_exists( 'examhub_get_remaining_exams' ) ? examhub_get_remaining_exams( $uid ) : examhub_get_remaining_questions( $uid ),
     ] );
 }
 

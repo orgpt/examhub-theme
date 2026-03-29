@@ -372,7 +372,8 @@ function examhub_get_user_dashboard_stats( $user_id ) {
         'total_exams'      => $total_exams,
         'active_today'     => $active_today,
         'subscription'     => $sub,
-        'remaining_questions' => examhub_get_remaining_questions( $user_id ),
+        'remaining_questions' => examhub_get_remaining_questions( $user_id ), // Backward compatibility.
+        'remaining_exams'     => function_exists( 'examhub_get_remaining_exams' ) ? examhub_get_remaining_exams( $user_id ) : examhub_get_remaining_questions( $user_id ),
         'recent_results'   => $recent_results,
     ];
 }

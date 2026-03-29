@@ -31,7 +31,8 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
         'explanation_access' => true,
         'download_access'    => false,
         'leaderboard_access' => true,
-        'questions_limit'    => (int) get_field( 'free_questions_per_day', 'option' ) ?: 10,
+        'exams_limit'        => (int) ( get_field( 'free_exams_per_day', 'option' ) ?: get_field( 'free_questions_per_day', 'option' ) ?: 1 ),
+        'questions_limit'    => (int) ( get_field( 'free_exams_per_day', 'option' ) ?: get_field( 'free_questions_per_day', 'option' ) ?: 1 ),
         'attempts_limit'     => 0,
     ];
 
@@ -47,6 +48,7 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
             'ai_access' => true,
             'explanation_access' => true,
             'download_access'    => true,
+            'exams_limit'        => 9999,
             'questions_limit'    => 9999,
         ] );
     }
@@ -106,7 +108,8 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
         'explanation_access' => (bool) ( $plan['plan_explanation_access'] ?? true ),
         'download_access'    => (bool) ( $plan['plan_download_access'] ?? false ),
         'leaderboard_access' => (bool) ( $plan['plan_leaderboard_access'] ?? true ),
-        'questions_limit'    => (int) ( $plan['plan_questions_limit'] ?? 9999 ),
+        'exams_limit'        => (int) ( $plan['plan_exams_limit'] ?? $plan['plan_questions_limit'] ?? 9999 ),
+        'questions_limit'    => (int) ( $plan['plan_exams_limit'] ?? $plan['plan_questions_limit'] ?? 9999 ),
         'attempts_limit'     => (int) ( $plan['plan_attempts_limit'] ?? 0 ),
     ];
 }
@@ -137,10 +140,10 @@ function examhub_get_all_plans() {
     return array_filter( $plans, fn( $p ) => ! empty( $p['plan_active'] ) );
 }
 
-// ─── Daily Question Limit ────────────────────────────────────────────────────
+// ─── Daily Exam Limit ────────────────────────────────────────────────────────
 
 /**
- * Check if user can access a question (based on daily limit).
+ * Check if user can start an exam (based on daily plan limit).
  *
  * @param int $user_id
  * @return bool
@@ -155,45 +158,72 @@ function examhub_user_can_access_question( $user_id = 0 ) {
         return true;
     }
 
-    // Reset daily counter if needed
+    // Reset daily counter if needed.
     $last_reset = get_user_meta( $user_id, 'eh_daily_reset', true );
     $today      = date( 'Y-m-d' );
 
     if ( $last_reset !== $today ) {
-        update_user_meta( $user_id, 'eh_daily_questions', 0 );
+        update_user_meta( $user_id, 'eh_daily_exams', 0 );
         update_user_meta( $user_id, 'eh_daily_reset', $today );
     }
 
-    $used  = (int) get_user_meta( $user_id, 'eh_daily_questions', true );
-    $limit = $sub['questions_limit'] ?: ( (int) get_field( 'free_questions_per_day', 'option' ) ?: 10 );
+    $used  = (int) get_user_meta( $user_id, 'eh_daily_exams', true );
+    $limit = (int) ( $sub['exams_limit'] ?? 0 );
+    if ( $limit <= 0 ) {
+        $limit = (int) ( get_field( 'free_exams_per_day', 'option' ) ?: get_field( 'free_questions_per_day', 'option' ) ?: 1 );
+    }
 
     return $used < $limit;
 }
 
 /**
- * Increment daily question count for user.
+ * Increment daily exam count for user.
  *
  * @param int $user_id
  * @return int New count
  */
-function examhub_increment_question_count( $user_id = 0 ) {
+function examhub_increment_question_count( $user_id = 0, $amount = 1 ) {
     if ( ! $user_id ) $user_id = get_current_user_id();
-    $current = (int) get_user_meta( $user_id, 'eh_daily_questions', true );
-    $new_val = $current + 1;
-    update_user_meta( $user_id, 'eh_daily_questions', $new_val );
+    $current = (int) get_user_meta( $user_id, 'eh_daily_exams', true );
+    $new_val = max( 0, $current + (int) $amount );
+    update_user_meta( $user_id, 'eh_daily_exams', $new_val );
     return $new_val;
 }
 
 /**
- * Get remaining questions for today.
+ * Get remaining exams for today.
  */
 function examhub_get_remaining_questions( $user_id = 0 ) {
     if ( ! $user_id ) $user_id = get_current_user_id();
     $sub   = examhub_get_user_subscription_status( $user_id );
     if ( $sub['unlimited'] ) return 9999;
-    $used  = (int) get_user_meta( $user_id, 'eh_daily_questions', true );
-    $limit = $sub['questions_limit'] ?: ( (int) get_field( 'free_questions_per_day', 'option' ) ?: 10 );
+    $last_reset = get_user_meta( $user_id, 'eh_daily_reset', true );
+    $today      = date( 'Y-m-d' );
+    if ( $last_reset !== $today ) {
+        update_user_meta( $user_id, 'eh_daily_exams', 0 );
+        update_user_meta( $user_id, 'eh_daily_reset', $today );
+    }
+    $used  = (int) get_user_meta( $user_id, 'eh_daily_exams', true );
+    $limit = (int) ( $sub['exams_limit'] ?? 0 );
+    if ( $limit <= 0 ) {
+        $limit = (int) ( get_field( 'free_exams_per_day', 'option' ) ?: get_field( 'free_questions_per_day', 'option' ) ?: 1 );
+    }
     return max( 0, $limit - $used );
+}
+
+/**
+ * Alias helpers with exam terminology.
+ */
+function examhub_user_can_start_exam( $user_id = 0 ) {
+    return examhub_user_can_access_question( $user_id );
+}
+
+function examhub_increment_exam_count( $user_id = 0, $amount = 1 ) {
+    return examhub_increment_question_count( $user_id, $amount );
+}
+
+function examhub_get_remaining_exams( $user_id = 0 ) {
+    return examhub_get_remaining_questions( $user_id );
 }
 
 // ─── Gamification ────────────────────────────────────────────────────────────

@@ -88,15 +88,26 @@ function examhub_verify_exam_access( $exam_id, $user_id = 0 ) {
     }
 
     $access_level = get_field( 'exam_access', $exam_id ) ?: 'free_limit';
+    $sub          = examhub_get_user_subscription_status( $user_id );
+    $is_paid_user = in_array( $sub['state'], [ 'subscribed', 'trial', 'lifetime' ], true );
 
     if ( $access_level === 'free' ) {
         return true;
     }
 
-    $sub = examhub_get_user_subscription_status( $user_id );
-
-    if ( $access_level === 'subscribed' && ! in_array( $sub['state'], [ 'subscribed', 'trial', 'lifetime' ] ) ) {
+    if ( $access_level === 'subscribed' && ! $is_paid_user ) {
         return new WP_Error( 'subscription_required', __( 'هذا الامتحان للمشتركين فقط.', 'examhub' ) );
+    }
+
+    if ( $access_level === 'free_limit' && ! $is_paid_user ) {
+        $free_plan_enabled = (bool) get_field( 'exam_free_plan_enabled', $exam_id );
+        if ( ! $free_plan_enabled ) {
+            return new WP_Error( 'subscription_required', __( 'هذا الامتحان غير متاح للخطة المجانية.', 'examhub' ) );
+        }
+
+        if ( function_exists( 'examhub_user_can_start_exam' ) && ! examhub_user_can_start_exam( $user_id ) ) {
+            return new WP_Error( 'limit_reached', __( 'لقد وصلت إلى حد الامتحانات اليومية للخطة المجانية.', 'examhub' ) );
+        }
     }
 
     // Check attempts limit
