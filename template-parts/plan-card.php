@@ -34,11 +34,12 @@ $duration    = (int)($plan['plan_duration_days'] ?? 30);
     <?php if($plan['plan_description']) : ?><p class="text-muted small mt-2"><?php echo esc_html($plan['plan_description']); ?></p><?php endif; ?>
 
     <ul class="plan-features">
-      <li><?php echo !empty($plan['plan_unlimited']) ? esc_html__('أسئلة غير محدودة','examhub') : ((int)$plan['plan_questions_limit'].' '.esc_html__('سؤال يومياً','examhub')); ?></li>
+      <?php $plan_limit = (int) ( $plan['plan_exams_limit'] ?? $plan['plan_questions_limit'] ?? 0 ); ?>
+      <li><?php echo !empty($plan['plan_unlimited']) ? esc_html__('امتحانات غير محدودة','examhub') : ($plan_limit.' '.esc_html__('امتحان/يوم','examhub')); ?></li>
       <li <?php echo empty($plan['plan_explanation_access'])? 'class="unavailable"':''; ?>><?php esc_html_e('الشرح التفصيلي','examhub'); ?></li>
       <li <?php echo empty($plan['plan_ai_access'])? 'class="unavailable"':''; ?>><?php esc_html_e('الذكاء الاصطناعي','examhub'); ?></li>
       <li <?php echo empty($plan['plan_download_access'])? 'class="unavailable"':''; ?>><?php esc_html_e('تحميل PDF','examhub'); ?></li>
-      <?php foreach(array_slice($features,0,4) as $feat): ?><li><?php echo esc_html(trim($feat)); ?></li><?php endforeach; ?>
+      <?php foreach(array_slice($features,0,4) as $feat): ?><li><?php echo esc_html(str_replace('أسئلة','امتحانات', trim($feat))); ?></li><?php endforeach; ?>
     </ul>
 
     <?php if($is_current): ?>

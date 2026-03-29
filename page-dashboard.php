@@ -287,13 +287,13 @@ get_header();
       <div class="card mb-3" style="border-color:var(--eh-accent-glow);">
         <div class="card-body p-3 text-center">
           <div class="fs-3 fw-bold text-accent"><?php echo $remaining; ?></div>
-          <div class="small text-muted mb-2"><?php esc_html_e( 'سؤال متبقي اليوم', 'examhub' ); ?></div>
+          <div class="small text-muted mb-2"><?php esc_html_e( 'امتحان متبقي اليوم', 'examhub' ); ?></div>
           <div class="progress mb-3" style="height:6px;">
-            <div class="progress-bar" style="width:<?php echo ( $remaining / max( 1, $sub['questions_limit'] ) ) * 100; ?>%; background:var(--eh-accent)!important;"></div>
+            <div class="progress-bar" style="width:<?php echo ( $remaining / max( 1, (int) ( $sub['exams_limit'] ?? $sub['questions_limit'] ?? 1 ) ) ) * 100; ?>%; background:var(--eh-accent)!important;"></div>
           </div>
           <a href="<?php echo home_url( '/pricing' ); ?>" class="btn btn-primary btn-sm w-100">
             <i class="bi bi-star me-1"></i>
-            <?php esc_html_e( 'أسئلة غير محدودة', 'examhub' ); ?>
+            <?php esc_html_e( 'امتحانات غير محدودة', 'examhub' ); ?>
           </a>
         </div>
       </div>

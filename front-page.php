@@ -39,7 +39,7 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
       </div>
       <div class="eh-landing-stat">
         <strong><?php echo number_format_i18n( (int) wp_count_posts( 'eh_question' )->publish ); ?>+</strong>
-        <span>سؤال متنوع</span>
+        <span>امتحان متنوع</span>
       </div>
       <div class="eh-landing-stat">
         <strong>24/7</strong>
@@ -62,7 +62,7 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
         <div class="eh-landing-feature-card">
           <i class="bi bi-robot"></i>
           <h3>مساعد ذكي</h3>
-          <p>شرح مبسّط للأسئلة الصعبة وتوجيهك لأفضل طريقة حل في وقت أقل.</p>
+          <p>شرح مبسّط لأصعب الامتحانات وتوجيهك لأفضل طريقة حل في وقت أقل.</p>
         </div>
       </div>
       <div class="col-md-6 col-lg-3">
@@ -94,7 +94,7 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
           <div class="plan-name">مجاني</div>
           <div class="plan-price">0 <span>دائمًا</span></div>
           <ul class="plan-features">
-            <li><?php echo (int) ( get_field( 'free_questions_per_day', 'option' ) ?: 10 ); ?> سؤال يوميًا</li>
+            <li>امتحان واحد يوميا</li>
             <li class="unavailable">الذكاء الاصطناعي</li>
             <li class="unavailable">الشرح التفصيلي</li>
           </ul>
@@ -123,7 +123,8 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
             <span>جنيه<?php if ( $duration ) echo ' / ' . $duration . ' يوم'; ?></span>
           </div>
           <ul class="plan-features">
-            <li><?php echo ! empty( $plan['plan_unlimited'] ) ? 'أسئلة غير محدودة' : ( (int) ( $plan['plan_questions_limit'] ?: 100 ) . ' سؤال يوميًا' ); ?></li>
+            <?php $plan_limit = (int) ( $plan['plan_exams_limit'] ?? $plan['plan_questions_limit'] ?? 0 ); ?>
+            <li><?php echo ! empty( $plan['plan_unlimited'] ) ? 'امتحانات غير محدودة' : ( $plan_limit . ' امتحان/يوم' ); ?></li>
             <li class="<?php echo empty( $plan['plan_explanation_access'] ) ? 'unavailable' : ''; ?>">الشرح التفصيلي</li>
             <li class="<?php echo empty( $plan['plan_ai_access'] ) ? 'unavailable' : ''; ?>">الذكاء الاصطناعي</li>
             <li class="<?php echo empty( $plan['plan_download_access'] ) ? 'unavailable' : ''; ?>">تحميل PDF</li>
@@ -144,7 +145,7 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
 
   <section class="eh-landing-final-cta mt-5">
     <h2>جاهز تبدأ التفوق؟</h2>
-    <p>ابدأ الآن واختبر نفسك في آلاف الأسئلة والامتحانات المصممة على المنهج المصري.</p>
+    <p>ابدأ الآن واختبر نفسك في آلاف الامتحانات المصممة على المنهج المصري.</p>
     <div class="eh-landing-cta">
       <a href="<?php echo esc_url( get_post_type_archive_link( 'eh_exam' ) ); ?>" class="btn btn-primary btn-lg">ابدأ المراجعة الآن</a>
       <a href="<?php echo esc_url( home_url( '/pricing' ) ); ?>" class="btn btn-outline-primary btn-lg">اختر خطتك</a>

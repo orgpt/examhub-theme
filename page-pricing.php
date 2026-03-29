@@ -22,7 +22,7 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
   <div class="text-center mb-5">
     <h1 class="fw-bold" style="font-size:2.2rem;"><?php esc_html_e( 'اختر خطتك', 'examhub' ); ?></h1>
     <p class="text-muted" style="max-width:520px;margin:0 auto;">
-      <?php esc_html_e( 'ابدأ مجاناً بـ 10 أسئلة يومياً. اشترك للوصول الكامل لآلاف الامتحانات.', 'examhub' ); ?>
+      <?php esc_html_e( 'ابدأ مجاناً بـ امتحان واحد يومياً. اشترك للوصول الكامل لآلاف الامتحانات.', 'examhub' ); ?>
     </p>
 
     <?php if ( $user_id && $sub['state'] !== 'free' ) : ?>
@@ -50,7 +50,7 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
         <div class="plan-name"><?php esc_html_e( 'مجاني', 'examhub' ); ?></div>
         <div class="plan-price">0 <span><?php esc_html_e( 'دائماً', 'examhub' ); ?></span></div>
         <ul class="plan-features">
-          <li><?php printf( esc_html__( '%d أسئلة يومياً', 'examhub' ), (int)(get_field('free_questions_per_day','option')?:10) ); ?></li>
+          <li><?php esc_html_e( 'امتحان واحد يوميا', 'examhub' ); ?></li>
           <li><?php esc_html_e( 'الوصول لعينات الامتحانات', 'examhub' ); ?></li>
           <li class="unavailable"><?php esc_html_e( 'الشرح التفصيلي', 'examhub' ); ?></li>
           <li class="unavailable"><?php esc_html_e( 'الذكاء الاصطناعي', 'examhub' ); ?></li>
@@ -95,9 +95,9 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
 
         <ul class="plan-features">
           <?php if ( ! empty( $plan['plan_unlimited'] ) ) : ?>
-            <li><?php esc_html_e( 'أسئلة غير محدودة', 'examhub' ); ?></li>
-          <?php elseif ( $plan['plan_questions_limit'] ) : ?>
-            <li><?php echo (int)$plan['plan_questions_limit']; ?> <?php esc_html_e( 'سؤال يومياً', 'examhub' ); ?></li>
+            <li><?php esc_html_e( 'امتحانات غير محدودة', 'examhub' ); ?></li>
+          <?php elseif ( ! empty( $plan['plan_exams_limit'] ) || ! empty( $plan['plan_questions_limit'] ) ) : ?>
+            <li><?php echo (int) ( $plan['plan_exams_limit'] ?? $plan['plan_questions_limit'] ?? 0 ); ?> <?php esc_html_e( 'امتحان/يوم', 'examhub' ); ?></li>
           <?php endif; ?>
 
           <li <?php echo empty( $plan['plan_explanation_access'] ) ? 'class="unavailable"' : ''; ?>>
@@ -114,7 +114,7 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
           </li>
 
           <?php foreach ( $features as $feat ) : ?>
-            <li><?php echo esc_html( trim( $feat ) ); ?></li>
+            <li><?php echo esc_html( str_replace( 'أسئلة', 'امتحانات', trim( $feat ) ) ); ?></li>
           <?php endforeach; ?>
         </ul>
 
@@ -159,7 +159,7 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
           <tbody>
             <?php
             $features_compare = [
-              [ 'label' => __('الأسئلة اليومية','examhub'), 'key' => 'questions'],
+              [ 'label' => __('الامتحانات اليومية','examhub'), 'key' => 'questions'],
               [ 'label' => __('الشرح التفصيلي','examhub'), 'key' => 'explanation'],
               [ 'label' => __('الذكاء الاصطناعي','examhub'), 'key' => 'ai'],
               [ 'label' => __('تحميل PDF','examhub'), 'key' => 'download'],
@@ -171,7 +171,7 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
               <td class="text-center">
                 <?php
                 switch($feat['key']) {
-                  case 'questions': echo (int)(get_field('free_questions_per_day','option')?:10) . '/يوم'; break;
+                  case 'questions': echo esc_html__('امتحان واحد يوميا','examhub'); break;
                   default: echo '<span class="text-muted">—</span>';
                 }
                 ?>
@@ -181,7 +181,8 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
                 <?php
                 switch($feat['key']) {
                   case 'questions':
-                    echo ! empty($plan['plan_unlimited']) ? esc_html__('غير محدود','examhub') : ( $plan['plan_questions_limit'] ? (int)$plan['plan_questions_limit'].'/يوم' : esc_html__('غير محدود','examhub') );
+                    $plan_limit = (int) ( $plan['plan_exams_limit'] ?? $plan['plan_questions_limit'] ?? 0 );
+                    echo ! empty($plan['plan_unlimited']) ? esc_html__('غير محدود','examhub') : ( $plan_limit ? $plan_limit . '/يوم' : esc_html__('غير محدود','examhub') );
                     break;
                   case 'explanation':
                     echo ! empty($plan['plan_explanation_access']) ? '<span class="text-success">✓</span>' : '<span class="text-muted">—</span>'; break;
@@ -206,7 +207,7 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
   <!-- FAQ -->
   <div class="row justify-content-center">
     <div class="col-lg-8">
-      <h3 class="mb-4"><?php esc_html_e( 'أسئلة شائعة', 'examhub' ); ?></h3>
+      <h3 class="mb-4"><?php esc_html_e( 'استفسارات شائعة', 'examhub' ); ?></h3>
       <div class="accordion eh-pricing-faq" id="pricingFAQ">
         <?php
         $faqs = [

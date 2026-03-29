@@ -158,7 +158,7 @@ get_header();
         <!-- Plan features summary -->
         <ul class="list-unstyled small mb-0">
           <?php if ( ! empty( $plan['plan_unlimited'] ) ) : ?>
-            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i><?php esc_html_e( 'أسئلة غير محدودة', 'examhub' ); ?></li>
+            <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i><?php esc_html_e( 'امتحانات غير محدودة', 'examhub' ); ?></li>
           <?php endif; ?>
           <?php if ( ! empty( $plan['plan_ai_access'] ) ) : ?>
             <li class="mb-1"><i class="bi bi-check-circle-fill text-success me-2"></i><?php esc_html_e( 'الذكاء الاصطناعي', 'examhub' ); ?></li>

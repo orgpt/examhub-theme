@@ -77,7 +77,7 @@ get_header();
               <div style="font-size:3rem;margin-bottom:1rem;">🔓</div>
               <h5 class="fw-bold"><?php esc_html_e( 'الخطة المجانية', 'examhub' ); ?></h5>
               <p class="text-muted small">
-                <?php printf( esc_html__( '%d أسئلة يومياً — تجدد كل يوم', 'examhub' ), (int)(get_field('free_questions_per_day','option')?:10) ); ?>
+                <?php esc_html_e( 'امتحان واحد يوميا — يتجدد كل يوم', 'examhub' ); ?>
               </p>
               <a href="<?php echo esc_url( home_url('/pricing') ); ?>" class="btn btn-primary mt-2">
                 <i class="bi bi-lightning-fill me-1"></i><?php esc_html_e('ترقية الاشتراك','examhub'); ?>
@@ -117,9 +117,9 @@ get_header();
               <div class="col-6">
                 <div class="p-2 rounded-eh" style="background:var(--eh-bg-tertiary);">
                   <div class="fw-bold text-accent">
-                    <?php echo $sub['unlimited'] ? '∞' : number_format( $sub['questions_limit'] ); ?>
+                    <?php echo $sub['unlimited'] ? '∞' : number_format( (int) ( $sub['exams_limit'] ?? $sub['questions_limit'] ?? 0 ) ); ?>
                   </div>
-                  <small class="text-muted"><?php esc_html_e( 'أسئلة/يوم', 'examhub' ); ?></small>
+                  <small class="text-muted"><?php esc_html_e( 'امتحان/يوم', 'examhub' ); ?></small>
                 </div>
               </div>
               <div class="col-6">
@@ -185,7 +185,7 @@ get_header();
           <ul class="list-unstyled mb-0">
             <?php
             $features = [
-              [ esc_html__('أسئلة يومياً','examhub'),         $sub['unlimited'] ? esc_html__('غير محدود','examhub') : number_format($sub['questions_limit']), true ],
+              [ esc_html__('امتحانات يومياً','examhub'),         $sub['unlimited'] ? esc_html__('غير محدود','examhub') : number_format((int) ( $sub['exams_limit'] ?? $sub['questions_limit'] ?? 0 )), true ],
               [ esc_html__('الشرح التفصيلي','examhub'),       $sub['explanation_access'] ? '✓' : '—', $sub['explanation_access'] ],
               [ esc_html__('الذكاء الاصطناعي','examhub'),     $sub['ai_access'] ? '✓' : '—',          $sub['ai_access'] ],
               [ esc_html__('تحميل PDF','examhub'),             $sub['download_access'] ? '✓' : '—',    $sub['download_access'] ],

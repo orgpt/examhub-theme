@@ -72,14 +72,11 @@ if ( ! $is_exam_mode ) :
         <?php endif; ?>
 
         <!-- Free limit info -->
-        <?php $free_limit = get_field( 'free_questions_per_day', 'option' ) ?: 10; ?>
+        <?php $free_limit = get_field( 'free_exams_per_day', 'option' ) ?: get_field( 'free_questions_per_day', 'option' ) ?: 1; ?>
         <div class="mt-3 p-2 rounded-eh" style="background: var(--eh-accent-light); border: 1px solid var(--eh-accent-glow);">
           <small class="text-accent">
             <i class="bi bi-gift me-1"></i>
-            <?php printf(
-              esc_html__( '%d أسئلة مجانية يومياً لكل مستخدم', 'examhub' ),
-              $free_limit
-            ); ?>
+            <?php echo ( (int) $free_limit <= 1 ) ? esc_html__( 'امتحان واحد يوميا لكل مستخدم', 'examhub' ) : sprintf( esc_html__( '%d امتحان يوميا لكل مستخدم', 'examhub' ), (int) $free_limit ); ?>
           </small>
         </div>
       </div>
