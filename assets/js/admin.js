@@ -129,21 +129,19 @@
       return;
     }
 
-    const keyToName = {
-      field_ex_grade: 'grade_id',
-      field_ex_subject: 'subject_id',
-      field_ex_lesson: 'lesson_id',
-      field_q_grade: 'grade_id',
-      field_q_subject: 'subject_id',
-      field_q_lesson: 'lesson_id',
-    };
-
     function getFieldValue(fieldKey) {
       const $field = $('.acf-field[data-key="' + fieldKey + '"]');
       if (!$field.length) return 0;
-      const $input = $field.find('select, input[type="hidden"], input[type="text"]').first();
-      if (!$input.length) return 0;
-      return parseInt($input.val(), 10) || 0;
+
+      const nameSelector = '[name="acf[' + fieldKey + ']"]';
+      const $namedInput = $field.find(nameSelector).first();
+      if ($namedInput.length) {
+        return parseInt($namedInput.val(), 10) || 0;
+      }
+
+      const $fallbackInput = $field.find('select, input[type="hidden"], input[type="text"]').first();
+      if (!$fallbackInput.length) return 0;
+      return parseInt($fallbackInput.val(), 10) || 0;
     }
 
     function clearField(fieldKey) {
@@ -188,7 +186,14 @@
       }
 
       const key = field.get('key');
-      if (!keyToName[key]) {
+      const handled = [
+        'field_ex_subject',
+        'field_ex_lesson',
+        'field_q_subject',
+        'field_q_lesson',
+        'field_ex_questions',
+      ];
+      if (handled.indexOf(key) === -1) {
         return data;
       }
 

@@ -237,6 +237,9 @@ function examhub_get_acf_request_value( $field_key, $saved_field_name, $post_id,
         if ( isset( $_POST[ $extra_key ] ) ) {
             $candidates[] = $_POST[ $extra_key ];
         }
+        if ( isset( $_POST['query'][ $extra_key ] ) ) {
+            $candidates[] = $_POST['query'][ $extra_key ];
+        }
     }
 
     if ( isset( $_POST['acf'] ) && is_array( $_POST['acf'] ) ) {
@@ -244,6 +247,9 @@ function examhub_get_acf_request_value( $field_key, $saved_field_name, $post_id,
     }
     if ( isset( $_POST['query']['acf'] ) && is_array( $_POST['query']['acf'] ) ) {
         $candidates[] = $_POST['query']['acf'][ $field_key ] ?? null;
+    }
+    if ( isset( $_POST['query'][ $field_key ] ) ) {
+        $candidates[] = $_POST['query'][ $field_key ];
     }
     if ( isset( $_POST[ $field_key ] ) ) {
         $candidates[] = $_POST[ $field_key ];
