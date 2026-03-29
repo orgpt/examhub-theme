@@ -117,8 +117,11 @@ add_action( 'wp_enqueue_scripts', 'examhub_enqueue_assets' );
  * Admin enqueue.
  */
 function examhub_admin_enqueue( $hook ) {
-    wp_enqueue_style( 'examhub-admin', EXAMHUB_ASSETS . 'css/admin.css', [], EXAMHUB_VERSION );
-    wp_enqueue_script( 'examhub-admin', EXAMHUB_ASSETS . 'js/admin.js', [ 'jquery' ], EXAMHUB_VERSION, true );
+    $admin_css_ver = file_exists( EXAMHUB_DIR . '/assets/css/admin.css' ) ? filemtime( EXAMHUB_DIR . '/assets/css/admin.css' ) : EXAMHUB_VERSION;
+    $admin_js_ver  = file_exists( EXAMHUB_DIR . '/assets/js/admin.js' ) ? filemtime( EXAMHUB_DIR . '/assets/js/admin.js' ) : EXAMHUB_VERSION;
+
+    wp_enqueue_style( 'examhub-admin', EXAMHUB_ASSETS . 'css/admin.css', [], $admin_css_ver );
+    wp_enqueue_script( 'examhub-admin', EXAMHUB_ASSETS . 'js/admin.js', [ 'jquery' ], $admin_js_ver, true );
 
     wp_localize_script( 'examhub-admin', 'examhubAdmin', [
         'ajax_url' => admin_url( 'admin-ajax.php' ),
