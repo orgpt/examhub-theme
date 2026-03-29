@@ -286,7 +286,11 @@ function examhub_filter_subject_by_grade( $args, $field, $post_id ) {
     $grade_id          = examhub_get_acf_request_value( $grade_field_key, $saved_grade_field, $post_id, [ 'grade_id' ] );
 
     if ( ! $grade_id ) {
-        $args['post__in'] = [ 0 ];
+        // Fallback: if ACF request does not include grade yet, do not block the field.
+        $args['post_status'] = 'publish';
+        $args['orderby']     = 'title';
+        $args['order']       = 'ASC';
+        unset( $args['meta_query'] );
         return $args;
     }
 
@@ -304,7 +308,11 @@ function examhub_filter_subject_by_grade( $args, $field, $post_id ) {
         ],
     ] );
 
-    $args['post__in']     = ! empty( $subject_ids ) ? $subject_ids : [ 0 ];
+    if ( ! empty( $subject_ids ) ) {
+        $args['post__in'] = $subject_ids;
+    } else {
+        unset( $args['post__in'] );
+    }
     $args['post_status']  = 'publish';
     $args['orderby']      = 'title';
     $args['order']        = 'ASC';
@@ -325,7 +333,11 @@ function examhub_filter_lesson_by_subject( $args, $field, $post_id ) {
     $subject_id         = examhub_get_acf_request_value( $subject_field_key, $saved_subject_name, $post_id, [ 'subject_id' ] );
 
     if ( ! $subject_id ) {
-        $args['post__in'] = [ 0 ];
+        // Fallback: allow loading all groups until subject is resolved.
+        $args['post_status'] = 'publish';
+        $args['orderby']     = 'title';
+        $args['order']       = 'ASC';
+        unset( $args['meta_query'] );
         return $args;
     }
 
@@ -343,7 +355,11 @@ function examhub_filter_lesson_by_subject( $args, $field, $post_id ) {
         ],
     ] );
 
-    $args['post__in']     = ! empty( $lesson_ids ) ? $lesson_ids : [ 0 ];
+    if ( ! empty( $lesson_ids ) ) {
+        $args['post__in'] = $lesson_ids;
+    } else {
+        unset( $args['post__in'] );
+    }
     $args['post_status']  = 'publish';
     $args['orderby']      = 'title';
     $args['order']        = 'ASC';
@@ -549,4 +565,6 @@ function examhub_payment_column_content( $col, $post_id ) {
             break;
     }
 }
+
+
 
