@@ -273,7 +273,18 @@ function examhub_lesson_matches_subject( $lesson_id, $subject_id ) {
     }
 
     $lesson_subject = (int) get_field( 'lesson_subject', $lesson_id );
-    return $lesson_subject === $subject_id;
+    if ( $lesson_subject > 0 ) {
+        return $lesson_subject === $subject_id;
+    }
+
+    // Backward compatibility: old groups may still be linked through unit only.
+    $lesson_unit = (int) get_field( 'lesson_unit', $lesson_id );
+    if ( ! $lesson_unit ) {
+        return false;
+    }
+
+    $unit_subject = (int) get_field( 'unit_subject', $lesson_unit );
+    return $unit_subject === $subject_id;
 }
 
 /**
