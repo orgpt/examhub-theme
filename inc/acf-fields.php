@@ -229,6 +229,7 @@ function examhub_register_acf_fields() {
                 'post_type'     => [ 'eh_subject' ],
                 'return_format' => 'id',
                 'ui'            => 1,
+                'ajax'          => 1,
                 'required'      => 1,
             ],
             [
@@ -239,6 +240,7 @@ function examhub_register_acf_fields() {
                 'post_type'     => [ 'eh_lesson' ],
                 'return_format' => 'id',
                 'ui'            => 1,
+                'ajax'          => 1,
             ],
 
             // Difficulty
@@ -395,11 +397,11 @@ function examhub_register_acf_fields() {
             ],
             [
                 'key' => 'field_ex_subject', 'label' => 'المادة', 'name' => 'exam_subject',
-                'type' => 'post_object', 'post_type' => [ 'eh_subject' ], 'return_format' => 'id', 'ui' => 1, 'required' => 1,
+                'type' => 'post_object', 'post_type' => [ 'eh_subject' ], 'return_format' => 'id', 'ui' => 1, 'ajax' => 1, 'required' => 1,
             ],
             [
                 'key' => 'field_ex_lesson', 'label' => 'الدرس', 'name' => 'exam_lesson',
-                'type' => 'post_object', 'post_type' => [ 'eh_lesson' ], 'return_format' => 'id', 'ui' => 1,
+                'type' => 'post_object', 'post_type' => [ 'eh_lesson' ], 'return_format' => 'id', 'ui' => 1, 'ajax' => 1,
             ],
 
             // Academic year

@@ -166,6 +166,7 @@
 
     $(document).on('change', '.acf-field[data-key="field_ex_subject"] select', function () {
       clearField('field_ex_lesson');
+      clearField('field_ex_questions');
     });
 
     $(document).on('change', '.acf-field[data-key="field_q_grade"] select', function () {
@@ -175,6 +176,10 @@
 
     $(document).on('change', '.acf-field[data-key="field_q_subject"] select', function () {
       clearField('field_q_lesson');
+    });
+
+    $(document).on('change', '.acf-field[data-key="field_ex_lesson"] select', function () {
+      clearField('field_ex_questions');
     });
 
     window.acf.addFilter('select2_ajax_data', function (data, args, $input, field) {
@@ -201,6 +206,17 @@
         data.lesson_id = getFieldValue('field_ex_lesson');
       }
 
+      return data;
+    });
+
+    window.acf.addFilter('relationship_ajax_data', function (data, args, $el, field) {
+      if (!field || typeof field.get !== 'function' || field.get('key') !== 'field_ex_questions') {
+        return data;
+      }
+
+      data.grade_id = getFieldValue('field_ex_grade');
+      data.subject_id = getFieldValue('field_ex_subject');
+      data.lesson_id = getFieldValue('field_ex_lesson');
       return data;
     });
   }
