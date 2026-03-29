@@ -1,8 +1,6 @@
 <?php
 /**
- * ExamHub — Custom Post Types Registration
- * Registers all CPTs: education systems, stages, grades, subjects,
- * units, lessons, exams, questions, results, subscriptions, payments.
+ * ExamHub - Custom Post Types Registration
  *
  * @package ExamHub
  */
@@ -14,9 +12,9 @@ defined( 'ABSPATH' ) || exit;
  */
 function examhub_register_cpts() {
 
-    // ─── 1. Education System ───────────────────────────────────────────────
+    // 1. Education System
     register_post_type( 'eh_education_system', [
-        'labels'       => examhub_cpt_labels( 'نظام تعليمي', 'أنظمة تعليمية', 'Education System', 'Education Systems' ),
+        'labels'       => examhub_cpt_labels( 'Education System', 'Education Systems', 'Education System', 'Education Systems' ),
         'public'       => true,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
@@ -27,9 +25,9 @@ function examhub_register_cpts() {
         'has_archive'  => false,
     ] );
 
-    // ─── 2. Stage (المرحلة) ─────────────────────────────────────────────────
+    // 2. Stage
     register_post_type( 'eh_stage', [
-        'labels'       => examhub_cpt_labels( 'مرحلة', 'مراحل', 'Stage', 'Stages' ),
+        'labels'       => examhub_cpt_labels( 'Stage', 'Stages', 'Stage', 'Stages' ),
         'public'       => true,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
@@ -40,9 +38,9 @@ function examhub_register_cpts() {
         'has_archive'  => false,
     ] );
 
-    // ─── 3. Grade (الصف) ───────────────────────────────────────────────────
+    // 3. Grade
     register_post_type( 'eh_grade', [
-        'labels'       => examhub_cpt_labels( 'صف دراسي', 'صفوف دراسية', 'Grade', 'Grades' ),
+        'labels'       => examhub_cpt_labels( 'Grade', 'Grades', 'Grade', 'Grades' ),
         'public'       => true,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
@@ -53,9 +51,9 @@ function examhub_register_cpts() {
         'has_archive'  => false,
     ] );
 
-    // ─── 4. Subject (المادة) ───────────────────────────────────────────────
+    // 4. Subject
     register_post_type( 'eh_subject', [
-        'labels'       => examhub_cpt_labels( 'مادة', 'مواد دراسية', 'Subject', 'Subjects' ),
+        'labels'       => examhub_cpt_labels( 'Subject', 'Subjects', 'Subject', 'Subjects' ),
         'public'       => true,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
@@ -65,12 +63,13 @@ function examhub_register_cpts() {
         'rewrite'      => [ 'slug' => 'subject' ],
         'has_archive'  => true,
     ] );
-    // 5. Unit
+
+    // 5. Unit (legacy, no longer used in selection flow)
     register_post_type( 'eh_unit', [
-        'labels'       => examhub_cpt_labels( 'وحدة', 'وحدات', 'Unit', 'Units' ),
+        'labels'       => examhub_cpt_labels( 'Unit', 'Units', 'Unit', 'Units' ),
         'public'       => false,
-        'show_ui'      => true,
-        'show_in_menu' => 'examhub-content',
+        'show_ui'      => false,
+        'show_in_menu' => false,
         'show_in_rest' => false,
         'supports'     => [ 'title', 'page-attributes' ],
         'menu_icon'    => 'dashicons-networking',
@@ -78,20 +77,22 @@ function examhub_register_cpts() {
         'has_archive'  => false,
     ] );
 
-    // 6. Lesson
+    // 6. Question Group (stored in eh_lesson for backward compatibility)
     register_post_type( 'eh_lesson', [
-        'labels'       => examhub_cpt_labels( 'درس', 'دروس', 'Lesson', 'Lessons' ),
+        'labels'       => examhub_cpt_labels( 'Question Group', 'Question Groups', 'Question Group', 'Question Groups' ),
         'public'       => false,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
         'show_in_rest' => false,
         'supports'     => [ 'title', 'editor', 'thumbnail', 'page-attributes' ],
         'menu_icon'    => 'dashicons-media-document',
-        'rewrite'      => [ 'slug' => 'lesson' ],
+        'rewrite'      => [ 'slug' => 'question-group' ],
         'has_archive'  => false,
     ] );
+
+    // 7. Exam
     register_post_type( 'eh_exam', [
-        'labels'       => examhub_cpt_labels( 'امتحان', 'امتحانات', 'Exam', 'Exams' ),
+        'labels'       => examhub_cpt_labels( 'Exam', 'Exams', 'Exam', 'Exams' ),
         'public'       => true,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
@@ -102,9 +103,9 @@ function examhub_register_cpts() {
         'has_archive'  => true,
     ] );
 
-    // ─── 8. Question (السؤال) ──────────────────────────────────────────────
+    // 8. Question
     register_post_type( 'eh_question', [
-        'labels'       => examhub_cpt_labels( 'سؤال', 'أسئلة', 'Question', 'Questions' ),
+        'labels'       => examhub_cpt_labels( 'Question', 'Questions', 'Question', 'Questions' ),
         'public'       => false,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
@@ -116,9 +117,9 @@ function examhub_register_cpts() {
         'capability_type' => 'post',
     ] );
 
-    // ─── 9. Result (النتيجة) ──────────────────────────────────────────────
+    // 9. Result
     register_post_type( 'eh_result', [
-        'labels'       => examhub_cpt_labels( 'نتيجة', 'نتائج', 'Result', 'Results' ),
+        'labels'       => examhub_cpt_labels( 'Result', 'Results', 'Result', 'Results' ),
         'public'       => false,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
@@ -128,13 +129,13 @@ function examhub_register_cpts() {
         'rewrite'      => false,
         'has_archive'  => false,
         'capabilities' => [
-            'create_posts' => 'do_not_allow', // Only created programmatically
+            'create_posts' => 'do_not_allow',
         ],
     ] );
 
-    // ─── 10. Subscription (الاشتراك) ──────────────────────────────────────
+    // 10. Subscription
     register_post_type( 'eh_subscription', [
-        'labels'       => examhub_cpt_labels( 'اشتراك', 'اشتراكات', 'Subscription', 'Subscriptions' ),
+        'labels'       => examhub_cpt_labels( 'Subscription', 'Subscriptions', 'Subscription', 'Subscriptions' ),
         'public'       => false,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
@@ -147,9 +148,9 @@ function examhub_register_cpts() {
         ],
     ] );
 
-    // ─── 11. Payment (الدفع) ──────────────────────────────────────────────
+    // 11. Payment
     register_post_type( 'eh_payment', [
-        'labels'       => examhub_cpt_labels( 'عملية دفع', 'عمليات دفع', 'Payment', 'Payments' ),
+        'labels'       => examhub_cpt_labels( 'Payment', 'Payments', 'Payment', 'Payments' ),
         'public'       => false,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
@@ -162,9 +163,9 @@ function examhub_register_cpts() {
         ],
     ] );
 
-    // ─── 12. Badge (الشارة) ───────────────────────────────────────────────
+    // 12. Badge
     register_post_type( 'eh_badge', [
-        'labels'       => examhub_cpt_labels( 'شارة', 'شارات', 'Badge', 'Badges' ),
+        'labels'       => examhub_cpt_labels( 'Badge', 'Badges', 'Badge', 'Badges' ),
         'public'       => false,
         'show_ui'      => true,
         'show_in_menu' => 'examhub-content',
@@ -235,3 +236,4 @@ add_action( 'after_switch_theme', function() {
     examhub_register_cpts();
     flush_rewrite_rules();
 } );
+

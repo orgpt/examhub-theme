@@ -139,25 +139,20 @@ function examhub_question_sortable_columns( $cols ) {
     return $cols;
 }
 
-// Lesson admin columns (for easier data auditing)
+// Question Group admin columns (for easier data auditing)
 add_filter( 'manage_eh_lesson_posts_columns', function( $cols ) {
     return [
-        'cb'         => $cols['cb'],
-        'title'      => __( 'الدرس', 'examhub' ),
-        'les_subject'=> __( 'المادة', 'examhub' ),
-        'les_unit'   => __( 'الوحدة', 'examhub' ),
-        'date'       => __( 'التاريخ', 'examhub' ),
+        'cb'          => $cols['cb'],
+        'title'       => __( 'Question Group', 'examhub' ),
+        'les_subject' => __( 'Subject', 'examhub' ),
+        'date'        => __( 'Date', 'examhub' ),
     ];
 } );
 
 add_action( 'manage_eh_lesson_posts_custom_column', function( $col, $post_id ) {
     if ( $col === 'les_subject' ) {
         $sid = (int) get_field( 'lesson_subject', $post_id );
-        echo $sid ? esc_html( get_the_title( $sid ) ) : '—';
-    }
-    if ( $col === 'les_unit' ) {
-        $uid = (int) get_field( 'lesson_unit', $post_id );
-        echo $uid ? esc_html( get_the_title( $uid ) ) : '—';
+        echo $sid ? esc_html( get_the_title( $sid ) ) : '-';
     }
 }, 10, 2 );
 
@@ -267,7 +262,7 @@ function examhub_get_acf_request_value( $field_key, $saved_field_name, $post_id,
 }
 
 /**
- * Check if lesson belongs to the selected subject.
+ * Check if question group belongs to the selected subject.
  */
 function examhub_lesson_matches_subject( $lesson_id, $subject_id ) {
     $lesson_id  = (int) $lesson_id;
@@ -278,17 +273,7 @@ function examhub_lesson_matches_subject( $lesson_id, $subject_id ) {
     }
 
     $lesson_subject = (int) get_field( 'lesson_subject', $lesson_id );
-    if ( $lesson_subject === $subject_id ) {
-        return true;
-    }
-
-    $lesson_unit = (int) get_field( 'lesson_unit', $lesson_id );
-    if ( ! $lesson_unit ) {
-        return false;
-    }
-
-    $unit_subject = (int) get_field( 'unit_subject', $lesson_unit );
-    return $unit_subject === $subject_id;
+    return $lesson_subject === $subject_id;
 }
 
 /**
@@ -331,7 +316,7 @@ add_filter( 'acf/fields/post_object/query/key=field_ex_subject', 'examhub_filter
 add_filter( 'acf/fields/post_object/query/key=field_q_subject', 'examhub_filter_subject_by_grade', 10, 3 );
 
 /**
- * Filter "lesson" picker to selected subject.
+ * Filter "question group" picker to selected subject.
  */
 function examhub_filter_lesson_by_subject( $args, $field, $post_id ) {
     $is_exam_field      = ( $field['key'] ?? '' ) === 'field_ex_lesson';
@@ -344,43 +329,18 @@ function examhub_filter_lesson_by_subject( $args, $field, $post_id ) {
         return $args;
     }
 
-    $unit_ids = get_posts( [
-        'post_type'      => 'eh_unit',
-        'post_status'    => 'publish',
-        'posts_per_page' => -1,
-        'fields'         => 'ids',
-        'meta_query'     => [
-            [
-                'key'     => 'unit_subject',
-                'value'   => $subject_id,
-                'compare' => '=',
-            ],
-        ],
-    ] );
-
-    $lesson_meta_query = [
-        'relation' => 'OR',
-        [
-            'key'     => 'lesson_subject',
-            'value'   => $subject_id,
-            'compare' => '=',
-        ],
-    ];
-
-    if ( ! empty( $unit_ids ) ) {
-        $lesson_meta_query[] = [
-            'key'     => 'lesson_unit',
-            'value'   => $unit_ids,
-            'compare' => 'IN',
-        ];
-    }
-
     $lesson_ids = get_posts( [
         'post_type'      => 'eh_lesson',
         'post_status'    => 'publish',
         'posts_per_page' => -1,
         'fields'         => 'ids',
-        'meta_query'     => $lesson_meta_query,
+        'meta_query'     => [
+            [
+                'key'     => 'lesson_subject',
+                'value'   => $subject_id,
+                'compare' => '=',
+            ],
+        ],
     ] );
 
     $args['post__in']     = ! empty( $lesson_ids ) ? $lesson_ids : [ 0 ];
@@ -589,3 +549,4 @@ function examhub_payment_column_content( $col, $post_id ) {
             break;
     }
 }
+

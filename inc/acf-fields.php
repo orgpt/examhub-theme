@@ -234,7 +234,7 @@ function examhub_register_acf_fields() {
             ],
             [
                 'key'           => 'field_q_lesson',
-                'label'         => 'الدرس',
+                'label'         => 'Question Group',
                 'name'          => 'lesson',
                 'type'          => 'post_object',
                 'post_type'     => [ 'eh_lesson' ],
@@ -400,7 +400,7 @@ function examhub_register_acf_fields() {
                 'type' => 'post_object', 'post_type' => [ 'eh_subject' ], 'return_format' => 'id', 'ui' => 1, 'ajax' => 1, 'required' => 1,
             ],
             [
-                'key' => 'field_ex_lesson', 'label' => 'الدرس', 'name' => 'exam_lesson',
+                'key' => 'field_ex_lesson', 'label' => 'Question Group', 'name' => 'exam_lesson',
                 'type' => 'post_object', 'post_type' => [ 'eh_lesson' ], 'return_format' => 'id', 'ui' => 1, 'ajax' => 1,
             ],
 
@@ -511,7 +511,7 @@ function examhub_register_acf_fields() {
     ] );
 
     // ═══════════════════════════════════════════════════════════════════════
-    // 3. HIERARCHY FIELDS (Education System / Stage / Grade / Subject / Unit / Lesson)
+    // 3. HIERARCHY FIELDS (Education System / Stage / Grade / Subject / Question Group)
     // ═══════════════════════════════════════════════════════════════════════
     acf_add_local_field_group( [
         'key'    => 'group_education_system',
@@ -563,22 +563,10 @@ function examhub_register_acf_fields() {
         ],
         'location' => [ [ [ 'param' => 'post_type', 'operator' => '==', 'value' => 'eh_subject' ] ] ],
     ] );
-
-    acf_add_local_field_group( [
-        'key'    => 'group_unit',
-        'title'  => 'بيانات الوحدة',
-        'fields' => [
-            [ 'key' => 'field_un_subject', 'label' => 'المادة', 'name' => 'unit_subject', 'type' => 'post_object', 'post_type' => [ 'eh_subject' ], 'return_format' => 'id', 'ui' => 1, 'required' => 1 ],
-            [ 'key' => 'field_un_order', 'label' => 'الترتيب', 'name' => 'unit_order', 'type' => 'number', 'default_value' => 0 ],
-        ],
-        'location' => [ [ [ 'param' => 'post_type', 'operator' => '==', 'value' => 'eh_unit' ] ] ],
-    ] );
-
     acf_add_local_field_group( [
         'key'    => 'group_lesson',
-        'title'  => 'بيانات الدرس',
+        'title'  => 'Question Group Data',
         'fields' => [
-            [ 'key' => 'field_les_unit', 'label' => 'الوحدة', 'name' => 'lesson_unit', 'type' => 'post_object', 'post_type' => [ 'eh_unit' ], 'return_format' => 'id', 'ui' => 1, 'required' => 1 ],
             [ 'key' => 'field_les_subject', 'label' => 'المادة', 'name' => 'lesson_subject', 'type' => 'post_object', 'post_type' => [ 'eh_subject' ], 'return_format' => 'id', 'ui' => 1, 'required' => 1 ],
             [ 'key' => 'field_les_order', 'label' => 'الترتيب', 'name' => 'lesson_order', 'type' => 'number', 'default_value' => 0 ],
         ],
@@ -685,3 +673,5 @@ function examhub_register_acf_fields() {
         'location' => [ [ [ 'param' => 'post_type', 'operator' => '==', 'value' => 'eh_badge' ] ] ],
     ] );
 }
+
+
