@@ -146,7 +146,146 @@ PROMPT;
         return new WP_Error( 'parse_error', __( 'لم يتمكن الذكاء الاصطناعي من استخراج الأسئلة. تحقق من جودة النص.', 'examhub' ) );
     }
 
-    return $questions;
+    $normalized = examhub_ai_normalize_questions( $questions );
+    if ( empty( $normalized ) ) {
+        return new WP_Error( 'parse_error', __( 'تعذر تجهيز بيانات الأسئلة من استجابة الذكاء الاصطناعي.', 'examhub' ) );
+    }
+
+    return $normalized;
+}
+
+/**
+ * Normalize model output into stable question schema.
+ *
+ * @param array $questions
+ * @return array
+ */
+function examhub_ai_normalize_questions( $questions ) {
+    if ( ! is_array( $questions ) ) {
+        return [];
+    }
+
+    // Some models return { questions: [...] } instead of a direct array.
+    if ( isset( $questions['questions'] ) && is_array( $questions['questions'] ) ) {
+        $questions = $questions['questions'];
+    }
+
+    $normalized = [];
+    foreach ( $questions as $row ) {
+        if ( ! is_array( $row ) ) {
+            continue;
+        }
+
+        $question_text = sanitize_textarea_field(
+            $row['question_text'] ?? $row['question'] ?? $row['text'] ?? ''
+        );
+        if ( '' === $question_text ) {
+            continue;
+        }
+
+        $type = examhub_ai_normalize_type(
+            $row['type'] ?? $row['question_type'] ?? $row['kind'] ?? 'mcq'
+        );
+        $difficulty = examhub_ai_normalize_difficulty(
+            $row['difficulty'] ?? $row['level'] ?? 'medium'
+        );
+
+        $answers = [];
+        if ( isset( $row['answers'] ) && is_array( $row['answers'] ) ) {
+            foreach ( $row['answers'] as $a ) {
+                if ( is_array( $a ) ) {
+                    $answer_text = sanitize_text_field( $a['answer_text'] ?? $a['text'] ?? '' );
+                    if ( '' === $answer_text ) {
+                        continue;
+                    }
+                    $answers[] = [
+                        'answer_text' => $answer_text,
+                        'is_correct'  => ! empty( $a['is_correct'] ),
+                    ];
+                } elseif ( is_string( $a ) ) {
+                    $a = sanitize_text_field( $a );
+                    if ( '' !== $a ) {
+                        $answers[] = [ 'answer_text' => $a, 'is_correct' => false ];
+                    }
+                }
+            }
+        }
+
+        $correct_index = $row['correct_answer_index'] ?? $row['correct_index'] ?? null;
+        if ( is_numeric( $correct_index ) ) {
+            $correct_index = (int) $correct_index;
+            if ( $correct_index > 0 ) {
+                $correct_index--; // accept 1-based indexes.
+            }
+            if ( isset( $answers[ $correct_index ] ) ) {
+                foreach ( $answers as $i => $a ) {
+                    $answers[ $i ]['is_correct'] = ( $i === $correct_index );
+                }
+            }
+        }
+
+        $correct_answer = $row['correct_answer'] ?? $row['answer'] ?? '';
+        if ( 'true_false' === $type ) {
+            $tf = strtolower( trim( (string) $correct_answer ) );
+            if ( in_array( $tf, [ '1', 'true', 'صح', 'صحيح', 'yes' ], true ) ) {
+                $correct_answer = 'true';
+            } elseif ( in_array( $tf, [ '0', 'false', 'خطأ', 'خطا', 'wrong', 'no' ], true ) ) {
+                $correct_answer = 'false';
+            } else {
+                $correct_answer = 'false';
+            }
+        }
+
+        if ( 'fill_blank' === $type && '' === (string) $correct_answer ) {
+            $correct_answer = sanitize_text_field( $row['blank_answer'] ?? $row['model_answer'] ?? '' );
+        }
+
+        $normalized[] = [
+            'question_text'         => $question_text,
+            'type'                  => $type,
+            'answers'               => $answers,
+            'correct_answer_index'  => is_numeric( $correct_index ) ? (int) $correct_index : null,
+            'correct_answer'        => (string) $correct_answer,
+            'explanation'           => sanitize_textarea_field( $row['explanation'] ?? $row['hint'] ?? '' ),
+            'difficulty'            => $difficulty,
+        ];
+    }
+
+    return $normalized;
+}
+
+/**
+ * Normalize AI type labels.
+ *
+ * @param string $type
+ * @return string
+ */
+function examhub_ai_normalize_type( $type ) {
+    $type = strtolower( trim( (string) $type ) );
+    if ( in_array( $type, [ 'true_false', 'truefalse', 'tf', 'صح_خطأ', 'صح/خطأ', 'صح-خطأ' ], true ) ) {
+        return 'true_false';
+    }
+    if ( in_array( $type, [ 'fill_blank', 'fill-in-the-blank', 'blank', 'اكمل', 'إكمال' ], true ) ) {
+        return 'fill_blank';
+    }
+    return 'mcq';
+}
+
+/**
+ * Normalize AI difficulty labels.
+ *
+ * @param string $difficulty
+ * @return string
+ */
+function examhub_ai_normalize_difficulty( $difficulty ) {
+    $difficulty = strtolower( trim( (string) $difficulty ) );
+    if ( in_array( $difficulty, [ 'easy', 'سهل' ], true ) ) {
+        return 'easy';
+    }
+    if ( in_array( $difficulty, [ 'hard', 'صعب' ], true ) ) {
+        return 'hard';
+    }
+    return 'medium';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

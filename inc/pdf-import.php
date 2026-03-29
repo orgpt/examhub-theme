@@ -137,6 +137,71 @@ function examhub_render_pdf_import_page() {
 
     <script>
     jQuery(function($){
+      function getAdminNonce() {
+        return $('#eh-pdf-upload-form input[name="nonce"]').val() || '';
+      }
+
+      function resetSelect($select, placeholderText) {
+        $select.html(`<option value="">${placeholderText}</option>`).prop('disabled', false);
+      }
+
+      function setSelectOptions($select, items, placeholderText) {
+        let html = `<option value="">${placeholderText}</option>`;
+        (items || []).forEach(function(item){
+          const id = item.id || '';
+          const label = item.label || item.name || '';
+          html += `<option value="${id}">${$('<div>').text(label).html()}</option>`;
+        });
+        $select.html(html).prop('disabled', false);
+      }
+
+      $('#pdf-edu-system').on('change', function(){
+        const systemId = $(this).val();
+        const $grade   = $('#pdf-grade');
+        const $subject = $('#pdf-subject');
+
+        resetSelect($grade, '-- اختر (اختياري)');
+        resetSelect($subject, '-- اختر (اختياري)');
+        if (!systemId) return;
+
+        $grade.html('<option value="">جاري التحميل...</option>').prop('disabled', true);
+        $.post(ajaxurl, {
+          action: 'eh_admin_get_grades_by_system',
+          nonce: getAdminNonce(),
+          system_id: systemId
+        }, function(res){
+          if (res && res.success) {
+            setSelectOptions($grade, res.data, '-- اختر (اختياري)');
+          } else {
+            resetSelect($grade, '-- لا يوجد صفوف --');
+          }
+        }).fail(function(){
+          resetSelect($grade, '-- حدث خطأ --');
+        });
+      });
+
+      $('#pdf-grade').on('change', function(){
+        const gradeId  = $(this).val();
+        const $subject = $('#pdf-subject');
+        resetSelect($subject, '-- اختر (اختياري)');
+        if (!gradeId) return;
+
+        $subject.html('<option value="">جاري التحميل...</option>').prop('disabled', true);
+        $.post(ajaxurl, {
+          action: 'eh_admin_get_subjects_by_grade',
+          nonce: getAdminNonce(),
+          grade_id: gradeId
+        }, function(res){
+          if (res && res.success) {
+            setSelectOptions($subject, res.data, '-- اختر (اختياري)');
+          } else {
+            resetSelect($subject, '-- لا يوجد مواد --');
+          }
+        }).fail(function(){
+          resetSelect($subject, '-- حدث خطأ --');
+        });
+      });
+
       $('#eh-pdf-upload-form').on('submit', function(e){
         e.preventDefault();
         const formData = new FormData(this);
@@ -364,13 +429,38 @@ function examhub_ajax_import_pdf() {
  * Extract text from PDF using pdftotext (if available) or fallback.
  */
 function examhub_extract_pdf_text( $path ) {
-    // Try pdftotext (poppler-utils)
-    $pdftotext = trim( shell_exec( 'which pdftotext 2>/dev/null' ) );
-    if ( $pdftotext ) {
-        $output = [];
-        exec( escapeshellcmd( "pdftotext -layout -enc UTF-8 " . escapeshellarg( $path ) . " -" ), $output );
-        if ( ! empty( $output ) ) {
-            return implode( "\n", $output );
+    // Try pdftotext first (Linux/macOS + Windows).
+    $output = [];
+    $status = 1;
+    $null   = ( 'Windows' === PHP_OS_FAMILY ) ? 'NUL' : '/dev/null';
+
+    if ( 'Windows' === PHP_OS_FAMILY ) {
+        $where = trim( (string) shell_exec( 'where pdftotext 2>NUL' ) );
+        $bin   = $where ? preg_split( '/\r\n|\r|\n/', $where )[0] : 'pdftotext';
+        $cmd   = sprintf(
+            '%s -layout -enc UTF-8 %s - 2>%s',
+            escapeshellarg( $bin ),
+            escapeshellarg( $path ),
+            $null
+        );
+        exec( $cmd, $output, $status );
+    } else {
+        $bin = trim( (string) shell_exec( 'command -v pdftotext 2>/dev/null' ) );
+        if ( $bin ) {
+            $cmd = sprintf(
+                '%s -layout -enc UTF-8 %s - 2>%s',
+                escapeshellarg( $bin ),
+                escapeshellarg( $path ),
+                $null
+            );
+            exec( $cmd, $output, $status );
+        }
+    }
+
+    if ( 0 === $status ) {
+        $extracted = trim( implode( "\n", $output ) );
+        if ( '' !== $extracted ) {
+            return $extracted;
         }
     }
 
@@ -385,11 +475,11 @@ function examhub_extract_pdf_text( $path ) {
         $text .= implode( ' ', $tjs[1] ) . "\n";
     }
 
-    // Also try UTF-16 encoded text
+    // Also try raw parenthesized segments.
     preg_match_all( '/\(([^\)]+)\)/', $content, $paren );
     $text .= implode( ' ', $paren[1] ?? [] );
 
-    return $text ?: new WP_Error( 'no_text', __( 'لم يتم العثور على نص في الملف.', 'examhub' ) );
+    return $text ?: new WP_Error( 'no_text', __( 'تعذر العثور على نص في الملف.', 'examhub' ) );
 }
 
 /**
@@ -409,6 +499,87 @@ function examhub_clean_ocr_text( $text ) {
         $text = preg_replace( '/' . $pattern . '/u', $replace, $text );
     }
     return trim( $text );
+}
+
+add_action( 'wp_ajax_eh_admin_get_grades_by_system', 'examhub_ajax_admin_get_grades_by_system' );
+function examhub_ajax_admin_get_grades_by_system() {
+    check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_send_json_error( [], 403 );
+    }
+
+    $system_id = (int) ( $_POST['system_id'] ?? 0 );
+    if ( ! $system_id ) {
+        wp_send_json_success( [] );
+    }
+
+    $grades = get_posts( [
+        'post_type'      => 'eh_grade',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'meta_query'     => [
+            [
+                'key'     => 'grade_education_system',
+                'value'   => $system_id,
+                'compare' => '=',
+            ],
+        ],
+    ] );
+
+    usort(
+        $grades,
+        static function( $a, $b ) {
+            return (int) get_field( 'grade_number', $a->ID ) - (int) get_field( 'grade_number', $b->ID );
+        }
+    );
+
+    $data = [];
+    foreach ( $grades as $grade ) {
+        $data[] = [
+            'id'    => $grade->ID,
+            'label' => get_field( 'grade_name_ar', $grade->ID ) ?: $grade->post_title,
+        ];
+    }
+
+    wp_send_json_success( $data );
+}
+
+add_action( 'wp_ajax_eh_admin_get_subjects_by_grade', 'examhub_ajax_admin_get_subjects_by_grade' );
+function examhub_ajax_admin_get_subjects_by_grade() {
+    check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_send_json_error( [], 403 );
+    }
+
+    $grade_id = (int) ( $_POST['grade_id'] ?? 0 );
+    if ( ! $grade_id ) {
+        wp_send_json_success( [] );
+    }
+
+    $subjects = get_posts( [
+        'post_type'      => 'eh_subject',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'meta_query'     => [
+            [
+                'key'     => 'subject_grade',
+                'value'   => $grade_id,
+                'compare' => '=',
+            ],
+        ],
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+    ] );
+
+    $data = [];
+    foreach ( $subjects as $subject ) {
+        $data[] = [
+            'id'    => $subject->ID,
+            'label' => get_field( 'subject_name_ar', $subject->ID ) ?: $subject->post_title,
+        ];
+    }
+
+    wp_send_json_success( $data );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
