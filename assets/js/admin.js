@@ -11,6 +11,7 @@
     initAIButtons();
     initBulkQuestionTools();
     initPaymentActions();
+    initAcfDependencies();
   });
 
   // ─── AI Generate Explanation ─────────────────────────────────────────────────
@@ -121,6 +122,87 @@
   function initPaymentActions() {
     // Already handled inline in admin-columns.php
     // This is a fallback for any additional payment UI
+  }
+
+  function initAcfDependencies() {
+    if (typeof window.acf === 'undefined' || typeof window.acf.addFilter !== 'function') {
+      return;
+    }
+
+    const keyToName = {
+      field_ex_grade: 'grade_id',
+      field_ex_subject: 'subject_id',
+      field_ex_lesson: 'lesson_id',
+      field_q_grade: 'grade_id',
+      field_q_subject: 'subject_id',
+      field_q_lesson: 'lesson_id',
+    };
+
+    function getFieldValue(fieldKey) {
+      const $field = $('.acf-field[data-key="' + fieldKey + '"]');
+      if (!$field.length) return 0;
+      const $input = $field.find('select, input[type="hidden"], input[type="text"]').first();
+      if (!$input.length) return 0;
+      return parseInt($input.val(), 10) || 0;
+    }
+
+    function clearField(fieldKey) {
+      const $field = $('.acf-field[data-key="' + fieldKey + '"]');
+      if (!$field.length) return;
+      const $input = $field.find('select').first();
+      if ($input.length) {
+        $input.val('').trigger('change');
+      }
+      const $hidden = $field.find('input[type="hidden"]').first();
+      if ($hidden.length) {
+        $hidden.val('');
+      }
+    }
+
+    $(document).on('change', '.acf-field[data-key="field_ex_grade"] select', function () {
+      clearField('field_ex_subject');
+      clearField('field_ex_lesson');
+    });
+
+    $(document).on('change', '.acf-field[data-key="field_ex_subject"] select', function () {
+      clearField('field_ex_lesson');
+    });
+
+    $(document).on('change', '.acf-field[data-key="field_q_grade"] select', function () {
+      clearField('field_q_subject');
+      clearField('field_q_lesson');
+    });
+
+    $(document).on('change', '.acf-field[data-key="field_q_subject"] select', function () {
+      clearField('field_q_lesson');
+    });
+
+    window.acf.addFilter('select2_ajax_data', function (data, args, $input, field) {
+      if (!field || typeof field.get !== 'function') {
+        return data;
+      }
+
+      const key = field.get('key');
+      if (!keyToName[key]) {
+        return data;
+      }
+
+      if (key === 'field_ex_subject') {
+        data.grade_id = getFieldValue('field_ex_grade');
+      } else if (key === 'field_ex_lesson') {
+        data.subject_id = getFieldValue('field_ex_subject');
+      } else if (key === 'field_q_subject') {
+        data.grade_id = getFieldValue('field_q_grade');
+      } else if (key === 'field_q_lesson') {
+        data.subject_id = getFieldValue('field_q_subject');
+      } else if (key === 'field_ex_questions') {
+        data.grade_id = getFieldValue('field_ex_grade');
+        data.subject_id = getFieldValue('field_ex_subject');
+        data.lesson_id = getFieldValue('field_ex_lesson');
+      }
+
+      return data;
+    });
   }
 
 })(jQuery);

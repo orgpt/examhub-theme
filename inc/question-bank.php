@@ -208,8 +208,14 @@ function examhub_exam_column_content( $col, $post_id ) {
 /**
  * Read field value from current ACF request (if present), fallback to saved value.
  */
-function examhub_get_acf_request_value( $field_key, $saved_field_name, $post_id ) {
+function examhub_get_acf_request_value( $field_key, $saved_field_name, $post_id, $extra_keys = [] ) {
     $candidates = [];
+
+    foreach ( $extra_keys as $extra_key ) {
+        if ( isset( $_POST[ $extra_key ] ) ) {
+            $candidates[] = $_POST[ $extra_key ];
+        }
+    }
 
     if ( isset( $_POST['acf'] ) && is_array( $_POST['acf'] ) ) {
         $candidates[] = $_POST['acf'][ $field_key ] ?? null;
@@ -239,7 +245,7 @@ function examhub_filter_subject_by_grade( $args, $field, $post_id ) {
     $is_exam_field     = ( $field['key'] ?? '' ) === 'field_ex_subject';
     $grade_field_key   = $is_exam_field ? 'field_ex_grade' : 'field_q_grade';
     $saved_grade_field = $is_exam_field ? 'exam_grade' : 'grade';
-    $grade_id          = examhub_get_acf_request_value( $grade_field_key, $saved_grade_field, $post_id );
+    $grade_id          = examhub_get_acf_request_value( $grade_field_key, $saved_grade_field, $post_id, [ 'grade_id' ] );
 
     if ( ! $grade_id ) {
         $args['post__in'] = [ 0 ];
@@ -266,7 +272,7 @@ function examhub_filter_lesson_by_subject( $args, $field, $post_id ) {
     $is_exam_field      = ( $field['key'] ?? '' ) === 'field_ex_lesson';
     $subject_field_key  = $is_exam_field ? 'field_ex_subject' : 'field_q_subject';
     $saved_subject_name = $is_exam_field ? 'exam_subject' : 'subject';
-    $subject_id         = examhub_get_acf_request_value( $subject_field_key, $saved_subject_name, $post_id );
+    $subject_id         = examhub_get_acf_request_value( $subject_field_key, $saved_subject_name, $post_id, [ 'subject_id' ] );
 
     if ( ! $subject_id ) {
         $args['post__in'] = [ 0 ];
@@ -292,9 +298,9 @@ add_filter( 'acf/fields/post_object/query/key=field_q_lesson', 'examhub_filter_l
  */
 add_filter( 'acf/fields/relationship/query/key=field_ex_questions', 'examhub_filter_exam_questions_by_exam_meta', 10, 3 );
 function examhub_filter_exam_questions_by_exam_meta( $args, $field, $post_id ) {
-    $grade_id   = examhub_get_acf_request_value( 'field_ex_grade', 'exam_grade', $post_id );
-    $subject_id = examhub_get_acf_request_value( 'field_ex_subject', 'exam_subject', $post_id );
-    $lesson_id  = examhub_get_acf_request_value( 'field_ex_lesson', 'exam_lesson', $post_id );
+    $grade_id   = examhub_get_acf_request_value( 'field_ex_grade', 'exam_grade', $post_id, [ 'grade_id' ] );
+    $subject_id = examhub_get_acf_request_value( 'field_ex_subject', 'exam_subject', $post_id, [ 'subject_id' ] );
+    $lesson_id  = examhub_get_acf_request_value( 'field_ex_lesson', 'exam_lesson', $post_id, [ 'lesson_id' ] );
 
     if ( ! $grade_id || ! $subject_id || ! $lesson_id ) {
         $args['post__in'] = [ 0 ];
