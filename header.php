@@ -87,9 +87,6 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
             <a href="<?php echo esc_url( home_url( '/my-results' ) ); ?>" class="eh-quick-link">
               <i class="bi bi-bar-chart"></i><span><?php esc_html_e( 'نتائجي', 'examhub' ); ?></span>
             </a>
-            <a href="<?php echo esc_url( home_url( '/profile' ) ); ?>" class="eh-quick-link">
-              <i class="bi bi-person"></i><span><?php esc_html_e( 'الملف الشخصي', 'examhub' ); ?></span>
-            </a>
             <a href="<?php echo esc_url( home_url( '/profile/?tab=affiliate' ) ); ?>" class="eh-quick-link">
               <i class="bi bi-megaphone"></i><span><?php esc_html_e( 'أفلييت', 'examhub' ); ?></span>
             </a>
@@ -120,6 +117,10 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
               <?php esc_html_e( 'ترقية', 'examhub' ); ?>
             </a>
           <?php endif; ?>
+
+          <a class="btn btn-ghost btn-sm p-2" href="<?php echo esc_url( home_url( '/profile' ) ); ?>" title="<?php esc_attr_e( 'حسابي', 'examhub' ); ?>" aria-label="<?php esc_attr_e( 'حسابي', 'examhub' ); ?>">
+            <i class="bi bi-person-circle"></i>
+          </a>
 
           <!-- Logout icon -->
           <a class="btn btn-ghost btn-sm p-2" href="<?php echo esc_url( wp_logout_url( home_url() ) ); ?>" title="<?php esc_attr_e( 'تسجيل الخروج', 'examhub' ); ?>" aria-label="<?php esc_attr_e( 'تسجيل الخروج', 'examhub' ); ?>">
