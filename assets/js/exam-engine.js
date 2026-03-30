@@ -35,6 +35,7 @@
   // ─── Init ───────────────────────────────────────────────────────────────────
   $(function() {
     if (!$('#eh-exam-app').length) return;
+    bindAntiCopyGuards();
     initExam();
     bindUI();
   });
@@ -475,6 +476,36 @@
     });
   }
 
+  function bindAntiCopyGuards() {
+    const $app = $('#eh-exam-app');
+    if (!$app.length) return;
+
+    $app.on('contextmenu', function(e) {
+      e.preventDefault();
+    });
+
+    $app.on('copy cut', function(e) {
+      if (isEditableTarget(e.target)) return;
+      e.preventDefault();
+    });
+
+    $app.on('selectstart', function(e) {
+      if (isEditableTarget(e.target)) return;
+      e.preventDefault();
+    });
+
+    $(document).on('keydown.examhubExamGuard', function(e) {
+      if (!$('#eh-exam-app').length) return;
+      if (isEditableTarget(e.target)) return;
+      if (!(e.ctrlKey || e.metaKey)) return;
+
+      const key = String(e.key || '').toLowerCase();
+      if (['a', 'c', 'x', 's', 'u', 'p'].includes(key)) {
+        e.preventDefault();
+      }
+    });
+  }
+
   function goToQuestion(index) {
     state.current = index;
     loadQuestion(index);
@@ -608,6 +639,10 @@
 
   function escHtml(str) {
     return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function isEditableTarget(target) {
+    return $(target).closest('input, textarea, select, [contenteditable="true"]').length > 0;
   }
 
 })(jQuery);

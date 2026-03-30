@@ -142,12 +142,17 @@
   line-height: 1.8;
   color: var(--eh-text-primary);
   font-weight: 500;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .eh-question-image {
   max-width: 100%;
   border-radius: var(--eh-radius);
   margin-top: 1rem;
   border: 1px solid var(--eh-border);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
 }
 .eh-question-math {
   font-size: 1.2rem;
@@ -158,6 +163,8 @@
   border-radius: var(--eh-radius);
   border: 1px solid var(--eh-border);
   overflow-x: auto;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* Per-question timer */
@@ -211,6 +218,8 @@
   color: var(--eh-text-primary);
   font-size: 1rem;
   line-height: 1.5;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .eh-answer-option:hover {
   border-color: var(--eh-accent);
@@ -265,6 +274,8 @@
   cursor: pointer;
   transition: var(--eh-transition);
   text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .eh-tf-btn:hover { border-color: var(--eh-accent); background: var(--eh-accent-light); }
 .eh-tf-btn.selected.true-btn { border-color: var(--eh-success); background: var(--eh-correct-bg); color: var(--eh-success); }
@@ -304,6 +315,8 @@
   padding: 0.75rem 1rem;
   font-weight: 600;
   text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .eh-match-right select {
   background: var(--eh-bg-input);
@@ -333,6 +346,7 @@
   margin-bottom: 0.625rem;
   cursor: grab;
   user-select: none;
+  -webkit-user-select: none;
   transition: var(--eh-transition);
 }
 .eh-ordering-item:active { cursor: grabbing; }

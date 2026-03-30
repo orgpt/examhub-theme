@@ -71,15 +71,10 @@ if ( ! $is_exam_mode ) :
         <?php $phone = get_field( 'contact_phone', 'option' ); if ( $phone ) : ?>
           <p class="small mb-1"><i class="bi bi-telephone me-2 text-accent"></i><?php echo esc_html( $phone ); ?></p>
         <?php endif; ?>
-
-        <!-- Free limit info -->
-        <?php $free_limit = get_field( 'free_exams_per_day', 'option' ) ?: get_field( 'free_questions_per_day', 'option' ) ?: 1; ?>
-        <div class="mt-3 p-2 rounded-eh" style="background: var(--eh-accent-light); border: 1px solid var(--eh-accent-glow);">
-          <small class="text-accent">
-            <i class="bi bi-gift me-1"></i>
-            <?php echo ( (int) $free_limit <= 1 ) ? esc_html__( 'امتحان واحد يوميا لكل مستخدم', 'examhub' ) : sprintf( esc_html__( '%d امتحان يوميا لكل مستخدم', 'examhub' ), (int) $free_limit ); ?>
-          </small>
-        </div>
+        <p class="small mb-0 mt-3">
+          <i class="bi bi-whatsapp me-2 text-accent"></i>
+          <a href="https://wa.me/201558811537" target="_blank" rel="noopener">واتساب</a>
+        </p>
       </div>
 
     </div><!-- .row -->
