@@ -240,10 +240,11 @@
 
   function renderMCQ($area, q, savedAnswer) {
     q.answers.forEach((a, i) => {
-      const isSelected = savedAnswer === a.id;
+      const answerId = a.id ?? a.index ?? i;
+      const isSelected = savedAnswer === answerId;
       const $opt = $(`
         <button class="eh-answer-option ${isSelected ? 'selected' : ''}"
-          data-aid="${escHtml(a.id)}" data-qid="${q.id}" data-qtype="${q.type}">
+          data-aid="${escHtml(answerId)}" data-qid="${q.id}" data-qtype="${q.type}">
           <span class="option-letter">${LETTERS[i] || (i+1)}</span>
           <span class="option-text">${escHtml(a.text)}</span>
           ${a.image ? `<img src="${escHtml(a.image)}" style="height:60px;border-radius:4px;margin-right:auto;">` : ''}

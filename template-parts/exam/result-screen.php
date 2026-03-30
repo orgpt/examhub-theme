@@ -34,6 +34,11 @@ $attempt    = (int)   get_field( 'attempt_number', $result_id );
 $status     = get_field( 'result_status', $result_id );
 
 $grading    = get_post_meta( $result_id, '_eh_grading', true );
+if ( ! is_array( $grading ) ) {
+    $answers_json = get_field( 'answers_json', $result_id );
+    $answers_data = json_decode( $answers_json, true ) ?: [];
+    $grading      = $answers_data['_grading'] ?? [];
+}
 $show_exp   = (bool) get_field( 'show_explanation', $exam_id );
 $sub        = examhub_get_user_subscription_status( $user_id );
 $can_explain = $show_exp && $sub['explanation_access'];
@@ -46,6 +51,62 @@ $subject_color = $subject_id ? get_field( 'subject_color', $subject_id ) ?: '#43
 // Score circle color
 $score_color = $pct >= $pass_pct ? 'var(--eh-success)' : 'var(--eh-danger)';
 $pass_label  = $passed ? __( 'ناجح', 'examhub' ) : __( 'راسب', 'examhub' );
+$status_label = $status === 'timed_out' ? __( 'انتهى الوقت', 'examhub' ) : __( 'تم التسليم', 'examhub' );
+$status_class = $status === 'timed_out' ? 'text-warning' : 'text-success';
+
+if ( ! function_exists( 'examhub_result_is_correct' ) ) {
+    function examhub_result_is_correct( $detail ) {
+        if ( array_key_exists( 'is_correct', $detail ) ) {
+            return $detail['is_correct'];
+        }
+
+        return $detail['correct'] ?? false;
+    }
+}
+
+if ( ! function_exists( 'examhub_result_answer_label' ) ) {
+    function examhub_result_answer_label( $answer, $type, $q_id ) {
+        if ( $answer === null || $answer === '' || $answer === [] ) {
+            return null;
+        }
+
+        switch ( $type ) {
+            case 'mcq':
+            case 'correct':
+            case 'image':
+                $choices = get_field( 'answers', $q_id );
+                if ( is_array( $choices ) ) {
+                    foreach ( $choices as $idx => $choice ) {
+                        $choice_text = $choice['answer_text'] ?? '';
+                        if ( (string) $answer === (string) $idx || (string) $answer === md5( $choice_text . $q_id ) ) {
+                            return $choice_text;
+                        }
+                    }
+                }
+                return is_array( $answer ) ? ( $answer['text'] ?? implode( ' / ', array_filter( $answer ) ) ) : (string) $answer;
+
+            case 'true_false':
+                return $answer === 'true' ? __( 'صح', 'examhub' ) : __( 'خطأ', 'examhub' );
+
+            default:
+                return is_array( $answer ) ? implode( ' / ', array_map( 'strval', $answer ) ) : (string) $answer;
+        }
+    }
+}
+
+if ( ! function_exists( 'examhub_result_correct_answer_label' ) ) {
+    function examhub_result_correct_answer_label( $answer, $type, $q_id ) {
+        if ( $answer === null || $answer === '' || $answer === [] ) {
+            return null;
+        }
+
+        if ( in_array( $type, [ 'mcq', 'correct', 'image' ], true ) && is_array( $answer ) ) {
+            return $answer['text'] ?? implode( ' / ', array_filter( $answer ) );
+        }
+
+        return examhub_result_answer_label( $answer, $type, $q_id );
+    }
+}
 
 // Time format
 $time_min = floor( $time_sec / 60 );
@@ -59,6 +120,7 @@ $wrong_qs = [];
 
 if ( is_array( $grading ) ) {
     foreach ( $grading as $q_id => $d ) {
+        $is_correct = examhub_result_is_correct( $d );
         $sid = $d['subject_id'] ?? 0;
         $lid = $d['lesson_id']  ?? 0;
         $dif = $d['difficulty'] ?? 'medium';
@@ -66,18 +128,18 @@ if ( is_array( $grading ) ) {
         if ( $sid ) {
             $subject_stats[ $sid ] = $subject_stats[ $sid ] ?? [0,0];
             $subject_stats[ $sid ][1]++;
-            if ( $d['is_correct'] ) $subject_stats[ $sid ][0]++;
+            if ( $is_correct ) $subject_stats[ $sid ][0]++;
         }
         if ( $lid ) {
             $lesson_stats[ $lid ] = $lesson_stats[ $lid ] ?? [0,0];
             $lesson_stats[ $lid ][1]++;
-            if ( $d['is_correct'] ) $lesson_stats[ $lid ][0]++;
+            if ( $is_correct ) $lesson_stats[ $lid ][0]++;
         }
         if ( isset( $diff_stats[ $dif ] ) ) {
             $diff_stats[ $dif ][1]++;
-            if ( $d['is_correct'] ) $diff_stats[ $dif ][0]++;
+            if ( $is_correct ) $diff_stats[ $dif ][0]++;
         }
-        if ( ! $d['is_correct'] ) {
+        if ( ! $is_correct ) {
             $wrong_qs[] = $d;
         }
     }
@@ -146,9 +208,7 @@ get_header();
       <h2 class="h4 fw-bold text-light mb-1"><?php the_title(); ?></h2>
       <p class="text-muted small mb-3">
         <?php printf( esc_html__( 'المحاولة رقم %d', 'examhub' ), $attempt ); ?>
-        <?php if ( $status === 'timed_out' ) : ?>
-          · <span class="text-warning"><?php esc_html_e( 'انتهى الوقت', 'examhub' ); ?></span>
-        <?php endif; ?>
+        · <span class="<?php echo esc_attr( $status_class ); ?>"><?php echo esc_html( $status_label ); ?></span>
       </p>
 
       <!-- Stats row -->
@@ -158,7 +218,7 @@ get_header();
             <div class="stat-icon icon-success mx-auto mb-1">
               <i class="bi bi-check-circle-fill"></i>
             </div>
-            <div class="stat-value" style="font-size:1.2rem;"><?php echo is_array( $grading ) ? count( array_filter( $grading, fn($d) => $d['is_correct'] ) ) : '--'; ?></div>
+            <div class="stat-value" style="font-size:1.2rem;"><?php echo is_array( $grading ) ? count( array_filter( $grading, 'examhub_result_is_correct' ) ) : '--'; ?></div>
             <div class="stat-label"><?php esc_html_e( 'صحيح', 'examhub' ); ?></div>
           </div>
         </div>
@@ -292,12 +352,12 @@ get_header();
         $q_num = 0;
         foreach ( $grading as $q_id => $d ) :
           $q_num++;
-          $is_correct  = $d['is_correct'];
+          $is_correct  = examhub_result_is_correct( $d );
           $q_text      = $d['question_text'] ?? '';
-          $user_ans    = $d['user_answer'];
-          $correct_ans = $d['correct_answer'];
-          $explanation = $d['explanation'];
           $q_type      = $d['type'] ?? 'mcq';
+          $user_ans    = examhub_result_answer_label( $d['user_answer'] ?? null, $q_type, $q_id );
+          $correct_ans = examhub_result_correct_answer_label( $d['correct_answer'] ?? null, $q_type, $q_id );
+          $explanation = $d['explanation'];
           ?>
           <div class="eh-review-item <?php echo $is_correct ? 'correct' : 'wrong'; ?>"
             data-status="<?php echo $is_correct ? 'correct' : 'wrong'; ?>">
@@ -316,23 +376,19 @@ get_header();
                 <span class="small text-muted"><?php printf( __( 'س %d', 'examhub' ), $q_num ); ?></span>
                 <p class="mb-2 text-light" style="font-size:.95rem;"><?php echo esc_html( $q_text ); ?></p>
 
-                <?php if ( $user_ans !== null ) :
-                  $user_display = is_array( $user_ans ) ? implode( ' / ', $user_ans ) : $user_ans;
-                ?>
+                <?php if ( $user_ans !== null ) : ?>
                   <div class="small mb-1">
                     <span class="text-muted"><?php esc_html_e( 'إجابتك:', 'examhub' ); ?></span>
                     <span class="<?php echo $is_correct ? 'text-success' : 'text-danger'; ?> fw-bold">
-                      <?php echo esc_html( $user_display ); ?>
+                      <?php echo esc_html( $user_ans ); ?>
                     </span>
                   </div>
                 <?php endif; ?>
 
-                <?php if ( ! $is_correct && $correct_ans ) :
-                  $correct_display = is_array( $correct_ans ) ? implode( ' / ', $correct_ans ) : $correct_ans;
-                ?>
+                <?php if ( ! $is_correct && $correct_ans ) : ?>
                   <div class="small mb-1">
                     <span class="text-muted"><?php esc_html_e( 'الإجابة الصحيحة:', 'examhub' ); ?></span>
-                    <span class="text-success fw-bold"><?php echo esc_html( $correct_display ); ?></span>
+                    <span class="text-success fw-bold"><?php echo esc_html( $correct_ans ); ?></span>
                   </div>
                 <?php endif; ?>
 

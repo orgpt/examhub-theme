@@ -583,6 +583,12 @@ img { max-width: 100%; height: auto; }
    14. UTILITIES
 ═══════════════════════════════════════════════════════════════════════ */
 .text-accent    { color: var(--eh-accent) !important; }
+.text-secondary { color: var(--eh-text-secondary) !important; }
+.text-muted     { color: var(--eh-text-muted) !important; }
+.text-success   { color: var(--eh-success) !important; }
+.text-danger    { color: var(--eh-danger) !important; }
+.text-warning   { color: var(--eh-warning) !important; }
+.text-light     { color: var(--eh-text-primary) !important; }
 .text-muted-eh  { color: var(--eh-text-muted) !important; }
 .text-secondary-eh { color: var(--eh-text-secondary) !important; }
 .bg-card        { background-color: var(--eh-bg-card) !important; }

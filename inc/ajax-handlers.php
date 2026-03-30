@@ -240,7 +240,7 @@ function examhub_ajax_load_question() {
     // Load saved answer if any
     $answers_json  = get_field( 'answers_json', $result_id );
     $answers       = $answers_json ? json_decode( $answers_json, true ) : [];
-    $saved_answer  = $answers[ $q_id ] ?? null;
+    $saved_answer  = $answers[ $q_id ]['value'] ?? null;
 
     wp_send_json_success( array_merge( $question_data, [
         'saved_answer'   => $saved_answer,
@@ -560,13 +560,24 @@ function examhub_build_question_payload( $q_id, $random_answers = false ) {
  * Sanitize answer value based on question type.
  */
 function examhub_sanitize_answer( $answer, $q_type ) {
+    if ( is_string( $answer ) ) {
+        $decoded = json_decode( wp_unslash( $answer ), true );
+        if ( json_last_error() === JSON_ERROR_NONE ) {
+            $answer = $decoded;
+        } else {
+            $answer = wp_unslash( $answer );
+        }
+    }
+
     switch ( $q_type ) {
         case 'mcq':
         case 'correct':
+        case 'image':
         case 'true_false':
             return sanitize_text_field( (string) $answer );
 
         case 'fill_blank':
+        case 'math':
             if ( is_array( $answer ) ) {
                 return array_map( 'sanitize_text_field', $answer );
             }
