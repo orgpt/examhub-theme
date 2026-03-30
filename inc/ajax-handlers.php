@@ -207,6 +207,7 @@ function examhub_ajax_start_exam() {
         'total'        => count( $question_ids ),
         'resumed'      => false,
         'started_at'   => $now,
+        'started_at_ts'=> current_time( 'timestamp' ),
         'exam_nonce'   => wp_create_nonce( 'examhub_exam_' . $exam_id . '_' . $result_id ),
     ] );
 }
@@ -342,8 +343,8 @@ function examhub_ajax_submit_exam() {
     $grading = examhub_grade_exam( $exam_id, $question_ids, $answers );
 
     // Time taken
-    $started  = get_field( 'started_at', $result_id );
-    $time_sec = $started ? ( time() - strtotime( $started ) ) : 0;
+    $started_ts = examhub_get_result_started_timestamp( $result_id );
+    $time_sec   = $started_ts ? max( 0, current_time( 'timestamp' ) - $started_ts ) : 0;
 
     // Save results
     $final_status = $timed_out ? 'timed_out' : 'submitted';
@@ -771,6 +772,8 @@ function examhub_get_exam_session_data( $result_id ) {
     $question_ids = (array) get_post_meta( $result_id, '_eh_question_order', true );
     $answers_json = get_field( 'answers_json', $result_id );
     $answers      = $answers_json ? json_decode( $answers_json, true ) : [];
+    $started_at   = get_post_meta( $result_id, 'started_at', true );
+    $started_ts   = examhub_get_result_started_timestamp( $result_id );
 
     return [
         'result_id'    => $result_id,
@@ -778,9 +781,43 @@ function examhub_get_exam_session_data( $result_id ) {
         'total'        => count( $question_ids ),
         'answers'      => $answers,
         'review_list'  => (array) get_post_meta( $result_id, '_eh_review_list', true ),
-        'started_at'   => get_field( 'started_at', $result_id ),
+        'started_at'   => $started_at,
+        'started_at_ts'=> $started_ts,
         'exam_nonce'   => wp_create_nonce( 'examhub_exam_' . get_field( 'result_exam_id', $result_id ) . '_' . $result_id ),
     ];
+}
+
+function examhub_get_result_started_timestamp( $result_id ) {
+    $started_raw = get_post_meta( $result_id, 'started_at', true );
+
+    if ( is_numeric( $started_raw ) ) {
+        $started_raw = (string) $started_raw;
+        if ( strlen( $started_raw ) === 14 ) {
+            $dt = DateTime::createFromFormat( 'YmdHis', $started_raw, wp_timezone() );
+            if ( $dt instanceof DateTime ) {
+                return $dt->getTimestamp();
+            }
+        }
+
+        return (int) $started_raw;
+    }
+
+    if ( is_string( $started_raw ) && trim( $started_raw ) !== '' ) {
+        $ts = strtotime( $started_raw );
+        if ( $ts ) {
+            return $ts;
+        }
+    }
+
+    $started_field = get_field( 'started_at', $result_id );
+    if ( is_string( $started_field ) && trim( $started_field ) !== '' ) {
+        $ts = strtotime( $started_field );
+        if ( $ts ) {
+            return $ts;
+        }
+    }
+
+    return 0;
 }
 
 /**

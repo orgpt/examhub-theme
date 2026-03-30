@@ -47,6 +47,7 @@ $can_explain = $show_exp && $sub['explanation_access'];
 $pass_pct   = (float) ( get_field( 'pass_percentage', $exam_id ) ?: 50 );
 $subject_id = (int) get_field( 'exam_subject', $exam_id );
 $subject_color = $subject_id ? get_field( 'subject_color', $subject_id ) ?: '#4361ee' : '#4361ee';
+$duration_sec = (int) get_field( 'exam_duration_minutes', $exam_id ) * 60;
 
 // Score circle color
 $score_color = $pct >= $pass_pct ? 'var(--eh-success)' : 'var(--eh-danger)';
@@ -109,8 +110,21 @@ if ( ! function_exists( 'examhub_result_correct_answer_label' ) ) {
 }
 
 // Time format
-$time_min = floor( $time_sec / 60 );
+if ( $time_sec < 0 ) {
+    $time_sec = 0;
+}
+if ( $duration_sec > 0 && $time_sec > ( $duration_sec * 4 ) ) {
+    $time_sec = $duration_sec;
+}
+$time_h   = floor( $time_sec / 3600 );
+$time_min = floor( ( $time_sec % 3600 ) / 60 );
 $time_s   = $time_sec % 60;
+$time_display = $time_h > 0 ? sprintf( '%d:%02d:%02d', $time_h, $time_min, $time_s ) : sprintf( '%d:%02d', $time_min, $time_s );
+
+if ( $status === 'timed_out' && $duration_sec > 0 && $time_sec < $duration_sec ) {
+    $status_label = __( 'تم التسليم', 'examhub' );
+    $status_class = 'text-success';
+}
 
 // Build analytics from grading details
 $subject_stats = []; // subject_id => [correct, total]
@@ -236,7 +250,7 @@ get_header();
             <div class="stat-icon icon-warning mx-auto mb-1">
               <i class="bi bi-clock-fill"></i>
             </div>
-            <div class="stat-value" style="font-size:1.2rem;"><?php printf( '%d:%02d', $time_min, $time_s ); ?></div>
+            <div class="stat-value" style="font-size:1.2rem;"><?php echo esc_html( $time_display ); ?></div>
             <div class="stat-label"><?php esc_html_e( 'الوقت', 'examhub' ); ?></div>
           </div>
         </div>

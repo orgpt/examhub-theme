@@ -67,9 +67,18 @@
       }
 
       // Timer: for exam timer we compute remaining time
-      if (C.timer_type === 'exam' && d.started_at) {
-        const elapsed = Math.floor((Date.now() / 1000) - new Date(d.started_at).getTime() / 1000);
-        state.timeRemaining = Math.max(0, C.duration_seconds - elapsed);
+      if (C.timer_type === 'exam') {
+        const startedAtTs = Number(d.started_at_ts || 0);
+        if (startedAtTs > 0) {
+          const elapsed = Math.max(0, Math.floor(Date.now() / 1000) - startedAtTs);
+          state.timeRemaining = Math.max(0, C.duration_seconds - elapsed);
+        } else if (d.started_at) {
+          const parsedStartedAt = Date.parse(String(d.started_at).replace(' ', 'T'));
+          if (!Number.isNaN(parsedStartedAt)) {
+            const elapsed = Math.max(0, Math.floor((Date.now() - parsedStartedAt) / 1000));
+            state.timeRemaining = Math.max(0, C.duration_seconds - elapsed);
+          }
+        }
       }
 
       $('#q-total').text(state.questions.length);
