@@ -419,40 +419,50 @@ add_filter( 'acf/fields/relationship/query/key=field_ex_questions', 'examhub_fil
 function examhub_filter_exam_questions_by_exam_meta( $args, $field, $post_id ) {
     $grade_id   = examhub_get_acf_request_value( 'field_ex_grade', 'exam_grade', $post_id, [ 'grade_id' ] );
     $subject_id = examhub_get_acf_request_value( 'field_ex_subject', 'exam_subject', $post_id, [ 'subject_id' ] );
-    $lesson_id  = examhub_get_acf_request_value( 'field_ex_lesson', 'exam_lesson', $post_id, [ 'lesson_id' ] );
+    $lesson_id  = examhub_get_acf_request_value( 'field_ex_lesson', 'exam_lesson', $post_id, [ 'lesson_id', 'question_group_id' ] );
 
-    if ( ! $grade_id || ! $subject_id || ! $lesson_id ) {
+    if ( ! $grade_id || ! $subject_id ) {
         $args['post__in'] = [ 0 ];
         return $args;
     }
 
+    $question_statuses = [ 'publish' ];
+    if ( is_admin() && current_user_can( 'edit_posts' ) ) {
+        $question_statuses = [ 'publish', 'draft', 'pending', 'private' ];
+    }
+
+    $meta_query = [
+        'relation' => 'AND',
+        [
+            'key'     => 'grade',
+            'value'   => $grade_id,
+            'compare' => '=',
+        ],
+        [
+            'key'     => 'subject',
+            'value'   => $subject_id,
+            'compare' => '=',
+        ],
+    ];
+
+    if ( $lesson_id ) {
+        $meta_query[] = [
+            'key'     => 'lesson',
+            'value'   => $lesson_id,
+            'compare' => '=',
+        ];
+    }
+
     $question_ids = get_posts( [
         'post_type'      => 'eh_question',
-        'post_status'    => 'publish',
+        'post_status'    => $question_statuses,
         'posts_per_page' => -1,
         'fields'         => 'ids',
-        'meta_query'     => [
-            'relation' => 'AND',
-            [
-                'key'     => 'grade',
-                'value'   => $grade_id,
-                'compare' => '=',
-            ],
-            [
-                'key'     => 'subject',
-                'value'   => $subject_id,
-                'compare' => '=',
-            ],
-            [
-                'key'     => 'lesson',
-                'value'   => $lesson_id,
-                'compare' => '=',
-            ],
-        ],
+        'meta_query'     => $meta_query,
     ] );
 
     $args['post__in']     = ! empty( $question_ids ) ? $question_ids : [ 0 ];
-    $args['post_status']  = 'publish';
+    $args['post_status']  = $question_statuses;
     $args['orderby']      = 'date';
     $args['order']        = 'DESC';
     unset( $args['meta_query'] );

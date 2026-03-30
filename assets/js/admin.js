@@ -209,6 +209,7 @@
         data.grade_id = getFieldValue('field_ex_grade');
         data.subject_id = getFieldValue('field_ex_subject');
         data.lesson_id = getFieldValue('field_ex_lesson');
+        data.question_group_id = getFieldValue('field_ex_lesson');
       }
 
       return data;
@@ -222,6 +223,7 @@
       data.grade_id = getFieldValue('field_ex_grade');
       data.subject_id = getFieldValue('field_ex_subject');
       data.lesson_id = getFieldValue('field_ex_lesson');
+      data.question_group_id = getFieldValue('field_ex_lesson');
       return data;
     });
   }
