@@ -169,4 +169,33 @@ function examhub_register_options_fields() {
             [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-gamification' ] ],
         ],
     ] );
+
+    acf_add_local_field_group( [
+        'key'    => 'group_options_affiliate',
+        'title'  => 'إعدادات الأفلييت / Affiliate Settings',
+        'fields' => [
+            [ 'key' => 'field_aff_rate', 'label' => 'نسبة العمولة (%)', 'name' => 'affiliate_rate', 'type' => 'number', 'default_value' => 10, 'min' => 0, 'max' => 100 ],
+            [ 'key' => 'field_aff_cookie', 'label' => 'مدة حفظ الإحالة (أيام)', 'name' => 'affiliate_cookie_days', 'type' => 'number', 'default_value' => 30, 'min' => 1 ],
+            [ 'key' => 'field_aff_enabled', 'label' => 'تفعيل نظام الأفلييت', 'name' => 'affiliate_enabled', 'type' => 'true_false', 'ui' => 1, 'default_value' => 1 ],
+        ],
+        'location' => [
+            [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-affiliate-settings' ] ],
+            [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-affiliate' ] ],
+        ],
+    ] );
+
+    acf_add_local_field_group( [
+        'key'    => 'group_options_emails',
+        'title'  => 'إعدادات الإيميلات / Email Settings',
+        'fields' => [
+            [ 'key' => 'field_email_from_name', 'label' => 'اسم المرسل', 'name' => 'email_from_name', 'type' => 'text', 'default_value' => 'ExamHub' ],
+            [ 'key' => 'field_email_from_address', 'label' => 'بريد المرسل', 'name' => 'email_from_address', 'type' => 'email' ],
+            [ 'key' => 'field_daily_digest_enabled', 'label' => 'تفعيل الملخص اليومي', 'name' => 'daily_digest_enabled', 'type' => 'true_false', 'ui' => 1, 'default_value' => 1 ],
+            [ 'key' => 'field_daily_digest_updates', 'label' => 'قسم التحسينات والتحديثات', 'name' => 'daily_digest_updates', 'type' => 'textarea', 'rows' => 4 ],
+        ],
+        'location' => [
+            [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-email-settings' ] ],
+            [ [ 'param' => 'options_page', 'operator' => '==', 'value' => 'acf-options-emails' ] ],
+        ],
+    ] );
 }

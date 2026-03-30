@@ -14,6 +14,8 @@ if ( is_user_logged_in() ) {
 
 $error_code  = isset( $_GET['auth_error'] ) ? sanitize_key( wp_unslash( $_GET['auth_error'] ) ) : '';
 $redirect_to = isset( $_GET['redirect_to'] ) ? esc_url_raw( wp_unslash( $_GET['redirect_to'] ) ) : home_url( '/dashboard' );
+$affiliate_referrer = function_exists( 'examhub_get_pending_affiliate_referrer_id' ) ? examhub_get_pending_affiliate_referrer_id() : 0;
+$affiliate_user     = $affiliate_referrer ? get_userdata( $affiliate_referrer ) : null;
 $all_grades  = get_posts(
 	array(
 		'post_type'      => 'eh_grade',
@@ -50,6 +52,10 @@ get_header();
 
 			<?php if ( $error_code && isset( $error_map[ $error_code ] ) ) : ?>
 				<div class="alert alert-danger"><?php echo esc_html( $error_map[ $error_code ] ); ?></div>
+			<?php endif; ?>
+
+			<?php if ( $affiliate_user ) : ?>
+				<div class="alert alert-info"><?php printf( esc_html__( 'أنت منضم عبر دعوة من %s، وسيتم ربط الحساب بهذه الإحالة تلقائيًا.', 'examhub' ), esc_html( $affiliate_user->display_name ) ); ?></div>
 			<?php endif; ?>
 
 			<?php if ( ! get_option( 'users_can_register' ) ) : ?>

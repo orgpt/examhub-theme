@@ -61,6 +61,11 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
             <i class="bi bi-star me-1"></i><?php esc_html_e( 'الاشتراك', 'examhub' ); ?>
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="<?php echo home_url( '/affiliate' ); ?>">
+            <i class="bi bi-megaphone me-1"></i><?php esc_html_e( 'أفلييت', 'examhub' ); ?>
+          </a>
+        </li>
       </ul>
 
       <!-- Right side: user info -->
@@ -81,6 +86,9 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
             </a>
             <a href="<?php echo esc_url( home_url( '/profile' ) ); ?>" class="eh-quick-link">
               <i class="bi bi-person"></i><span><?php esc_html_e( 'الملف الشخصي', 'examhub' ); ?></span>
+            </a>
+            <a href="<?php echo esc_url( home_url( '/profile/?tab=affiliate' ) ); ?>" class="eh-quick-link">
+              <i class="bi bi-megaphone"></i><span><?php esc_html_e( 'أفلييت', 'examhub' ); ?></span>
             </a>
           </div>
 
@@ -146,6 +154,9 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
   </a>
   <a href="<?php echo home_url( '/profile' ); ?>" class="eh-mobile-nav-item">
     <i class="bi bi-person-circle"></i><span><?php esc_html_e( 'حسابي', 'examhub' ); ?></span>
+  </a>
+  <a href="<?php echo home_url( '/affiliate' ); ?>" class="eh-mobile-nav-item">
+    <i class="bi bi-megaphone"></i><span><?php esc_html_e( 'أفلييت', 'examhub' ); ?></span>
   </a>
 </nav>
 <?php endif; ?>

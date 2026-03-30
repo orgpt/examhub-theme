@@ -216,6 +216,58 @@ function examhub_send_subscription_email( $user_id, $type, $plan = [], $expires 
     $user = get_userdata( $user_id );
     if ( ! $user ) return;
 
+    if ( function_exists( 'examhub_send_email' ) ) {
+        $plan_name = $plan['plan_name_ar'] ?? $plan['plan_name'] ?? __( 'اشتراكك', 'examhub' );
+        $expires_formatted = $expires ? date_i18n( 'd/m/Y', strtotime( $expires ) ) : '';
+        $map = [
+            'activated' => [
+                'subject' => sprintf( __( 'تم تفعيل اشتراكك في %s', 'examhub' ), get_bloginfo( 'name' ) ),
+                'heading' => __( 'اشتراكك أصبح فعالًا', 'examhub' ),
+                'intro'   => sprintf( __( 'تم تفعيل خطة %s بنجاح.', 'examhub' ), $plan_name ),
+                'body'    => $expires_formatted
+                    ? sprintf( __( 'تاريخ الانتهاء: %s', 'examhub' ), $expires_formatted )
+                    : __( 'اشتراكك متاح الآن بدون تاريخ انتهاء محدد.', 'examhub' ),
+                'cta'     => home_url( '/dashboard/' ),
+            ],
+            'expired' => [
+                'subject' => sprintf( __( 'انتهى اشتراكك في %s', 'examhub' ), get_bloginfo( 'name' ) ),
+                'heading' => __( 'انتهت صلاحية الاشتراك', 'examhub' ),
+                'intro'   => __( 'يمكنك التجديد في أي وقت للعودة إلى كل المزايا.', 'examhub' ),
+                'body'    => __( 'اضغط على الزر التالي لاختيار الخطة المناسبة وتجديد اشتراكك.', 'examhub' ),
+                'cta'     => home_url( '/pricing/' ),
+            ],
+            'expiring_soon' => [
+                'subject' => sprintf( __( 'اشتراكك سينتهي قريبًا في %s', 'examhub' ), get_bloginfo( 'name' ) ),
+                'heading' => __( 'اشتراكك يقترب من الانتهاء', 'examhub' ),
+                'intro'   => $expires_formatted ? sprintf( __( 'ينتهي اشتراكك في %s.', 'examhub' ), $expires_formatted ) : '',
+                'body'    => __( 'جدده الآن حتى لا تفقد الوصول إلى الامتحانات والمزايا.', 'examhub' ),
+                'cta'     => home_url( '/pricing/' ),
+            ],
+            'cancelled' => [
+                'subject' => sprintf( __( 'تم إلغاء اشتراكك في %s', 'examhub' ), get_bloginfo( 'name' ) ),
+                'heading' => __( 'تم إلغاء الاشتراك', 'examhub' ),
+                'intro'   => __( 'يمكنك إعادة الاشتراك مرة أخرى في أي وقت.', 'examhub' ),
+                'body'    => __( 'سنبقى جاهزين لك عندما ترغب في العودة.', 'examhub' ),
+                'cta'     => home_url( '/pricing/' ),
+            ],
+        ];
+
+        $entry = $map[ $type ] ?? $map['activated'];
+
+        examhub_send_email(
+            $user->user_email,
+            $entry['subject'],
+            [
+                'heading'   => $entry['heading'],
+                'intro'     => $entry['intro'],
+                'body'      => $entry['body'],
+                'cta_label' => __( 'فتح المنصة', 'examhub' ),
+                'cta_url'   => $entry['cta'],
+            ]
+        );
+        return;
+    }
+
     $site_name = get_bloginfo( 'name' );
     $from_email = get_option( 'admin_email' );
 

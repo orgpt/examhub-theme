@@ -66,6 +66,7 @@ function examhub_ajax_create_payment() {
     update_field( 'payment_status',   'pending',        $payment_id );
     update_field( 'tax_amount',       $amount['tax'],   $payment_id );
     update_field( 'processing_fee',   $amount['fee'],   $payment_id );
+    examhub_prepare_payment_affiliate_data( $payment_id, $user_id, $amount['total'] );
 
     // Route to specific gateway
     switch ( $method ) {
@@ -91,6 +92,13 @@ function examhub_ajax_create_payment() {
         update_field( 'payment_status', 'failed', $payment_id );
         wp_send_json_error( [ 'message' => $result->get_error_message() ] );
     }
+
+    do_action( 'examhub_payment_created', $payment_id, [
+        'user_id' => $user_id,
+        'plan_id' => $plan_id,
+        'amount'  => $amount['total'],
+        'method'  => $method,
+    ] );
 
     wp_send_json_success( array_merge( $result, [ 'payment_id' => $payment_id ] ) );
 }

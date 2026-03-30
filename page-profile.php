@@ -33,6 +33,23 @@ $all_grades = get_posts( [
 ] );
 
 $default_grade = get_user_meta( $user_id, 'eh_default_grade', true );
+$affiliate     = function_exists( 'examhub_get_affiliate_stats' ) ? examhub_get_affiliate_stats( $user_id ) : [
+    'referrals'        => [],
+    'invites'          => [],
+    'count'            => 0,
+    'invite_count'     => 0,
+    'total_sales'      => 0,
+    'total_commission' => 0,
+    'affiliate_url'    => home_url( '/affiliate/' ),
+    'rate'             => 10,
+];
+$email_prefs   = function_exists( 'examhub_get_user_email_preferences' ) ? examhub_get_user_email_preferences( $user_id ) : [
+    'order_created'    => 1,
+    'purchase_success' => 1,
+    'daily_digest'     => 1,
+    'product_updates'  => 1,
+    'affiliate'        => 1,
+];
 
 // Handle POST save
 $success_msg = '';
@@ -82,6 +99,16 @@ if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['eh_profile_nonce'] 
                 wp_set_auth_cookie( $user_id );
                 $success_msg = __( 'تم تغيير كلمة المرور بنجاح.', 'examhub' );
             }
+        } elseif ( $action === 'email_prefs' ) {
+            $email_prefs = [
+                'order_created'    => ! empty( $_POST['email_order_created'] ) ? 1 : 0,
+                'purchase_success' => ! empty( $_POST['email_purchase_success'] ) ? 1 : 0,
+                'daily_digest'     => ! empty( $_POST['email_daily_digest'] ) ? 1 : 0,
+                'product_updates'  => ! empty( $_POST['email_product_updates'] ) ? 1 : 0,
+                'affiliate'        => ! empty( $_POST['email_affiliate'] ) ? 1 : 0,
+            ];
+            update_user_meta( $user_id, 'eh_email_preferences', $email_prefs );
+            $success_msg = __( 'تم حفظ تفضيلات الإيميل بنجاح.', 'examhub' );
         }
     }
 }
@@ -233,6 +260,12 @@ get_header();
         </li>
         <li class="nav-item">
           <a class="nav-link" href="#tab-xp-log" data-bs-toggle="pill"><?php esc_html_e( 'سجل XP', 'examhub' ); ?></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#tab-affiliate" data-bs-toggle="pill"><?php esc_html_e( 'الأفلييت', 'examhub' ); ?></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#tab-emails" data-bs-toggle="pill"><?php esc_html_e( 'الإيميلات', 'examhub' ); ?></a>
         </li>
       </ul>
 
@@ -386,6 +419,187 @@ get_header();
           </div>
         </div>
 
+        <div class="tab-pane fade" id="tab-affiliate">
+          <div class="card mb-4">
+            <div class="card-body">
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+                <div>
+                  <div class="eh-section-title mb-2"><i class="bi bi-megaphone icon"></i><?php esc_html_e( 'برنامج الأفلييت', 'examhub' ); ?></div>
+                  <p class="text-muted mb-0"><?php printf( esc_html__( 'عمولة ثابتة %s%% على كل عملية شراء مؤكدة تتم عبر رابطك.', 'examhub' ), number_format_i18n( $affiliate['rate'], 0 ) ); ?></p>
+                </div>
+                <a href="<?php echo esc_url( home_url( '/affiliate/' ) ); ?>" class="btn btn-ghost btn-sm"><?php esc_html_e( 'صفحة الهبوط', 'examhub' ); ?></a>
+              </div>
+
+              <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                  <div class="eh-stat-card">
+                    <div class="stat-icon icon-accent"><i class="bi bi-cash-stack"></i></div>
+                    <div>
+                      <div class="stat-value"><?php echo number_format_i18n( $affiliate['total_commission'], 2 ); ?></div>
+                      <div class="stat-label"><?php esc_html_e( 'إجمالي العمولة', 'examhub' ); ?></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="eh-stat-card">
+                    <div class="stat-icon icon-success"><i class="bi bi-bag-check"></i></div>
+                    <div>
+                      <div class="stat-value"><?php echo number_format_i18n( $affiliate['count'] ); ?></div>
+                      <div class="stat-label"><?php esc_html_e( 'عمليات شراء', 'examhub' ); ?></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="eh-stat-card">
+                    <div class="stat-icon icon-gold"><i class="bi bi-envelope-paper-heart"></i></div>
+                    <div>
+                      <div class="stat-value"><?php echo number_format_i18n( $affiliate['invite_count'] ); ?></div>
+                      <div class="stat-label"><?php esc_html_e( 'دعوات مرسلة', 'examhub' ); ?></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label fw-bold"><?php esc_html_e( 'رابط الأفلييت الخاص بك', 'examhub' ); ?></label>
+                <div class="input-group" dir="ltr">
+                  <input type="text" class="form-control" id="eh-affiliate-link" value="<?php echo esc_attr( $affiliate['affiliate_url'] ); ?>" readonly>
+                  <button type="button" class="btn btn-primary" id="eh-copy-affiliate-link"><?php esc_html_e( 'نسخ الرابط', 'examhub' ); ?></button>
+                </div>
+              </div>
+
+              <div class="row g-4">
+                <div class="col-lg-6">
+                  <div class="p-3 rounded-eh" style="background:var(--eh-bg-tertiary); border:1px solid var(--eh-border);">
+                    <h6 class="mb-3"><?php esc_html_e( 'إرسال دعوة بالإيميل', 'examhub' ); ?></h6>
+                    <div class="input-group" dir="ltr">
+                      <input type="email" class="form-control" id="eh-affiliate-invite-email" placeholder="friend@example.com">
+                      <button type="button" class="btn btn-outline-primary" id="eh-send-affiliate-invite"><?php esc_html_e( 'إرسال الدعوة', 'examhub' ); ?></button>
+                    </div>
+                    <div class="small text-muted mt-2"><?php esc_html_e( 'سيتم إرسال نموذج إيميل احترافي يحتوي على رابط الإحالة الخاص بك.', 'examhub' ); ?></div>
+                  </div>
+                </div>
+                <div class="col-lg-6">
+                  <div class="p-3 rounded-eh h-100" style="background:var(--eh-bg-tertiary); border:1px solid var(--eh-border);">
+                    <h6 class="mb-3"><?php esc_html_e( 'الخطوات', 'examhub' ); ?></h6>
+                    <div class="small text-muted">
+                      <div class="mb-2">1. <?php esc_html_e( 'انسخ رابطك أو أرسل دعوة مباشرة لصديقك.', 'examhub' ); ?></div>
+                      <div class="mb-2">2. <?php esc_html_e( 'عند التسجيل أو الشراء من الرابط يتم ربط الإحالة بحسابك.', 'examhub' ); ?></div>
+                      <div>3. <?php esc_html_e( 'تحصل تلقائيًا على عمولة 10% مع كل شراء مؤكد.', 'examhub' ); ?></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="row g-4 mt-1">
+                <div class="col-lg-6">
+                  <h6 class="mb-3"><?php esc_html_e( 'آخر عمليات الشراء', 'examhub' ); ?></h6>
+                  <?php if ( empty( $affiliate['referrals'] ) ) : ?>
+                    <p class="text-muted small mb-0"><?php esc_html_e( 'لا توجد عمليات شراء عبر رابطك حتى الآن.', 'examhub' ); ?></p>
+                  <?php else : ?>
+                    <div class="table-responsive">
+                      <table class="table table-sm">
+                        <thead>
+                          <tr>
+                            <th><?php esc_html_e( 'التاريخ', 'examhub' ); ?></th>
+                            <th><?php esc_html_e( 'المبلغ', 'examhub' ); ?></th>
+                            <th><?php esc_html_e( 'العمولة', 'examhub' ); ?></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach ( array_slice( $affiliate['referrals'], 0, 8 ) as $referral ) : ?>
+                            <tr>
+                              <td class="text-muted small"><?php echo esc_html( get_the_date( 'd/m/Y', $referral->ID ) ); ?></td>
+                              <td><?php echo esc_html( number_format_i18n( (float) get_post_meta( $referral->ID, '_eh_amount', true ), 2 ) ); ?></td>
+                              <td class="text-success fw-bold"><?php echo esc_html( number_format_i18n( (float) get_post_meta( $referral->ID, '_eh_commission', true ), 2 ) ); ?></td>
+                            </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  <?php endif; ?>
+                </div>
+                <div class="col-lg-6">
+                  <h6 class="mb-3"><?php esc_html_e( 'آخر الدعوات', 'examhub' ); ?></h6>
+                  <?php if ( empty( $affiliate['invites'] ) ) : ?>
+                    <p class="text-muted small mb-0"><?php esc_html_e( 'لم يتم إرسال دعوات بعد.', 'examhub' ); ?></p>
+                  <?php else : ?>
+                    <div class="table-responsive">
+                      <table class="table table-sm">
+                        <thead>
+                          <tr>
+                            <th><?php esc_html_e( 'الإيميل', 'examhub' ); ?></th>
+                            <th><?php esc_html_e( 'الحالة', 'examhub' ); ?></th>
+                            <th><?php esc_html_e( 'التاريخ', 'examhub' ); ?></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach ( array_slice( $affiliate['invites'], 0, 8 ) as $invite ) : ?>
+                            <tr>
+                              <td dir="ltr"><?php echo esc_html( get_post_meta( $invite->ID, '_eh_invited_email', true ) ); ?></td>
+                              <td><?php echo esc_html( get_post_meta( $invite->ID, '_eh_invite_status', true ) ?: 'sent' ); ?></td>
+                              <td class="text-muted small"><?php echo esc_html( get_the_date( 'd/m/Y', $invite->ID ) ); ?></td>
+                            </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
+                  <?php endif; ?>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-emails">
+          <div class="card">
+            <div class="card-body">
+              <div class="eh-section-title mb-3"><i class="bi bi-envelope-check icon"></i><?php esc_html_e( 'تفضيلات الإيميل', 'examhub' ); ?></div>
+              <form method="post">
+                <?php wp_nonce_field( 'eh_save_profile_' . $user_id, 'eh_profile_nonce' ); ?>
+                <input type="hidden" name="profile_action" value="email_prefs">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-check p-3 rounded-eh d-flex gap-3 align-items-start" style="background:var(--eh-bg-tertiary); border:1px solid var(--eh-border);">
+                      <input class="form-check-input mt-1" type="checkbox" name="email_order_created" <?php checked( ! empty( $email_prefs['order_created'] ) ); ?>>
+                      <span><strong class="d-block"><?php esc_html_e( 'عند إنشاء الطلب', 'examhub' ); ?></strong><small class="text-muted"><?php esc_html_e( 'إشعار عند تسجيل طلب الاشتراك.', 'examhub' ); ?></small></span>
+                    </label>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-check p-3 rounded-eh d-flex gap-3 align-items-start" style="background:var(--eh-bg-tertiary); border:1px solid var(--eh-border);">
+                      <input class="form-check-input mt-1" type="checkbox" name="email_purchase_success" <?php checked( ! empty( $email_prefs['purchase_success'] ) ); ?>>
+                      <span><strong class="d-block"><?php esc_html_e( 'عند الشراء', 'examhub' ); ?></strong><small class="text-muted"><?php esc_html_e( 'إشعار عند نجاح الدفع وتفعيل الاشتراك.', 'examhub' ); ?></small></span>
+                    </label>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-check p-3 rounded-eh d-flex gap-3 align-items-start" style="background:var(--eh-bg-tertiary); border:1px solid var(--eh-border);">
+                      <input class="form-check-input mt-1" type="checkbox" name="email_daily_digest" <?php checked( ! empty( $email_prefs['daily_digest'] ) ); ?>>
+                      <span><strong class="d-block"><?php esc_html_e( 'الملخص اليومي', 'examhub' ); ?></strong><small class="text-muted"><?php esc_html_e( 'امتحانات جديدة ومخطط يومي مقترح.', 'examhub' ); ?></small></span>
+                    </label>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-check p-3 rounded-eh d-flex gap-3 align-items-start" style="background:var(--eh-bg-tertiary); border:1px solid var(--eh-border);">
+                      <input class="form-check-input mt-1" type="checkbox" name="email_product_updates" <?php checked( ! empty( $email_prefs['product_updates'] ) ); ?>>
+                      <span><strong class="d-block"><?php esc_html_e( 'التحسينات', 'examhub' ); ?></strong><small class="text-muted"><?php esc_html_e( 'آخر التطويرات والتحديثات داخل الرسائل.', 'examhub' ); ?></small></span>
+                    </label>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-check p-3 rounded-eh d-flex gap-3 align-items-start" style="background:var(--eh-bg-tertiary); border:1px solid var(--eh-border);">
+                      <input class="form-check-input mt-1" type="checkbox" name="email_affiliate" <?php checked( ! empty( $email_prefs['affiliate'] ) ); ?>>
+                      <span><strong class="d-block"><?php esc_html_e( 'تنبيهات الأفلييت', 'examhub' ); ?></strong><small class="text-muted"><?php esc_html_e( 'دعوات جديدة وعمولات الشراء.', 'examhub' ); ?></small></span>
+                    </label>
+                  </div>
+                </div>
+                <div class="mt-4">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i><?php esc_html_e( 'حفظ الإعدادات', 'examhub' ); ?>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
       </div><!-- .tab-content -->
     </div><!-- .col-lg-8 -->
   </div><!-- .row -->
@@ -413,6 +627,45 @@ get_header();
   // Auto-load invoices when tab shown
   $('a[href="#tab-invoices"]').on('shown.bs.tab', function(){
     if(!$('#invoices-container table').length) $('#btn-load-invoices').trigger('click');
+  });
+
+  const profileTab = new URL(window.location.href).searchParams.get('tab');
+  if (profileTab && typeof bootstrap !== 'undefined') {
+    const trigger = document.querySelector(`a[href="#tab-${profileTab}"]`);
+    if (trigger) bootstrap.Tab.getOrCreateInstance(trigger).show();
+  }
+
+  $('#eh-copy-affiliate-link').on('click', async function(){
+    const input = document.getElementById('eh-affiliate-link');
+    if (!input) return;
+    try {
+      await navigator.clipboard.writeText(input.value);
+    } catch (e) {
+      input.select();
+      document.execCommand('copy');
+    }
+    if (window.showToast) window.showToast('تم نسخ رابط الأفلييت', 'success');
+  });
+
+  $('#eh-send-affiliate-invite').on('click', function(){
+    const $btn = $(this);
+    const email = $('#eh-affiliate-invite-email').val().trim();
+    if (!email || typeof examhubAjax === 'undefined') return;
+
+    $btn.prop('disabled', true);
+    $.post(examhubAjax.url, {
+      action: 'eh_send_affiliate_invite',
+      nonce: examhubAjax.nonce,
+      email: email
+    }, function(res){
+      $btn.prop('disabled', false);
+      if (res.success) {
+        $('#eh-affiliate-invite-email').val('');
+        if (window.showToast) window.showToast(res.data.message, 'success');
+      } else if (window.showToast) {
+        window.showToast(res.data?.message || 'تعذر إرسال الدعوة', 'error');
+      }
+    });
   });
 })(jQuery);
 </script>

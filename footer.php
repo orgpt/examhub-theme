@@ -47,6 +47,7 @@ if ( ! $is_exam_mode ) :
           <li class="mb-2"><a href="<?php echo get_post_type_archive_link( 'eh_exam' ); ?>"><?php esc_html_e( 'الامتحانات', 'examhub' ); ?></a></li>
           <li class="mb-2"><a href="<?php echo home_url( '/leaderboard' ); ?>"><?php esc_html_e( 'المتصدرون', 'examhub' ); ?></a></li>
           <li class="mb-2"><a href="<?php echo home_url( '/pricing' ); ?>"><?php esc_html_e( 'الاشتراك', 'examhub' ); ?></a></li>
+          <li class="mb-2"><a href="<?php echo home_url( '/affiliate' ); ?>"><?php esc_html_e( 'الأفلييت', 'examhub' ); ?></a></li>
           <li class="mb-2"><a href="<?php echo home_url( '/daily-challenge' ); ?>"><?php esc_html_e( 'التحدي اليومي', 'examhub' ); ?></a></li>
         </ul>
       </div>

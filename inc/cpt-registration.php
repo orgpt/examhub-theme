@@ -174,6 +174,36 @@ function examhub_register_cpts() {
         'menu_icon'    => 'dashicons-awards',
         'rewrite'      => false,
     ] );
+
+    // 13. Affiliate Referral
+    register_post_type( 'eh_affiliate_referral', [
+        'labels'       => examhub_cpt_labels( 'إحالة أفلييت', 'إحالات أفلييت', 'Affiliate Referral', 'Affiliate Referrals' ),
+        'public'       => false,
+        'show_ui'      => true,
+        'show_in_menu' => 'examhub-content',
+        'show_in_rest' => false,
+        'supports'     => [ 'title', 'author' ],
+        'menu_icon'    => 'dashicons-megaphone',
+        'rewrite'      => false,
+        'capabilities' => [
+            'create_posts' => 'do_not_allow',
+        ],
+    ] );
+
+    // 14. Affiliate Invite
+    register_post_type( 'eh_affiliate_invite', [
+        'labels'       => examhub_cpt_labels( 'دعوة أفلييت', 'دعوات أفلييت', 'Affiliate Invite', 'Affiliate Invites' ),
+        'public'       => false,
+        'show_ui'      => true,
+        'show_in_menu' => 'examhub-content',
+        'show_in_rest' => false,
+        'supports'     => [ 'title', 'author' ],
+        'menu_icon'    => 'dashicons-email-alt',
+        'rewrite'      => false,
+        'capabilities' => [
+            'create_posts' => 'do_not_allow',
+        ],
+    ] );
 }
 add_action( 'init', 'examhub_register_cpts', 5 );
 

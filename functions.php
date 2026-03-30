@@ -29,6 +29,7 @@ $examhub_includes = [
     'inc/rest-api.php',           // REST API extensions
     'inc/user-roles.php',         // Custom roles & capabilities
     'inc/auth.php',               // Custom auth pages and OAuth login
+    'inc/affiliate.php',          // Affiliate tracking, invites, commissions
     'inc/subscription.php',       // Subscription logic
     'inc/payment.php',            // Payment gateway routing
     'inc/payment-fawaterk.php',   // Fawaterk integration
@@ -41,6 +42,7 @@ $examhub_includes = [
     'inc/analytics.php',          // Performance analytics
     'inc/pdf-import.php',         // PDF upload & OCR
     'inc/admin-columns.php',      // Admin list improvements
+    'inc/mailer.php',             // HTML email templates and digests
     'inc/shortcodes.php',         // Theme shortcodes
     'inc/template-hooks.php',     // Action/filter hooks
     'inc/security.php',           // Nonces, validation, rate limiting
@@ -97,6 +99,16 @@ add_action( 'acf/init', function() {
         acf_add_options_sub_page( [
             'page_title'  => __( 'Gamification Settings', 'examhub' ),
             'menu_title'  => __( 'Gamification', 'examhub' ),
+            'parent_slug' => 'examhub-settings',
+        ] );
+        acf_add_options_sub_page( [
+            'page_title'  => __( 'Affiliate Settings', 'examhub' ),
+            'menu_title'  => __( 'Affiliate', 'examhub' ),
+            'parent_slug' => 'examhub-settings',
+        ] );
+        acf_add_options_sub_page( [
+            'page_title'  => __( 'Email Settings', 'examhub' ),
+            'menu_title'  => __( 'Emails', 'examhub' ),
             'parent_slug' => 'examhub-settings',
         ] );
     }
