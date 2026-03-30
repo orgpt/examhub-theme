@@ -66,6 +66,14 @@ function examhub_render_pdf_import_page() {
               </td>
             </tr>
             <tr>
+              <th><?php esc_html_e( 'المرحلة *', 'examhub' ); ?></th>
+              <td>
+                <select name="stage_id" id="pdf-stage" class="regular-text" required>
+                  <option value=""><?php esc_html_e( '-- اختر --', 'examhub' ); ?></option>
+                </select>
+              </td>
+            </tr>
+            <tr>
               <th><?php esc_html_e( 'الصف', 'examhub' ); ?></th>
               <td>
                 <select name="grade_id" id="pdf-grade" class="regular-text">
@@ -161,20 +169,48 @@ jQuery(function($){
 
   $('#pdf-edu-system').on('change', function(){
     const systemId = $(this).val();
+    const $stage   = $('#pdf-stage');
     const $grade   = $('#pdf-grade');
     const $subject = $('#pdf-subject');
     const $group   = $('#pdf-group');
 
+    resetSelect($stage, '-- اختر --');
     resetSelect($grade, '-- Select (Optional) --');
     resetSelect($subject, '-- Select (Optional) --');
     resetSelect($group, '-- Select (Optional) --');
     if (!systemId) return;
 
-    $grade.html('<option value="">Loading...</option>').prop('disabled', true);
+    $stage.html('<option value="">Loading...</option>').prop('disabled', true);
     $.post(ajaxurl, {
-      action: 'eh_admin_get_grades_by_system',
+      action: 'eh_admin_get_stages_by_system',
       nonce: getAdminNonce(),
       system_id: systemId
+    }, function(res){
+      if (res && res.success) {
+        setSelectOptions($stage, res.data, '-- اختر --');
+      } else {
+        resetSelect($stage, '-- لا توجد مراحل --');
+      }
+    }).fail(function(){
+      resetSelect($stage, '-- Error --');
+    });
+  });
+
+  $('#pdf-stage').on('change', function(){
+    const stageId  = $(this).val();
+    const $grade   = $('#pdf-grade');
+    const $subject = $('#pdf-subject');
+    const $group   = $('#pdf-group');
+    resetSelect($grade, '-- Select (Optional) --');
+    resetSelect($subject, '-- Select (Optional) --');
+    resetSelect($group, '-- Select (Optional) --');
+    if (!stageId) return;
+
+    $grade.html('<option value="">Loading...</option>').prop('disabled', true);
+    $.post(ajaxurl, {
+      action: 'eh_admin_get_grades_by_stage',
+      nonce: getAdminNonce(),
+      stage_id: stageId
     }, function(res){
       if (res && res.success) {
         setSelectOptions($grade, res.data, '-- Select (Optional) --');
@@ -325,6 +361,7 @@ jQuery(function($){
     $(this).prop('disabled', true).text('Saving...');
 
     const extra = {
+      stage_id:   $('#pdf-stage').val(),
       grade_id:   $('#pdf-grade').val(),
       subject_id: $('#pdf-subject').val(),
       question_group_id: $('#pdf-group').val(),
@@ -413,6 +450,7 @@ function examhub_ajax_import_pdf() {
         wp_send_json_error( [ 'message' => __( 'Unsupported file type. Use PDF or JSON.', 'examhub' ) ] );
     }
 
+    $stage_id          = (int) ( $_POST['stage_id'] ?? 0 );
     $grade_id          = (int) ( $_POST['grade_id'] ?? 0 );
     $subject_id        = (int) ( $_POST['subject_id'] ?? 0 );
     $question_group_id = (int) ( $_POST['question_group_id'] ?? 0 );
@@ -450,6 +488,7 @@ function examhub_ajax_import_pdf() {
     $text = examhub_clean_ocr_text( $text );
 
     $context = [
+        'stage'   => $stage_id ? get_the_title( $stage_id ) : '',
         'grade'   => $grade_id ? get_the_title( $grade_id ) : '',
         'subject' => $subject_id ? get_the_title( $subject_id ) : '',
         'lesson'  => $question_group_id ? get_the_title( $question_group_id ) : '',
@@ -1107,8 +1146,8 @@ function examhub_is_question_present_in_source( $q_norm, $source_norm ) {
     return $hits >= 2;
 }
 
-add_action( 'wp_ajax_eh_admin_get_grades_by_system', 'examhub_ajax_admin_get_grades_by_system' );
-function examhub_ajax_admin_get_grades_by_system() {
+add_action( 'wp_ajax_eh_admin_get_stages_by_system', 'examhub_ajax_admin_get_stages_by_system' );
+function examhub_ajax_admin_get_stages_by_system() {
     check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
     if ( ! current_user_can( 'manage_options' ) ) {
         wp_send_json_error( [], 403 );
@@ -1119,14 +1158,52 @@ function examhub_ajax_admin_get_grades_by_system() {
         wp_send_json_success( [] );
     }
 
+    $stages = get_posts( [
+        'post_type'      => 'eh_stage',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'meta_query'     => [
+            [
+                'key'     => 'stage_education_system',
+                'value'   => $system_id,
+                'compare' => '=',
+            ],
+        ],
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+    ] );
+
+    $data = [];
+    foreach ( $stages as $stage ) {
+        $data[] = [
+            'id'    => $stage->ID,
+            'label' => get_field( 'stage_name_ar', $stage->ID ) ?: $stage->post_title,
+        ];
+    }
+
+    wp_send_json_success( $data );
+}
+
+add_action( 'wp_ajax_eh_admin_get_grades_by_stage', 'examhub_ajax_admin_get_grades_by_stage' );
+function examhub_ajax_admin_get_grades_by_stage() {
+    check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
+    if ( ! current_user_can( 'manage_options' ) ) {
+        wp_send_json_error( [], 403 );
+    }
+
+    $stage_id = (int) ( $_POST['stage_id'] ?? 0 );
+    if ( ! $stage_id ) {
+        wp_send_json_success( [] );
+    }
+
     $grades = get_posts( [
         'post_type'      => 'eh_grade',
         'post_status'    => 'publish',
         'posts_per_page' => -1,
         'meta_query'     => [
             [
-                'key'     => 'grade_education_system',
-                'value'   => $system_id,
+                'key'     => 'grade_stage',
+                'value'   => $stage_id,
                 'compare' => '=',
             ],
         ],
@@ -1276,6 +1353,7 @@ function examhub_ajax_save_imported_questions() {
 
         // Classification from extra
         if ( ! empty( $extra['education_system'] ) ) update_field( 'education_system', (int)$extra['education_system'], $post_id );
+        if ( ! empty( $extra['stage_id'] ) )         update_field( 'stage',            (int)$extra['stage_id'],         $post_id );
         if ( ! empty( $extra['grade_id'] ) )         update_field( 'grade',            (int)$extra['grade_id'],         $post_id );
         if ( ! empty( $extra['subject_id'] ) )       update_field( 'subject',          (int)$extra['subject_id'],       $post_id );
         if ( ! empty( $extra['question_group_id'] ) ) update_field( 'lesson',          (int)$extra['question_group_id'], $post_id );
