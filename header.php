@@ -23,11 +23,19 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
     <a class="navbar-brand" href="<?php echo home_url(); ?>">
       <?php
       $logo_url = get_field( 'site_logo_dark', 'option' );
+      $site_name = get_bloginfo( 'name' );
+      $tagline   = get_bloginfo( 'description' );
       if ( $logo_url ) : ?>
-        <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php bloginfo( 'name' ); ?>" height="36">
-      <?php else : ?>
-        <span>المراجعة النهائية</span>
+        <span class="eh-brand-mark">
+          <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $site_name ); ?>" height="40">
+        </span>
       <?php endif; ?>
+      <span class="eh-brand-copy">
+        <span class="eh-brand-title"><?php echo esc_html( $site_name ); ?></span>
+        <?php if ( $tagline ) : ?>
+          <span class="eh-brand-tagline"><?php echo esc_html( $tagline ); ?></span>
+        <?php endif; ?>
+      </span>
     </a>
 
     <!-- Mobile toggle -->

@@ -273,11 +273,57 @@ img { max-width: 100%; height: auto; }
   background-color: rgba(22, 25, 35, 0.9);
 }
 .eh-navbar .navbar-brand {
-  font-size: 1.3rem;
-  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.85rem;
+  min-width: 0;
   color: var(--eh-text-primary);
+  text-decoration: none;
 }
-.eh-navbar .navbar-brand span { color: var(--eh-accent); }
+.eh-brand-mark {
+  width: 48px;
+  height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top, rgba(67,97,238,.28), transparent 65%),
+    linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  border: 1px solid rgba(67,97,238,.22);
+  box-shadow: 0 10px 30px rgba(15,23,42,.24);
+  flex-shrink: 0;
+}
+.eh-brand-mark img {
+  max-width: 34px;
+  max-height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(67,97,238,.18));
+}
+.eh-brand-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.1;
+}
+.eh-brand-title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--eh-accent);
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 18px rgba(67,97,238,.18);
+  white-space: nowrap;
+}
+.eh-brand-tagline {
+  margin-top: 0.22rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--eh-text-muted);
+  opacity: 0.95;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .eh-navbar .nav-link { color: var(--eh-text-secondary); font-weight: 500; padding: 0.5rem 0.75rem !important; border-radius: var(--eh-radius-sm); }
 .eh-navbar .nav-link:hover { color: var(--eh-text-primary); background-color: var(--eh-bg-tertiary); }
 .eh-navbar .nav-link.active { color: var(--eh-accent); }
@@ -668,6 +714,21 @@ img { max-width: 100%; height: auto; }
   .eh-plan-card { padding: 1.5rem; }
   .eh-stat-card .stat-value { font-size: 1.3rem; }
   .eh-navbar .eh-xp-badge { display: none; }
+  .eh-navbar .navbar-brand {
+    gap: .6rem;
+    max-width: calc(100vw - 110px);
+  }
+  .eh-brand-mark {
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+  }
+  .eh-brand-title {
+    font-size: 1.12rem;
+  }
+  .eh-brand-tagline {
+    font-size: .62rem;
+  }
 
   /* Bottom navigation bar for mobile */
   .eh-mobile-nav {
