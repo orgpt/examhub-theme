@@ -61,11 +61,6 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
             <i class="bi bi-star me-1"></i><?php esc_html_e( 'الاشتراك', 'examhub' ); ?>
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php echo home_url( '/affiliate' ); ?>">
-            <i class="bi bi-megaphone me-1"></i><?php esc_html_e( 'أفلييت', 'examhub' ); ?>
-          </a>
-        </li>
       </ul>
 
       <!-- Right side: user info -->
