@@ -35,6 +35,7 @@
     bindSearch();
     bindSort();
     bindClearFilters();
+    bindWaitlistJoin();
 
     restoreInitialState();
   });
@@ -160,6 +161,65 @@
       $('#sel-stage, #sel-grade').val('');
       $('#subject-chips').empty();
       fetchExams();
+    });
+  }
+
+  function bindWaitlistJoin() {
+    $(document).on('click', '.js-eh-join-waitlist', function() {
+      const $btn = $(this);
+
+      if ($btn.data('joined') === 1 || $btn.data('joined') === '1' || $btn.prop('disabled')) {
+        return;
+      }
+
+      if (!window.examhubAjax?.is_logged_in) {
+        showToast('سجّل دخولك أولاً ثم انضم لقائمة الانتظار.', 'warning');
+        if (window.examhubAjax?.login_url) {
+          setTimeout(() => { window.location.href = window.examhubAjax.login_url; }, 600);
+        }
+        return;
+      }
+
+      const originalHtml = $btn.html();
+      $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split me-2"></i>جارٍ التسجيل...');
+
+      $.ajax({
+        url: window.examhubAjax.url,
+        type: 'POST',
+        data: {
+          action: 'eh_join_exam_waitlist',
+          nonce: window.examhubAjax.nonce,
+          system_id: parseInt($btn.data('system-id'), 10) || 0,
+          stage_id: parseInt($btn.data('stage-id'), 10) || 0,
+          grade_id: parseInt($btn.data('grade-id'), 10) || 0,
+          subject_id: parseInt($btn.data('subject-id'), 10) || 0,
+          difficulty: $btn.data('difficulty') || '',
+        },
+        success(res) {
+          if (res.success) {
+            $btn
+              .data('joined', 1)
+              .attr('data-joined', '1')
+              .removeClass('btn-primary')
+              .addClass('btn-success')
+              .html('<i class="bi bi-check2-circle me-2"></i>تم الانضمام لقائمة الانتظار');
+
+            $btn.closest('.eh-empty-state-waitlist').find('.eh-empty-state-promo')
+              .text(res.data?.message || 'سنعلمك فور إضافة امتحانات جديدة مناسبة لاختياراتك.');
+
+            showToast(res.data?.message || 'تم تسجيلك في قائمة الانتظار.', 'success');
+            return;
+          }
+
+          $btn.prop('disabled', false).html(originalHtml);
+          showToast(res.data?.message || 'تعذر الانضمام لقائمة الانتظار.', 'danger');
+        },
+        error(xhr) {
+          $btn.prop('disabled', false).html(originalHtml);
+          const msg = xhr?.responseJSON?.data?.message || 'تعذر الانضمام لقائمة الانتظار.';
+          showToast(msg, 'danger');
+        }
+      });
     });
   }
 

@@ -43,6 +43,7 @@ $examhub_includes = [
     'inc/pdf-import.php',         // PDF upload & OCR
     'inc/admin-columns.php',      // Admin list improvements
     'inc/mailer.php',             // HTML email templates and digests
+    'inc/waitlist.php',           // Empty-state waitlist subscriptions + notifications
     'inc/shortcodes.php',         // Theme shortcodes
     'inc/template-hooks.php',     // Action/filter hooks
     'inc/security.php',           // Nonces, validation, rate limiting

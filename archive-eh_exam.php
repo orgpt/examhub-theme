@@ -184,7 +184,15 @@ $edu_systems = get_posts( [
           endwhile;
           wp_reset_postdata();
         else :
+          set_query_var( 'examhub_empty_state_context', function_exists( 'examhub_get_waitlist_context' ) ? examhub_get_waitlist_context( [
+            'education_system' => $sel_system,
+            'stage'            => $sel_stage,
+            'grade'            => $sel_grade,
+            'subject'          => $sel_subject,
+            'difficulty'       => $sel_diff,
+          ] ) : [] );
           get_template_part( 'template-parts/content', 'none' );
+          set_query_var( 'examhub_empty_state_context', null );
         endif;
         ?>
       </div>

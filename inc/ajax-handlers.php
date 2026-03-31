@@ -119,7 +119,9 @@ function examhub_ajax_filter_exams() {
         }
         wp_reset_postdata();
     } else {
+        set_query_var( 'examhub_empty_state_context', function_exists( 'examhub_get_waitlist_context' ) ? examhub_get_waitlist_context( $args ) : [] );
         get_template_part( 'template-parts/content', 'none' );
+        set_query_var( 'examhub_empty_state_context', null );
     }
     $html = ob_get_clean();
 

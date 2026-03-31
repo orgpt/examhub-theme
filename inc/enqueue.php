@@ -96,6 +96,7 @@ function examhub_enqueue_assets() {
         'nonce'            => wp_create_nonce( 'examhub_ajax' ),
         'user_id'          => get_current_user_id(),
         'is_logged_in'     => is_user_logged_in(),
+        'login_url'        => function_exists( 'examhub_auth_page_url' ) ? examhub_auth_page_url( 'login', [ 'redirect_to' => home_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '/' ) ) ] ) : wp_login_url(),
         'site_url'         => get_site_url(),
         'rest_url'         => rest_url( 'examhub/v1/' ),
         'rest_nonce'       => wp_create_nonce( 'wp_rest' ),
