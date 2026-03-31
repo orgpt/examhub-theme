@@ -1,6 +1,6 @@
 <?php
 /**
- * ExamHub — User Roles & Capabilities
+ * ExamHub - User Roles & Capabilities
  *
  * @package ExamHub
  */
@@ -8,48 +8,86 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Register custom roles on theme activation.
+ * Register and sync custom roles/capabilities.
  */
 function examhub_register_roles() {
-    // Student role
+    $core_caps = function_exists( 'examhub_get_core_capabilities' )
+        ? examhub_get_core_capabilities()
+        : [
+            'access_content' => 'examhub_access_content',
+            'import_content' => 'examhub_import_content',
+        ];
+
+    $cpt_caps = [];
+    if ( function_exists( 'examhub_get_cpt_capability_map' ) ) {
+        foreach ( examhub_get_cpt_capability_map() as $post_type_caps ) {
+            foreach ( $post_type_caps as $cap ) {
+                if ( 'do_not_allow' !== $cap ) {
+                    $cpt_caps[] = $cap;
+                }
+            }
+        }
+        $cpt_caps = array_values( array_unique( $cpt_caps ) );
+    }
+
     if ( ! get_role( 'eh_student' ) ) {
         add_role( 'eh_student', __( 'طالب', 'examhub' ), [
-            'read'             => true,
-            'eh_take_exam'     => true,
-            'eh_view_results'  => true,
+            'read'            => true,
+            'eh_take_exam'    => true,
+            'eh_view_results' => true,
         ] );
     }
 
-    // Content Manager
     if ( ! get_role( 'eh_content_manager' ) ) {
         add_role( 'eh_content_manager', __( 'مدير محتوى', 'examhub' ), [
-            'read'                      => true,
-            'upload_files'              => true,
-            'edit_posts'                => true,
-            'edit_published_posts'      => true,
-            'publish_posts'             => true,
-            'delete_posts'              => true,
-            'edit_eh_questions'         => true,
-            'edit_eh_exams'             => true,
-            'manage_eh_question_bank'   => true,
+            'read' => true,
         ] );
     }
 
-    // Add ExamHub caps to administrator
+    $content_manager = get_role( 'eh_content_manager' );
+    if ( $content_manager ) {
+        $content_caps = array_merge(
+            [
+                'read',
+                'upload_files',
+                'edit_posts',
+                'edit_published_posts',
+                'publish_posts',
+                'delete_posts',
+                'edit_eh_questions',
+                'edit_eh_exams',
+                'manage_eh_question_bank',
+                $core_caps['access_content'],
+                $core_caps['import_content'],
+            ],
+            $cpt_caps
+        );
+
+        foreach ( array_unique( $content_caps ) as $cap ) {
+            $content_manager->add_cap( $cap );
+        }
+    }
+
     $admin = get_role( 'administrator' );
     if ( $admin ) {
-        $examhub_caps = [
-            'eh_take_exam',
-            'eh_view_results',
-            'eh_manage_subscriptions',
-            'eh_manage_payments',
-            'eh_manage_question_bank',
-            'eh_approve_payments',
-            'eh_view_analytics',
-            'edit_eh_questions',
-            'edit_eh_exams',
-        ];
-        foreach ( $examhub_caps as $cap ) {
+        $admin_caps = array_merge(
+            [
+                'eh_take_exam',
+                'eh_view_results',
+                'eh_manage_subscriptions',
+                'eh_manage_payments',
+                'eh_manage_question_bank',
+                'eh_approve_payments',
+                'eh_view_analytics',
+                'edit_eh_questions',
+                'edit_eh_exams',
+                $core_caps['access_content'],
+                $core_caps['import_content'],
+            ],
+            $cpt_caps
+        );
+
+        foreach ( array_unique( $admin_caps ) as $cap ) {
             $admin->add_cap( $cap );
         }
     }
@@ -58,6 +96,8 @@ add_action( 'init', 'examhub_register_roles' );
 
 /**
  * Auto-assign student role to new registrations.
+ *
+ * @param int $user_id User ID.
  */
 function examhub_set_default_role( $user_id ) {
     $user = new WP_User( $user_id );

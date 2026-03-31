@@ -14,11 +14,17 @@ defined( 'ABSPATH' ) || exit;
 
 add_action( 'admin_menu', 'examhub_register_pdf_import_page' );
 function examhub_register_pdf_import_page() {
+    $core_caps = function_exists( 'examhub_get_core_capabilities' )
+        ? examhub_get_core_capabilities()
+        : [
+            'access_content' => 'examhub_access_content',
+            'import_content' => 'examhub_import_content',
+        ];
     add_submenu_page(
         'examhub-content',
         __( 'استيراد PDF', 'examhub' ),
         __( '📄 استيراد PDF', 'examhub' ),
-        'manage_options',
+        $core_caps['import_content'],
         'examhub-pdf-import',
         'examhub_render_pdf_import_page'
     );
@@ -27,7 +33,7 @@ function examhub_register_pdf_import_page() {
         'examhub-content',
         __( 'بنك الأسئلة — مراجعة', 'examhub' ),
         __( '✅ مراجعة المستورَد', 'examhub' ),
-        'manage_options',
+        $core_caps['import_content'],
         'examhub-review-questions',
         'examhub_render_review_page'
     );
@@ -432,7 +438,7 @@ function examhub_render_review_page() {
 add_action( 'wp_ajax_eh_import_pdf', 'examhub_ajax_import_pdf' );
 function examhub_ajax_import_pdf() {
     check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
-    if ( ! current_user_can( 'manage_options' ) ) {
+    if ( ! current_user_can( 'examhub_import_content' ) ) {
         wp_send_json_error( [], 403 );
     }
 
@@ -1149,7 +1155,7 @@ function examhub_is_question_present_in_source( $q_norm, $source_norm ) {
 add_action( 'wp_ajax_eh_admin_get_stages_by_system', 'examhub_ajax_admin_get_stages_by_system' );
 function examhub_ajax_admin_get_stages_by_system() {
     check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
-    if ( ! current_user_can( 'manage_options' ) ) {
+    if ( ! current_user_can( 'examhub_import_content' ) ) {
         wp_send_json_error( [], 403 );
     }
 
@@ -1187,7 +1193,7 @@ function examhub_ajax_admin_get_stages_by_system() {
 add_action( 'wp_ajax_eh_admin_get_grades_by_stage', 'examhub_ajax_admin_get_grades_by_stage' );
 function examhub_ajax_admin_get_grades_by_stage() {
     check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
-    if ( ! current_user_can( 'manage_options' ) ) {
+    if ( ! current_user_can( 'examhub_import_content' ) ) {
         wp_send_json_error( [], 403 );
     }
 
@@ -1230,7 +1236,7 @@ function examhub_ajax_admin_get_grades_by_stage() {
 add_action( 'wp_ajax_eh_admin_get_subjects_by_grade', 'examhub_ajax_admin_get_subjects_by_grade' );
 function examhub_ajax_admin_get_subjects_by_grade() {
     check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
-    if ( ! current_user_can( 'manage_options' ) ) {
+    if ( ! current_user_can( 'examhub_import_content' ) ) {
         wp_send_json_error( [], 403 );
     }
 
@@ -1268,7 +1274,7 @@ function examhub_ajax_admin_get_subjects_by_grade() {
 add_action( 'wp_ajax_eh_admin_get_question_groups_by_subject', 'examhub_ajax_admin_get_question_groups_by_subject' );
 function examhub_ajax_admin_get_question_groups_by_subject() {
     check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
-    if ( ! current_user_can( 'manage_options' ) ) {
+    if ( ! current_user_can( 'examhub_import_content' ) ) {
         wp_send_json_error( [], 403 );
     }
 
@@ -1310,7 +1316,7 @@ function examhub_ajax_admin_get_question_groups_by_subject() {
 add_action( 'wp_ajax_eh_save_imported_questions', 'examhub_ajax_save_imported_questions' );
 function examhub_ajax_save_imported_questions() {
     check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
-    if ( ! current_user_can( 'manage_options' ) ) wp_send_json_error( [], 403 );
+    if ( ! current_user_can( 'examhub_import_content' ) ) wp_send_json_error( [], 403 );
 
     $questions_raw = wp_unslash( $_POST['questions'] ?? '[]' );
     $extra_raw     = wp_unslash( $_POST['extra'] ?? '{}' );

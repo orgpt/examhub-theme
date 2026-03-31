@@ -7,10 +7,55 @@
 
 defined( 'ABSPATH' ) || exit;
 
+function examhub_get_core_capabilities() {
+    return [
+        'access_content' => 'examhub_access_content',
+        'import_content' => 'examhub_import_content',
+    ];
+}
+
+function examhub_get_cpt_capabilities( $singular, $plural, $create = true ) {
+    return [
+        'edit_post'              => "edit_{$singular}",
+        'read_post'              => "read_{$singular}",
+        'delete_post'            => "delete_{$singular}",
+        'edit_posts'             => "edit_{$plural}",
+        'edit_others_posts'      => "edit_others_{$plural}",
+        'publish_posts'          => "publish_{$plural}",
+        'read_private_posts'     => "read_private_{$plural}",
+        'delete_posts'           => "delete_{$plural}",
+        'delete_private_posts'   => "delete_private_{$plural}",
+        'delete_published_posts' => "delete_published_{$plural}",
+        'delete_others_posts'    => "delete_others_{$plural}",
+        'edit_private_posts'     => "edit_private_{$plural}",
+        'edit_published_posts'   => "edit_published_{$plural}",
+        'create_posts'           => $create ? "edit_{$plural}" : 'do_not_allow',
+    ];
+}
+
+function examhub_get_cpt_capability_map() {
+    return [
+        'eh_education_system'   => examhub_get_cpt_capabilities( 'eh_education_system', 'eh_education_systems' ),
+        'eh_stage'              => examhub_get_cpt_capabilities( 'eh_stage', 'eh_stages' ),
+        'eh_grade'              => examhub_get_cpt_capabilities( 'eh_grade', 'eh_grades' ),
+        'eh_subject'            => examhub_get_cpt_capabilities( 'eh_subject', 'eh_subjects' ),
+        'eh_lesson'             => examhub_get_cpt_capabilities( 'eh_lesson', 'eh_lessons' ),
+        'eh_exam'               => examhub_get_cpt_capabilities( 'eh_exam', 'eh_exams' ),
+        'eh_question'           => examhub_get_cpt_capabilities( 'eh_question', 'eh_questions' ),
+        'eh_result'             => examhub_get_cpt_capabilities( 'eh_result', 'eh_results', false ),
+        'eh_subscription'       => examhub_get_cpt_capabilities( 'eh_subscription', 'eh_subscriptions', false ),
+        'eh_payment'            => examhub_get_cpt_capabilities( 'eh_payment', 'eh_payments', false ),
+        'eh_badge'              => examhub_get_cpt_capabilities( 'eh_badge', 'eh_badges' ),
+        'eh_affiliate_referral' => examhub_get_cpt_capabilities( 'eh_affiliate_referral', 'eh_affiliate_referrals', false ),
+        'eh_affiliate_invite'   => examhub_get_cpt_capabilities( 'eh_affiliate_invite', 'eh_affiliate_invites', false ),
+    ];
+}
+
 /**
  * Register all ExamHub Custom Post Types.
  */
 function examhub_register_cpts() {
+    $caps_map = examhub_get_cpt_capability_map();
 
     // 1. Education System
     register_post_type( 'eh_education_system', [
@@ -23,6 +68,8 @@ function examhub_register_cpts() {
         'menu_icon'    => 'dashicons-welcome-learn-more',
         'rewrite'      => [ 'slug' => 'education-system' ],
         'has_archive'  => false,
+        'capabilities' => $caps_map['eh_education_system'],
+        'map_meta_cap' => true,
     ] );
 
     // 2. Stage
@@ -36,6 +83,8 @@ function examhub_register_cpts() {
         'menu_icon'    => 'dashicons-category',
         'rewrite'      => [ 'slug' => 'stage' ],
         'has_archive'  => false,
+        'capabilities' => $caps_map['eh_stage'],
+        'map_meta_cap' => true,
     ] );
 
     // 3. Grade
@@ -49,6 +98,8 @@ function examhub_register_cpts() {
         'menu_icon'    => 'dashicons-editor-ol',
         'rewrite'      => [ 'slug' => 'grade' ],
         'has_archive'  => false,
+        'capabilities' => $caps_map['eh_grade'],
+        'map_meta_cap' => true,
     ] );
 
     // 4. Subject
@@ -62,6 +113,8 @@ function examhub_register_cpts() {
         'menu_icon'    => 'dashicons-book',
         'rewrite'      => [ 'slug' => 'subject' ],
         'has_archive'  => true,
+        'capabilities' => $caps_map['eh_subject'],
+        'map_meta_cap' => true,
     ] );
 
     // 5. Unit (legacy, no longer used in selection flow)
@@ -88,6 +141,8 @@ function examhub_register_cpts() {
         'menu_icon'    => 'dashicons-media-document',
         'rewrite'      => [ 'slug' => 'question-group' ],
         'has_archive'  => false,
+        'capabilities' => $caps_map['eh_lesson'],
+        'map_meta_cap' => true,
     ] );
 
     // 7. Exam
@@ -101,6 +156,8 @@ function examhub_register_cpts() {
         'menu_icon'    => 'dashicons-clipboard',
         'rewrite'      => [ 'slug' => 'exam' ],
         'has_archive'  => true,
+        'capabilities' => $caps_map['eh_exam'],
+        'map_meta_cap' => true,
     ] );
 
     // 8. Question
@@ -114,7 +171,8 @@ function examhub_register_cpts() {
         'menu_icon'    => 'dashicons-editor-help',
         'rewrite'      => [ 'slug' => 'question' ],
         'has_archive'  => false,
-        'capability_type' => 'post',
+        'capabilities' => $caps_map['eh_question'],
+        'map_meta_cap' => true,
     ] );
 
     // 9. Result
@@ -128,9 +186,8 @@ function examhub_register_cpts() {
         'menu_icon'    => 'dashicons-chart-bar',
         'rewrite'      => false,
         'has_archive'  => false,
-        'capabilities' => [
-            'create_posts' => 'do_not_allow',
-        ],
+        'capabilities' => $caps_map['eh_result'],
+        'map_meta_cap' => true,
     ] );
 
     // 10. Subscription
@@ -143,9 +200,8 @@ function examhub_register_cpts() {
         'supports'     => [ 'title', 'author' ],
         'menu_icon'    => 'dashicons-star-filled',
         'rewrite'      => false,
-        'capabilities' => [
-            'create_posts' => 'do_not_allow',
-        ],
+        'capabilities' => $caps_map['eh_subscription'],
+        'map_meta_cap' => true,
     ] );
 
     // 11. Payment
@@ -158,9 +214,8 @@ function examhub_register_cpts() {
         'supports'     => [ 'title', 'author' ],
         'menu_icon'    => 'dashicons-money-alt',
         'rewrite'      => false,
-        'capabilities' => [
-            'create_posts' => 'do_not_allow',
-        ],
+        'capabilities' => $caps_map['eh_payment'],
+        'map_meta_cap' => true,
     ] );
 
     // 12. Badge
@@ -173,6 +228,8 @@ function examhub_register_cpts() {
         'supports'     => [ 'title', 'thumbnail', 'editor' ],
         'menu_icon'    => 'dashicons-awards',
         'rewrite'      => false,
+        'capabilities' => $caps_map['eh_badge'],
+        'map_meta_cap' => true,
     ] );
 
     // 13. Affiliate Referral
@@ -185,9 +242,8 @@ function examhub_register_cpts() {
         'supports'     => [ 'title', 'author' ],
         'menu_icon'    => 'dashicons-megaphone',
         'rewrite'      => false,
-        'capabilities' => [
-            'create_posts' => 'do_not_allow',
-        ],
+        'capabilities' => $caps_map['eh_affiliate_referral'],
+        'map_meta_cap' => true,
     ] );
 
     // 14. Affiliate Invite
@@ -200,9 +256,8 @@ function examhub_register_cpts() {
         'supports'     => [ 'title', 'author' ],
         'menu_icon'    => 'dashicons-email-alt',
         'rewrite'      => false,
-        'capabilities' => [
-            'create_posts' => 'do_not_allow',
-        ],
+        'capabilities' => $caps_map['eh_affiliate_invite'],
+        'map_meta_cap' => true,
     ] );
 }
 add_action( 'init', 'examhub_register_cpts', 5 );
@@ -211,10 +266,12 @@ add_action( 'init', 'examhub_register_cpts', 5 );
  * Add admin menu parent for ExamHub content.
  */
 function examhub_add_admin_menu() {
+    $core_caps = examhub_get_core_capabilities();
+
     add_menu_page(
         __( 'ExamHub Content', 'examhub' ),
         __( 'ExamHub Content', 'examhub' ),
-        'manage_options',
+        $core_caps['access_content'],
         'examhub-content',
         '__return_null',
         'dashicons-welcome-learn-more',
