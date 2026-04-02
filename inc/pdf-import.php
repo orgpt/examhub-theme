@@ -26,7 +26,7 @@ function examhub_register_pdf_import_page() {
         __( '📄 استيراد PDF', 'examhub' ),
         $core_caps['import_content'],
         'examhub-pdf-import',
-        'examhub_render_pdf_import_page'
+        'examhub_render_json_import_page'
     );
 
     add_submenu_page(
@@ -37,6 +37,520 @@ function examhub_register_pdf_import_page() {
         'examhub-review-questions',
         'examhub_render_review_page'
     );
+
+    add_submenu_page(
+        'examhub-content',
+        __( 'Automatic Exams', 'examhub' ),
+        __( 'Automatic Exams', 'examhub' ),
+        $core_caps['import_content'],
+        'examhub-auto-exams',
+        'examhub_render_auto_exams_page'
+    );
+}
+
+function examhub_render_json_import_page() {
+    $systems = get_posts( [
+        'post_type'      => 'eh_education_system',
+        'posts_per_page' => 20,
+    ] );
+    ?>
+    <div class="wrap">
+      <h1><?php esc_html_e( 'استيراد أسئلة JSON', 'examhub' ); ?></h1>
+      <p class="description"><?php esc_html_e( 'ارفع ملف JSON جاهز، راجع المعاينة، ثم ابدأ الاستيراد والنشر مباشرة بدون AI.', 'examhub' ); ?></p>
+
+      <div class="card" style="max-width:960px; padding:20px; margin:20px 0;">
+        <h2><?php esc_html_e( 'رفع الملف وربط التصنيف', 'examhub' ); ?></h2>
+
+        <form id="eh-json-import-form" enctype="multipart/form-data">
+          <?php wp_nonce_field( 'examhub_admin_ajax', 'nonce' ); ?>
+
+          <table class="form-table">
+            <tr>
+              <th><?php esc_html_e( 'ملف JSON', 'examhub' ); ?></th>
+              <td>
+                <input type="file" name="import_file" id="import_file" accept=".json,application/json,text/json" required class="regular-text">
+                <p class="description"><?php esc_html_e( 'الصيغة الموصى بها: questions -> question_text / type / difficulty / answers / is_correct', 'examhub' ); ?></p>
+              </td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'النظام التعليمي', 'examhub' ); ?></th>
+              <td>
+                <select name="education_system" id="json-edu-system" class="regular-text">
+                  <option value=""><?php esc_html_e( '-- اختر (اختياري) --', 'examhub' ); ?></option>
+                  <?php foreach ( $systems as $sys ) : ?>
+                    <option value="<?php echo esc_attr( $sys->ID ); ?>"><?php echo esc_html( $sys->post_title ); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'المرحلة *', 'examhub' ); ?></th>
+              <td>
+                <select name="stage_id" id="json-stage" class="regular-text" required>
+                  <option value=""><?php esc_html_e( '-- اختر --', 'examhub' ); ?></option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'الصف', 'examhub' ); ?></th>
+              <td>
+                <select name="grade_id" id="json-grade" class="regular-text">
+                  <option value=""><?php esc_html_e( '-- اختر (اختياري) --', 'examhub' ); ?></option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'المادة', 'examhub' ); ?></th>
+              <td>
+                <select name="subject_id" id="json-subject" class="regular-text">
+                  <option value=""><?php esc_html_e( '-- اختر (اختياري) --', 'examhub' ); ?></option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'مجموعة الأسئلة', 'examhub' ); ?></th>
+              <td>
+                <select name="question_group_id" id="json-group" class="regular-text">
+                  <option value=""><?php esc_html_e( '-- اختر (اختياري) --', 'examhub' ); ?></option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'مصدر الكتاب', 'examhub' ); ?></th>
+              <td>
+                <select name="book_source" id="json-book-source" class="regular-text">
+                  <option value=""><?php esc_html_e( '-- اختر --', 'examhub' ); ?></option>
+                  <option value="moasir"><?php esc_html_e( 'المعاصر', 'examhub' ); ?></option>
+                  <option value="imtihan"><?php esc_html_e( 'الامتحان', 'examhub' ); ?></option>
+                  <option value="selah_tilmeed"><?php esc_html_e( 'سلاح التلميذ', 'examhub' ); ?></option>
+                  <option value="ministry"><?php esc_html_e( 'منهج الوزارة', 'examhub' ); ?></option>
+                </select>
+              </td>
+            </tr>
+          </table>
+
+          <p>
+            <button type="submit" class="button button-primary" id="eh-json-preview-btn"><?php esc_html_e( 'تحليل الملف وعرض المعاينة', 'examhub' ); ?></button>
+          </p>
+        </form>
+
+        <div id="eh-json-progress" style="display:none;">
+          <h3><?php esc_html_e( 'جاري تحليل الملف...', 'examhub' ); ?></h3>
+          <div style="background:#ddd;border-radius:4px;height:20px;margin:10px 0;">
+            <div id="eh-json-progress-bar" style="background:#2271b1;height:100%;border-radius:4px;width:0%;transition:width .3s;"></div>
+          </div>
+          <p id="eh-json-progress-text"><?php esc_html_e( 'قراءة الملف...', 'examhub' ); ?></p>
+        </div>
+
+        <div id="eh-json-results" style="display:none;">
+          <h3><?php esc_html_e( 'معاينة الأسئلة', 'examhub' ); ?></h3>
+          <div id="eh-json-summary" style="margin-bottom:12px;"></div>
+          <div id="eh-json-preview-list"></div>
+          <p>
+            <button type="button" class="button button-primary" id="eh-json-import-btn" style="display:none;"><?php esc_html_e( 'بدء الاستيراد والنشر', 'examhub' ); ?></button>
+          </p>
+        </div>
+      </div>
+    </div>
+    <script>
+    jQuery(function($){
+      function nonce() { return $('#eh-json-import-form input[name="nonce"]').val() || ''; }
+      function escapeHtml(value) { return $('<div>').text(value == null ? '' : String(value)).html(); }
+      function resetSelect($select, placeholderText) { $select.html(`<option value="">${placeholderText}</option>`).prop('disabled', false); }
+      function setSelectOptions($select, items, placeholderText) {
+        let html = `<option value="">${placeholderText}</option>`;
+        (items || []).forEach(function(item){
+          html += `<option value="${item.id || ''}">${escapeHtml(item.label || item.name || '')}</option>`;
+        });
+        $select.html(html).prop('disabled', false);
+      }
+      function bindHierarchy(prefix) {
+        const $system = $(`#${prefix}-edu-system`);
+        const $stage = $(`#${prefix}-stage`);
+        const $grade = $(`#${prefix}-grade`);
+        const $subject = $(`#${prefix}-subject`);
+        const $group = $(`#${prefix}-group`);
+
+        $system.on('change', function(){
+          const systemId = $(this).val();
+          resetSelect($stage, '-- اختر --');
+          resetSelect($grade, '-- اختر (اختياري) --');
+          resetSelect($subject, '-- اختر (اختياري) --');
+          resetSelect($group, '-- اختر (اختياري) --');
+          if (!systemId) return;
+          $stage.html('<option value="">Loading...</option>').prop('disabled', true);
+          $.post(ajaxurl, { action: 'eh_admin_get_stages_by_system', nonce: nonce(), system_id: systemId }, function(res){
+            if (res && res.success) setSelectOptions($stage, res.data, '-- اختر --');
+            else resetSelect($stage, '-- لا توجد مراحل --');
+          }).fail(function(){ resetSelect($stage, '-- Error --'); });
+        });
+
+        $stage.on('change', function(){
+          const stageId = $(this).val();
+          resetSelect($grade, '-- اختر (اختياري) --');
+          resetSelect($subject, '-- اختر (اختياري) --');
+          resetSelect($group, '-- اختر (اختياري) --');
+          if (!stageId) return;
+          $grade.html('<option value="">Loading...</option>').prop('disabled', true);
+          $.post(ajaxurl, { action: 'eh_admin_get_grades_by_stage', nonce: nonce(), stage_id: stageId }, function(res){
+            if (res && res.success) setSelectOptions($grade, res.data, '-- اختر (اختياري) --');
+            else resetSelect($grade, '-- لا توجد صفوف --');
+          }).fail(function(){ resetSelect($grade, '-- Error --'); });
+        });
+
+        $grade.on('change', function(){
+          const gradeId = $(this).val();
+          resetSelect($subject, '-- اختر (اختياري) --');
+          resetSelect($group, '-- اختر (اختياري) --');
+          if (!gradeId) return;
+          $subject.html('<option value="">Loading...</option>').prop('disabled', true);
+          $.post(ajaxurl, { action: 'eh_admin_get_subjects_by_grade', nonce: nonce(), grade_id: gradeId }, function(res){
+            if (res && res.success) setSelectOptions($subject, res.data, '-- اختر (اختياري) --');
+            else resetSelect($subject, '-- لا توجد مواد --');
+          }).fail(function(){ resetSelect($subject, '-- Error --'); });
+        });
+
+        $subject.on('change', function(){
+          const subjectId = $(this).val();
+          resetSelect($group, '-- اختر (اختياري) --');
+          if (!subjectId) return;
+          $group.html('<option value="">Loading...</option>').prop('disabled', true);
+          $.post(ajaxurl, { action: 'eh_admin_get_question_groups_by_subject', nonce: nonce(), subject_id: subjectId }, function(res){
+            if (res && res.success) setSelectOptions($group, res.data, '-- اختر (اختياري) --');
+            else resetSelect($group, '-- لا توجد مجموعات --');
+          }).fail(function(){ resetSelect($group, '-- Error --'); });
+        });
+      }
+
+      function updateProgress(pct, text) {
+        $('#eh-json-progress-bar').css('width', pct + '%');
+        $('#eh-json-progress-text').text(text);
+      }
+
+      function renderPreview(data) {
+        const questions = data.questions || [];
+        const invalid = data.invalid || [];
+        const typeLabels = { mcq: 'اختيار من متعدد', true_false: 'صح وخطأ', fill_blank: 'أكمل الفراغ', essay: 'مقالي', matching: 'مطابقة', ordering: 'ترتيب', correct: 'إجابة صحيحة', math: 'رياضيات' };
+        const diffLabels = { easy: 'سهل', medium: 'متوسط', hard: 'صعب' };
+
+        $('#eh-json-results').show();
+        $('#eh-json-summary').html(
+          `<div style="background:#fff;border:1px solid #dcdcde;border-radius:6px;padding:12px;">
+            <strong>${questions.length}</strong> سؤال صالح
+            <span style="margin-right:12px;"><strong>${invalid.length}</strong> سؤال غير صالح</span>
+            <span style="margin-right:12px;">إجمالي الملف: <strong>${data.total || questions.length}</strong></span>
+          </div>`
+        );
+
+        let html = '<label style="display:block;margin-bottom:10px;"><input type="checkbox" id="eh-json-select-all" checked> تحديد/إلغاء الكل</label>';
+
+        questions.forEach(function(q, index){
+          const answers = (q.answers || []).map(function(answer, answerIndex){
+            return `<div>${answer.is_correct ? '<strong style="color:#008a20;">✓</strong> ' : ''}${answerIndex + 1}. ${escapeHtml(answer.answer_text || '')}</div>`;
+          }).join('');
+          const warnings = (q._warnings || []).map(function(item){
+            return `<li>${escapeHtml(item)}</li>`;
+          }).join('');
+
+          html += `
+            <div style="border:1px solid #dcdcde;border-radius:6px;padding:12px;margin:10px 0;background:#fff;">
+              <label style="display:flex;gap:10px;align-items:flex-start;">
+                <input type="checkbox" class="eh-json-question" value="${index}" checked style="margin-top:3px;">
+                <div style="flex:1;">
+                  <div style="font-weight:700;margin-bottom:8px;">${escapeHtml(q.question_text || '')}</div>
+                  <div style="margin-bottom:8px;">
+                    <span style="background:#eef2ff;padding:2px 8px;border-radius:3px;font-size:12px;">${escapeHtml(typeLabels[q.type] || q.type || '')}</span>
+                    <span style="background:#fef3c7;padding:2px 8px;border-radius:3px;font-size:12px;margin-right:4px;">${escapeHtml(diffLabels[q.difficulty] || q.difficulty || '')}</span>
+                  </div>
+                  ${answers ? `<div style="line-height:1.8;font-size:13px;">${answers}</div>` : ''}
+                  ${q.explanation ? `<div style="margin-top:8px;color:#50575e;"><strong>الشرح:</strong> ${escapeHtml(q.explanation)}</div>` : ''}
+                  ${warnings ? `<ul style="margin:8px 18px 0;color:#996800;">${warnings}</ul>` : ''}
+                </div>
+              </label>
+            </div>`;
+        });
+
+        if (invalid.length) {
+          html += '<div style="margin-top:16px;border:1px solid #f0b849;background:#fff8e5;padding:12px;border-radius:6px;"><strong>عناصر غير صالحة:</strong><ul style="margin:8px 18px 0;">';
+          invalid.forEach(function(item){
+            html += `<li>العنصر ${item.index}: ${escapeHtml(item.reason || 'بيانات غير مكتملة')}</li>`;
+          });
+          html += '</ul></div>';
+        }
+
+        $('#eh-json-preview-list').html(html);
+        $('#eh-json-import-btn').show().data('questions', questions).prop('disabled', false).text('بدء الاستيراد والنشر');
+
+        $('#eh-json-select-all').off('change').on('change', function(){
+          $('.eh-json-question').prop('checked', this.checked);
+        });
+      }
+
+      bindHierarchy('json');
+
+      $('#eh-json-import-form').on('submit', function(e){
+        e.preventDefault();
+        const formData = new FormData(this);
+        formData.append('action', 'eh_import_json_preview');
+        $('#eh-json-preview-btn').prop('disabled', true);
+        $('#eh-json-progress').show();
+        $('#eh-json-results').hide();
+        updateProgress(20, 'Uploading file...');
+
+        $.ajax({
+          url: ajaxurl,
+          type: 'POST',
+          data: formData,
+          processData: false,
+          contentType: false
+        }).done(function(res){
+          if (res && res.success) {
+            updateProgress(100, 'Preview ready');
+            renderPreview(res.data);
+          } else {
+            alert(res?.data?.message || 'تعذر تحليل الملف');
+          }
+        }).fail(function(){
+          alert('تعذر الاتصال بالخادم');
+        }).always(function(){
+          $('#eh-json-preview-btn').prop('disabled', false);
+        });
+      });
+
+      $('#eh-json-import-btn').on('click', function(){
+        const questions = $(this).data('questions') || [];
+        const selectedIndexes = $('.eh-json-question:checked').map((_, el) => parseInt(el.value, 10)).get();
+        const selectedQuestions = selectedIndexes.map(index => questions[index]).filter(Boolean);
+        if (!selectedQuestions.length) {
+          alert('اختر سؤالًا واحدًا على الأقل');
+          return;
+        }
+
+        $(this).prop('disabled', true).text('جاري الاستيراد والنشر...');
+
+        $.post(ajaxurl, {
+          action: 'eh_import_json_publish',
+          nonce: nonce(),
+          questions: JSON.stringify(selectedQuestions),
+          extra: JSON.stringify({
+            education_system: $('#json-edu-system').val(),
+            stage_id: $('#json-stage').val(),
+            grade_id: $('#json-grade').val(),
+            subject_id: $('#json-subject').val(),
+            question_group_id: $('#json-group').val(),
+            book_source: $('#json-book-source').val()
+          })
+        }).done(function(res){
+          if (res && res.success) {
+            alert(res.data.message || 'تم الاستيراد بنجاح');
+            window.location.reload();
+          } else {
+            alert(res?.data?.message || 'تعذر تنفيذ الاستيراد');
+            $('#eh-json-import-btn').prop('disabled', false).text('بدء الاستيراد والنشر');
+          }
+        }).fail(function(){
+          alert('تعذر الاتصال بالخادم');
+          $('#eh-json-import-btn').prop('disabled', false).text('بدء الاستيراد والنشر');
+        });
+      });
+    });
+    </script>
+    <?php
+}
+
+function examhub_render_auto_exams_page() {
+    $systems = get_posts( [
+        'post_type'      => 'eh_education_system',
+        'posts_per_page' => 20,
+    ] );
+    ?>
+    <div class="wrap">
+      <h1><?php esc_html_e( 'إنشاء امتحانات تلقائية', 'examhub' ); ?></h1>
+      <p class="description"><?php esc_html_e( 'اختر مجموعة الأسئلة، راجع المعاينة، ثم أنشئ امتحانات Draft بعدد أسئلة ثابت وعشوائية توزيع.', 'examhub' ); ?></p>
+
+      <div class="card" style="max-width:960px; padding:20px; margin:20px 0;">
+        <form id="eh-auto-exams-form">
+          <?php wp_nonce_field( 'examhub_admin_ajax', 'nonce' ); ?>
+          <table class="form-table">
+            <tr>
+              <th><?php esc_html_e( 'النظام التعليمي', 'examhub' ); ?></th>
+              <td>
+                <select name="education_system" id="auto-edu-system" class="regular-text">
+                  <option value=""><?php esc_html_e( '-- اختر (اختياري) --', 'examhub' ); ?></option>
+                  <?php foreach ( $systems as $sys ) : ?>
+                    <option value="<?php echo esc_attr( $sys->ID ); ?>"><?php echo esc_html( $sys->post_title ); ?></option>
+                  <?php endforeach; ?>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'المرحلة *', 'examhub' ); ?></th>
+              <td><select name="stage_id" id="auto-stage" class="regular-text" required><option value=""><?php esc_html_e( '-- اختر --', 'examhub' ); ?></option></select></td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'الصف', 'examhub' ); ?></th>
+              <td><select name="grade_id" id="auto-grade" class="regular-text"><option value=""><?php esc_html_e( '-- اختر (اختياري) --', 'examhub' ); ?></option></select></td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'المادة', 'examhub' ); ?></th>
+              <td><select name="subject_id" id="auto-subject" class="regular-text"><option value=""><?php esc_html_e( '-- اختر (اختياري) --', 'examhub' ); ?></option></select></td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'مجموعة الأسئلة *', 'examhub' ); ?></th>
+              <td><select name="question_group_id" id="auto-group" class="regular-text" required><option value=""><?php esc_html_e( '-- اختر --', 'examhub' ); ?></option></select></td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'العنوان الأساسي', 'examhub' ); ?></th>
+              <td><input type="text" name="base_title" id="auto-base-title" class="regular-text" value="<?php echo esc_attr__( 'المراجعة النهائية', 'examhub' ); ?>" required></td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'عدد الامتحانات', 'examhub' ); ?></th>
+              <td><input type="number" name="exam_count" id="auto-exam-count" class="small-text" value="1" min="1" required></td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'عدد الأسئلة بكل امتحان', 'examhub' ); ?></th>
+              <td><input type="number" name="questions_per_exam" id="auto-questions-per-exam" class="small-text" value="30" min="1" required></td>
+            </tr>
+            <tr>
+              <th><?php esc_html_e( 'الإعدادات', 'examhub' ); ?></th>
+              <td>
+                <label><input type="checkbox" name="random_questions" id="auto-random-questions" value="1" checked> <?php esc_html_e( 'عشوائية ترتيب الأسئلة', 'examhub' ); ?></label><br>
+                <label><input type="checkbox" name="random_answers" id="auto-random-answers" value="1" checked> <?php esc_html_e( 'عشوائية ترتيب الإجابات', 'examhub' ); ?></label>
+              </td>
+            </tr>
+          </table>
+          <p>
+            <button type="button" class="button" id="eh-auto-exams-preview-btn"><?php esc_html_e( 'معاينة الإنشاء', 'examhub' ); ?></button>
+            <button type="button" class="button button-primary" id="eh-auto-exams-create-btn" style="display:none;"><?php esc_html_e( 'بدء إنشاء الامتحانات', 'examhub' ); ?></button>
+          </p>
+        </form>
+
+        <div id="eh-auto-exams-preview" style="display:none;"></div>
+      </div>
+    </div>
+    <script>
+    jQuery(function($){
+      function nonce() { return $('#eh-auto-exams-form input[name="nonce"]').val() || ''; }
+      function escapeHtml(value) { return $('<div>').text(value == null ? '' : String(value)).html(); }
+      function resetSelect($select, placeholderText) { $select.html(`<option value="">${placeholderText}</option>`).prop('disabled', false); }
+      function setSelectOptions($select, items, placeholderText) {
+        let html = `<option value="">${placeholderText}</option>`;
+        (items || []).forEach(function(item){
+          html += `<option value="${item.id || ''}">${escapeHtml(item.label || item.name || '')}</option>`;
+        });
+        $select.html(html).prop('disabled', false);
+      }
+      function bindHierarchy(prefix) {
+        const $system = $(`#${prefix}-edu-system`);
+        const $stage = $(`#${prefix}-stage`);
+        const $grade = $(`#${prefix}-grade`);
+        const $subject = $(`#${prefix}-subject`);
+        const $group = $(`#${prefix}-group`);
+
+        $system.on('change', function(){
+          const systemId = $(this).val();
+          resetSelect($stage, '-- اختر --');
+          resetSelect($grade, '-- اختر (اختياري) --');
+          resetSelect($subject, '-- اختر (اختياري) --');
+          resetSelect($group, '-- اختر --');
+          if (!systemId) return;
+          $stage.html('<option value="">Loading...</option>').prop('disabled', true);
+          $.post(ajaxurl, { action: 'eh_admin_get_stages_by_system', nonce: nonce(), system_id: systemId }, function(res){
+            if (res && res.success) setSelectOptions($stage, res.data, '-- اختر --');
+            else resetSelect($stage, '-- لا توجد مراحل --');
+          });
+        });
+        $stage.on('change', function(){
+          const stageId = $(this).val();
+          resetSelect($grade, '-- اختر (اختياري) --');
+          resetSelect($subject, '-- اختر (اختياري) --');
+          resetSelect($group, '-- اختر --');
+          if (!stageId) return;
+          $grade.html('<option value="">Loading...</option>').prop('disabled', true);
+          $.post(ajaxurl, { action: 'eh_admin_get_grades_by_stage', nonce: nonce(), stage_id: stageId }, function(res){
+            if (res && res.success) setSelectOptions($grade, res.data, '-- اختر (اختياري) --');
+            else resetSelect($grade, '-- لا توجد صفوف --');
+          });
+        });
+        $grade.on('change', function(){
+          const gradeId = $(this).val();
+          resetSelect($subject, '-- اختر (اختياري) --');
+          resetSelect($group, '-- اختر --');
+          if (!gradeId) return;
+          $subject.html('<option value="">Loading...</option>').prop('disabled', true);
+          $.post(ajaxurl, { action: 'eh_admin_get_subjects_by_grade', nonce: nonce(), grade_id: gradeId }, function(res){
+            if (res && res.success) setSelectOptions($subject, res.data, '-- اختر (اختياري) --');
+            else resetSelect($subject, '-- لا توجد مواد --');
+          });
+        });
+        $subject.on('change', function(){
+          const subjectId = $(this).val();
+          resetSelect($group, '-- اختر --');
+          if (!subjectId) return;
+          $group.html('<option value="">Loading...</option>').prop('disabled', true);
+          $.post(ajaxurl, { action: 'eh_admin_get_question_groups_by_subject', nonce: nonce(), subject_id: subjectId }, function(res){
+            if (res && res.success) setSelectOptions($group, res.data, '-- اختر --');
+            else resetSelect($group, '-- لا توجد مجموعات --');
+          });
+        });
+      }
+
+      function formPayload() {
+        return {
+          nonce: nonce(),
+          education_system: $('#auto-edu-system').val(),
+          stage_id: $('#auto-stage').val(),
+          grade_id: $('#auto-grade').val(),
+          subject_id: $('#auto-subject').val(),
+          question_group_id: $('#auto-group').val(),
+          base_title: $('#auto-base-title').val(),
+          exam_count: $('#auto-exam-count').val(),
+          questions_per_exam: $('#auto-questions-per-exam').val(),
+          random_questions: $('#auto-random-questions').is(':checked') ? 1 : 0,
+          random_answers: $('#auto-random-answers').is(':checked') ? 1 : 0
+        };
+      }
+
+      bindHierarchy('auto');
+
+      $('#eh-auto-exams-preview-btn').on('click', function(){
+        $.post(ajaxurl, Object.assign({ action: 'eh_preview_auto_exams' }, formPayload()), function(res){
+          if (!(res && res.success)) {
+            alert(res?.data?.message || 'تعذر تجهيز المعاينة');
+            return;
+          }
+          const data = res.data || {};
+          const names = (data.sample_names || []).map(item => `<li>${escapeHtml(item)}</li>`).join('');
+          $('#eh-auto-exams-preview').show().html(`
+            <div style="background:#fff;border:1px solid #dcdcde;border-radius:6px;padding:16px;">
+              <p><strong>${data.available_questions}</strong> سؤال متاح داخل المجموعة.</p>
+              <p>سيتم إنشاء <strong>${data.exam_count}</strong> امتحان، كل امتحان يحتوي على <strong>${data.questions_per_exam}</strong> سؤالًا.</p>
+              <p>سيتم حفظ جميع الامتحانات كـ <strong>Draft</strong> مع السماح بإعادة استخدام الأسئلة بين الامتحانات.</p>
+              ${names ? `<p><strong>أمثلة الأسماء:</strong></p><ul style="margin:8px 18px 0;">${names}</ul>` : ''}
+            </div>
+          `);
+          $('#eh-auto-exams-create-btn').show().prop('disabled', false);
+        });
+      });
+
+      $('#eh-auto-exams-create-btn').on('click', function(){
+        $(this).prop('disabled', true).text('جاري إنشاء الامتحانات...');
+        $.post(ajaxurl, Object.assign({ action: 'eh_create_auto_exams' }, formPayload()), function(res){
+          if (res && res.success) {
+            alert(res.data.message || 'تم إنشاء الامتحانات بنجاح');
+            window.location.reload();
+          } else {
+            alert(res?.data?.message || 'تعذر إنشاء الامتحانات');
+            $('#eh-auto-exams-create-btn').prop('disabled', false).text('بدء إنشاء الامتحانات');
+          }
+        }).fail(function(){
+          alert('تعذر الاتصال بالخادم');
+          $('#eh-auto-exams-create-btn').prop('disabled', false).text('بدء إنشاء الامتحانات');
+        });
+      });
+    });
+    </script>
+    <?php
 }
 
 function examhub_render_pdf_import_page() {
@@ -1188,6 +1702,493 @@ function examhub_ajax_admin_get_stages_by_system() {
     }
 
     wp_send_json_success( $data );
+}
+
+function examhub_import_collect_question_blocks( $json ) {
+    if ( isset( $json['questions'] ) && is_array( $json['questions'] ) ) {
+        return $json['questions'];
+    }
+
+    if ( array_keys( $json ) === range( 0, count( $json ) - 1 ) ) {
+        return $json;
+    }
+
+    return [];
+}
+
+function examhub_import_normalize_type( $value, $fallback = 'mcq' ) {
+    $value = sanitize_key( (string) $value );
+    $map = [
+        'mcq' => 'mcq',
+        'multiple_choice' => 'mcq',
+        'multiple-choice' => 'mcq',
+        'choice' => 'mcq',
+        'true_false' => 'true_false',
+        'truefalse' => 'true_false',
+        'tf' => 'true_false',
+        'fill_blank' => 'fill_blank',
+        'fill-in-the-blank' => 'fill_blank',
+        'matching' => 'matching',
+        'ordering' => 'ordering',
+        'essay' => 'essay',
+        'correct' => 'correct',
+        'math' => 'math',
+    ];
+
+    return $map[ $value ] ?? $fallback;
+}
+
+function examhub_import_normalize_difficulty( $value ) {
+    $value = trim( (string) $value );
+    $normalized = [
+        'easy'   => 'easy',
+        'medium' => 'medium',
+        'hard'   => 'hard',
+        'سهل'    => 'easy',
+        'متوسط'  => 'medium',
+        'صعب'    => 'hard',
+    ];
+
+    return $normalized[ $value ] ?? 'medium';
+}
+
+function examhub_import_build_answers_from_options( $question ) {
+    $answers = [];
+    $options = $question['options'] ?? [];
+    $correct_answer = $question['correct_answer'] ?? '';
+    $correct_index  = isset( $question['correct_answer_index'] ) ? (int) $question['correct_answer_index'] : null;
+
+    if ( ! is_array( $options ) ) {
+        return [];
+    }
+
+    foreach ( $options as $index => $option ) {
+        $answer_text = sanitize_text_field( is_string( $option ) ? $option : '' );
+        if ( '' === $answer_text ) {
+            continue;
+        }
+
+        $is_correct = false;
+        if ( null !== $correct_index ) {
+            $is_correct = ( $index === $correct_index );
+        } elseif ( is_string( $correct_answer ) ) {
+            $is_correct = ( $answer_text === sanitize_text_field( $correct_answer ) );
+        }
+
+        $answers[] = [
+            'answer_text' => $answer_text,
+            'is_correct'  => $is_correct,
+        ];
+    }
+
+    return $answers;
+}
+
+function examhub_import_normalize_answers( $question, $type ) {
+    $answers = [];
+    if ( ! empty( $question['answers'] ) && is_array( $question['answers'] ) ) {
+        foreach ( $question['answers'] as $answer ) {
+            if ( is_array( $answer ) ) {
+                $text = sanitize_text_field( (string) ( $answer['answer_text'] ?? $answer['text'] ?? '' ) );
+                if ( '' === $text ) {
+                    continue;
+                }
+                $answers[] = [
+                    'answer_text' => $text,
+                    'is_correct'  => ! empty( $answer['is_correct'] ),
+                ];
+            } elseif ( is_string( $answer ) ) {
+                $text = sanitize_text_field( $answer );
+                if ( '' === $text ) {
+                    continue;
+                }
+                $answers[] = [
+                    'answer_text' => $text,
+                    'is_correct'  => false,
+                ];
+            }
+        }
+    } elseif ( in_array( $type, [ 'mcq', 'correct' ], true ) ) {
+        $answers = examhub_import_build_answers_from_options( $question );
+    }
+
+    return $answers;
+}
+
+function examhub_import_map_question( $question, $index ) {
+    $question_text = sanitize_textarea_field( (string) ( $question['question_text'] ?? $question['question'] ?? '' ) );
+    if ( '' === trim( $question_text ) ) {
+        return [
+            'valid'  => false,
+            'index'  => $index,
+            'reason' => 'نص السؤال غير موجود.',
+        ];
+    }
+
+    $type = examhub_import_normalize_type(
+        $question['type'] ?? ( ! empty( $question['options'] ) ? 'mcq' : 'essay' )
+    );
+    $difficulty = examhub_import_normalize_difficulty( $question['difficulty'] ?? $question['level'] ?? 'medium' );
+    $answers = examhub_import_normalize_answers( $question, $type );
+    $warnings = [];
+
+    if ( in_array( $type, [ 'mcq', 'correct' ], true ) ) {
+        if ( count( $answers ) < 2 ) {
+            return [
+                'valid'  => false,
+                'index'  => $index,
+                'reason' => 'سؤال الاختيار من متعدد يحتاج خيارين على الأقل.',
+            ];
+        }
+
+        $correct_count = count( array_filter( $answers, static function( $answer ) {
+            return ! empty( $answer['is_correct'] );
+        } ) );
+
+        if ( 1 !== $correct_count ) {
+            return [
+                'valid'  => false,
+                'index'  => $index,
+                'reason' => 'يجب تحديد إجابة صحيحة واحدة فقط.',
+            ];
+        }
+    }
+
+    $mapped = [
+        'external_id'       => sanitize_text_field( (string) ( $question['external_id'] ?? '' ) ),
+        'type'              => $type,
+        'question_text'     => $question_text,
+        'difficulty'        => $difficulty,
+        'answers'           => $answers,
+        'correct_answer'    => sanitize_text_field( (string) ( $question['correct_answer'] ?? '' ) ),
+        'explanation'       => wp_kses_post( (string) ( $question['explanation'] ?? '' ) ),
+        'question_points'   => max( 1, (int) ( $question['question_points'] ?? 1 ) ),
+        'question_tags'     => array_values( array_filter( array_map( 'sanitize_text_field', (array) ( $question['question_tags'] ?? [] ) ) ) ),
+        'academic_year'     => sanitize_text_field( (string) ( $question['academic_year'] ?? '' ) ),
+        'blank_answer'      => sanitize_text_field( (string) ( $question['blank_answer'] ?? $question['correct_answer'] ?? '' ) ),
+        'tf_correct_answer' => sanitize_text_field( (string) ( $question['tf_correct_answer'] ?? $question['correct_answer'] ?? '' ) ),
+        '_warnings'         => $warnings,
+    ];
+
+    return [
+        'valid'    => true,
+        'question' => $mapped,
+    ];
+}
+
+function examhub_prepare_questions_from_import_json( $json ) {
+    $blocks = examhub_import_collect_question_blocks( $json );
+    $questions = [];
+    $invalid = [];
+
+    foreach ( $blocks as $index => $question ) {
+        if ( ! is_array( $question ) ) {
+            $invalid[] = [
+                'index'  => $index + 1,
+                'reason' => 'العنصر ليس كائن JSON صالحًا.',
+            ];
+            continue;
+        }
+
+        $mapped = examhub_import_map_question( $question, $index + 1 );
+        if ( empty( $mapped['valid'] ) ) {
+            $invalid[] = [
+                'index'  => $mapped['index'] ?? ( $index + 1 ),
+                'reason' => $mapped['reason'] ?? 'بيانات غير مكتملة.',
+            ];
+            continue;
+        }
+
+        $questions[] = $mapped['question'];
+    }
+
+    return [
+        'questions' => $questions,
+        'invalid'   => $invalid,
+        'total'     => count( $blocks ),
+    ];
+}
+
+function examhub_insert_imported_question( $question, $extra ) {
+    $post_id = wp_insert_post( [
+        'post_type'   => 'eh_question',
+        'post_title'  => wp_trim_words( $question['question_text'], 8 ),
+        'post_status' => 'publish',
+        'post_author' => get_current_user_id(),
+    ] );
+
+    if ( is_wp_error( $post_id ) ) {
+        return $post_id;
+    }
+
+    update_field( 'question_text', $question['question_text'], $post_id );
+    update_field( 'question_type', $question['type'], $post_id );
+    update_field( 'difficulty', $question['difficulty'], $post_id );
+    update_field( 'ai_generated', 0, $post_id );
+    update_field( 'question_points', max( 1, (int) ( $question['question_points'] ?? 1 ) ), $post_id );
+
+    if ( ! empty( $question['explanation'] ) ) {
+        update_field( 'explanation', $question['explanation'], $post_id );
+    }
+    if ( ! empty( $question['academic_year'] ) ) {
+        update_field( 'academic_year', $question['academic_year'], $post_id );
+    }
+    if ( ! empty( $question['question_tags'] ) ) {
+        update_field( 'question_tags', implode( ', ', (array) $question['question_tags'] ), $post_id );
+    }
+
+    if ( ! empty( $extra['education_system'] ) ) {
+        update_field( 'education_system', (int) $extra['education_system'], $post_id );
+    }
+    if ( ! empty( $extra['stage_id'] ) ) {
+        update_field( 'stage', (int) $extra['stage_id'], $post_id );
+    }
+    if ( ! empty( $extra['grade_id'] ) ) {
+        update_field( 'grade', (int) $extra['grade_id'], $post_id );
+    }
+    if ( ! empty( $extra['subject_id'] ) ) {
+        update_field( 'subject', (int) $extra['subject_id'], $post_id );
+    }
+    if ( ! empty( $extra['question_group_id'] ) ) {
+        update_field( 'lesson', (int) $extra['question_group_id'], $post_id );
+    }
+    if ( ! empty( $extra['book_source'] ) ) {
+        update_field( 'book_source', sanitize_text_field( $extra['book_source'] ), $post_id );
+    }
+
+    if ( in_array( $question['type'], [ 'mcq', 'correct' ], true ) && ! empty( $question['answers'] ) ) {
+        $answers = [];
+        foreach ( $question['answers'] as $answer ) {
+            $answers[] = [
+                'answer_text'  => sanitize_text_field( $answer['answer_text'] ?? '' ),
+                'answer_image' => '',
+                'is_correct'   => ! empty( $answer['is_correct'] ),
+            ];
+        }
+        update_field( 'answers', $answers, $post_id );
+    } elseif ( 'true_false' === $question['type'] ) {
+        update_field( 'tf_correct_answer', $question['tf_correct_answer'] ?: 'true', $post_id );
+    } elseif ( in_array( $question['type'], [ 'fill_blank', 'math' ], true ) ) {
+        update_field( 'blank_answer', $question['blank_answer'], $post_id );
+    }
+
+    if ( ! empty( $question['external_id'] ) ) {
+        update_post_meta( $post_id, '_eh_import_external_id', $question['external_id'] );
+    }
+
+    return $post_id;
+}
+
+function examhub_get_group_question_ids( $group_id ) {
+    return get_posts( [
+        'post_type'      => 'eh_question',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'fields'         => 'ids',
+        'meta_query'     => [
+            [
+                'key'     => 'lesson',
+                'value'   => (int) $group_id,
+                'compare' => '=',
+            ],
+        ],
+    ] );
+}
+
+function examhub_validate_auto_exam_request() {
+    $payload = [
+        'education_system'   => (int) ( $_POST['education_system'] ?? 0 ),
+        'stage_id'           => (int) ( $_POST['stage_id'] ?? 0 ),
+        'grade_id'           => (int) ( $_POST['grade_id'] ?? 0 ),
+        'subject_id'         => (int) ( $_POST['subject_id'] ?? 0 ),
+        'question_group_id'  => (int) ( $_POST['question_group_id'] ?? 0 ),
+        'base_title'         => sanitize_text_field( wp_unslash( $_POST['base_title'] ?? '' ) ),
+        'exam_count'         => max( 1, (int) ( $_POST['exam_count'] ?? 0 ) ),
+        'questions_per_exam' => max( 1, (int) ( $_POST['questions_per_exam'] ?? 0 ) ),
+        'random_questions'   => ! empty( $_POST['random_questions'] ),
+        'random_answers'     => ! empty( $_POST['random_answers'] ),
+    ];
+
+    if ( ! $payload['question_group_id'] ) {
+        return new WP_Error( 'missing_group', 'يرجى اختيار مجموعة الأسئلة.' );
+    }
+    if ( ! $payload['stage_id'] ) {
+        return new WP_Error( 'missing_stage', 'يرجى اختيار المرحلة.' );
+    }
+    if ( '' === $payload['base_title'] ) {
+        return new WP_Error( 'missing_title', 'يرجى إدخال العنوان الأساسي.' );
+    }
+
+    return $payload;
+}
+
+add_action( 'wp_ajax_eh_import_json_preview', 'examhub_ajax_import_json_preview' );
+function examhub_ajax_import_json_preview() {
+    check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
+    if ( ! current_user_can( 'examhub_import_content' ) ) {
+        wp_send_json_error( [], 403 );
+    }
+
+    if ( empty( $_FILES['import_file'] ) || UPLOAD_ERR_OK !== (int) $_FILES['import_file']['error'] ) {
+        wp_send_json_error( [ 'message' => 'تعذر رفع الملف.' ] );
+    }
+
+    $file = $_FILES['import_file'];
+    if ( $file['size'] > 10 * MB_IN_BYTES ) {
+        wp_send_json_error( [ 'message' => 'حجم الملف أكبر من 10MB.' ] );
+    }
+
+    $ext = strtolower( pathinfo( $file['name'] ?? '', PATHINFO_EXTENSION ) );
+    if ( 'json' !== $ext ) {
+        wp_send_json_error( [ 'message' => 'المسموح فقط ملفات JSON.' ] );
+    }
+
+    $json_raw = file_get_contents( $file['tmp_name'] );
+    $json = json_decode( (string) $json_raw, true );
+    if ( ! is_array( $json ) ) {
+        wp_send_json_error( [ 'message' => 'صيغة JSON غير صحيحة.' ] );
+    }
+
+    $prepared = examhub_prepare_questions_from_import_json( $json );
+    if ( empty( $prepared['questions'] ) ) {
+        wp_send_json_error( [ 'message' => 'لم يتم العثور على أسئلة صالحة داخل الملف.' ] );
+    }
+
+    wp_send_json_success( $prepared );
+}
+
+add_action( 'wp_ajax_eh_import_json_publish', 'examhub_ajax_import_json_publish' );
+function examhub_ajax_import_json_publish() {
+    check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
+    if ( ! current_user_can( 'examhub_import_content' ) ) {
+        wp_send_json_error( [], 403 );
+    }
+
+    $questions = json_decode( wp_unslash( $_POST['questions'] ?? '[]' ), true );
+    $extra = json_decode( wp_unslash( $_POST['extra'] ?? '{}' ), true );
+
+    if ( ! is_array( $questions ) || empty( $questions ) ) {
+        wp_send_json_error( [ 'message' => 'لا توجد أسئلة جاهزة للاستيراد.' ] );
+    }
+
+    $saved = 0;
+    $failed = 0;
+    foreach ( $questions as $question ) {
+        $inserted = examhub_insert_imported_question( $question, is_array( $extra ) ? $extra : [] );
+        if ( is_wp_error( $inserted ) ) {
+            $failed++;
+            continue;
+        }
+        $saved++;
+    }
+
+    wp_send_json_success( [
+        'saved'   => $saved,
+        'failed'  => $failed,
+        'message' => sprintf( 'تم استيراد ونشر %d سؤال%s.', $saved, $failed ? "، وتعذر حفظ {$failed}" : '' ),
+    ] );
+}
+
+add_action( 'wp_ajax_eh_preview_auto_exams', 'examhub_ajax_preview_auto_exams' );
+function examhub_ajax_preview_auto_exams() {
+    check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
+    if ( ! current_user_can( 'examhub_import_content' ) ) {
+        wp_send_json_error( [], 403 );
+    }
+
+    $payload = examhub_validate_auto_exam_request();
+    if ( is_wp_error( $payload ) ) {
+        wp_send_json_error( [ 'message' => $payload->get_error_message() ] );
+    }
+
+    $question_ids = examhub_get_group_question_ids( $payload['question_group_id'] );
+    $available_questions = count( $question_ids );
+
+    if ( $available_questions < $payload['questions_per_exam'] ) {
+        wp_send_json_error( [ 'message' => 'عدد الأسئلة في المجموعة أقل من العدد المطلوب لكل امتحان.' ] );
+    }
+
+    $group_title = get_the_title( $payload['question_group_id'] );
+    $sample_names = [];
+    for ( $i = 1; $i <= min( 3, $payload['exam_count'] ); $i++ ) {
+        $sample_names[] = trim( $payload['base_title'] . ' - ' . $group_title . ' ' . $i );
+    }
+
+    wp_send_json_success( [
+        'available_questions' => $available_questions,
+        'exam_count'          => $payload['exam_count'],
+        'questions_per_exam'  => $payload['questions_per_exam'],
+        'sample_names'        => $sample_names,
+    ] );
+}
+
+add_action( 'wp_ajax_eh_create_auto_exams', 'examhub_ajax_create_auto_exams' );
+function examhub_ajax_create_auto_exams() {
+    check_ajax_referer( 'examhub_admin_ajax', 'nonce' );
+    if ( ! current_user_can( 'examhub_import_content' ) ) {
+        wp_send_json_error( [], 403 );
+    }
+
+    $payload = examhub_validate_auto_exam_request();
+    if ( is_wp_error( $payload ) ) {
+        wp_send_json_error( [ 'message' => $payload->get_error_message() ] );
+    }
+
+    $question_ids = examhub_get_group_question_ids( $payload['question_group_id'] );
+    if ( count( $question_ids ) < $payload['questions_per_exam'] ) {
+        wp_send_json_error( [ 'message' => 'عدد الأسئلة في المجموعة أقل من العدد المطلوب لكل امتحان.' ] );
+    }
+
+    $created = 0;
+    $group_title = get_the_title( $payload['question_group_id'] );
+
+    for ( $i = 1; $i <= $payload['exam_count']; $i++ ) {
+        $pool = $question_ids;
+        shuffle( $pool );
+        $selected_questions = array_slice( $pool, 0, $payload['questions_per_exam'] );
+
+        $exam_id = wp_insert_post( [
+            'post_type'   => 'eh_exam',
+            'post_status' => 'draft',
+            'post_author' => get_current_user_id(),
+            'post_title'  => trim( $payload['base_title'] . ' - ' . $group_title . ' ' . $i ),
+        ] );
+
+        if ( is_wp_error( $exam_id ) ) {
+            continue;
+        }
+
+        if ( ! empty( $payload['education_system'] ) ) {
+            update_field( 'exam_education_system', $payload['education_system'], $exam_id );
+        }
+        update_field( 'exam_stage', $payload['stage_id'], $exam_id );
+        if ( ! empty( $payload['grade_id'] ) ) {
+            update_field( 'exam_grade', $payload['grade_id'], $exam_id );
+        }
+        if ( ! empty( $payload['subject_id'] ) ) {
+            update_field( 'exam_subject', $payload['subject_id'], $exam_id );
+        }
+        update_field( 'exam_lesson', $payload['question_group_id'], $exam_id );
+        update_field( 'exam_questions', $selected_questions, $exam_id );
+        update_field( 'timer_type', 'exam', $exam_id );
+        update_field( 'exam_duration_minutes', 30, $exam_id );
+        update_field( 'exam_access', 'free_limit', $exam_id );
+        update_field( 'exam_type', 'standard', $exam_id );
+        update_field( 'exam_difficulty', 'mixed', $exam_id );
+        update_field( 'random_questions', $payload['random_questions'] ? 1 : 0, $exam_id );
+        update_field( 'random_answers', $payload['random_answers'] ? 1 : 0, $exam_id );
+        update_field( 'show_explanation', 1, $exam_id );
+        update_field( 'allow_skip', 1, $exam_id );
+        update_field( 'allow_mark_review', 1, $exam_id );
+        update_field( 'allow_resume', 1, $exam_id );
+
+        $created++;
+    }
+
+    wp_send_json_success( [
+        'created' => $created,
+        'message' => sprintf( 'تم إنشاء %d امتحان وحفظها كمسودات.', $created ),
+    ] );
 }
 
 add_action( 'wp_ajax_eh_admin_get_grades_by_stage', 'examhub_ajax_admin_get_grades_by_stage' );
