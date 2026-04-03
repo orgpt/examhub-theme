@@ -17,6 +17,57 @@ defined( 'ABSPATH' ) || exit;
  * @param int $user_id
  * @return array
  */
+function examhub_normalize_question_body( $body ) {
+    if ( is_string( $body ) ) {
+        return wp_kses_post( $body );
+    }
+
+    if ( ! is_array( $body ) ) {
+        return '';
+    }
+
+    $html = '';
+
+    foreach ( $body as $block ) {
+        if ( is_string( $block ) ) {
+            $text = trim( $block );
+            if ( '' !== $text ) {
+                $html .= '<p>' . esc_html( $text ) . '</p>';
+            }
+            continue;
+        }
+
+        if ( ! is_array( $block ) ) {
+            continue;
+        }
+
+        $kind  = strtolower( trim( (string) ( $block['kind'] ?? 'text' ) ) );
+        $value = trim( (string) ( $block['value'] ?? $block['text'] ?? '' ) );
+
+        if ( '' === $value ) {
+            continue;
+        }
+
+        switch ( $kind ) {
+            case 'latex':
+            case 'math':
+                $html .= '<div dir="ltr">\\[' . esc_html( $value ) . '\\]</div>';
+                break;
+
+            case 'html':
+                $html .= wp_kses_post( $value );
+                break;
+
+            case 'text':
+            default:
+                $html .= '<p>' . esc_html( $value ) . '</p>';
+                break;
+        }
+    }
+
+    return $html;
+}
+
 function examhub_get_user_subscription_status( $user_id = 0 ) {
     if ( ! $user_id ) $user_id = get_current_user_id();
 

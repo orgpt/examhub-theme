@@ -1860,7 +1860,7 @@ function examhub_import_map_question( $question, $index ) {
         'external_id'       => sanitize_text_field( (string) ( $question['external_id'] ?? '' ) ),
         'type'              => $type,
         'question_text'     => $question_text,
-        'body'              => wp_kses_post( (string) ( $question['body'] ?? $question['question_body'] ?? $question['content'] ?? $question['body_html'] ?? '' ) ),
+        'body'              => examhub_normalize_question_body( $question['body'] ?? $question['question_body'] ?? $question['content'] ?? $question['body_html'] ?? '' ),
         'difficulty'        => $difficulty,
         'answers'           => $answers,
         'correct_answer'    => sanitize_text_field( (string) ( $question['correct_answer'] ?? '' ) ),

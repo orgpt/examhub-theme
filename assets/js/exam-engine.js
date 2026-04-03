@@ -211,9 +211,12 @@
     if (q.math) {
       $('#question-math').html('\\(' + q.math + '\\)');
       $('#question-math-wrap').show();
-      if (window.MathJax) MathJax.typesetPromise();
     } else {
       $('#question-math-wrap').hide();
+    }
+
+    if (window.MathJax && (q.math || q.body)) {
+      MathJax.typesetPromise();
     }
 
     // Saved answer
