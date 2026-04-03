@@ -491,15 +491,18 @@ function examhub_build_exam_question_list( $exam_id, $randomize = null ) {
 function examhub_build_question_payload( $q_id, $random_answers = false ) {
     $type    = get_field( 'question_type', $q_id );
     $text    = get_field( 'question_text', $q_id );
+    $body_raw = get_post_field( 'post_content', $q_id );
     $image   = get_field( 'question_image', $q_id );
     $math    = get_field( 'question_math', $q_id );
     $points  = (int) get_field( 'question_points', $q_id ) ?: 1;
     $diff    = get_field( 'difficulty', $q_id );
+    $body    = '' !== trim( (string) $body_raw ) ? apply_filters( 'the_content', $body_raw ) : '';
 
     $payload = [
         'id'         => $q_id,
         'type'       => $type,
         'text'       => $text,
+        'body'       => $body,
         'points'     => $points,
         'difficulty' => $diff,
         'image'      => $image ? $image['url'] : null,
