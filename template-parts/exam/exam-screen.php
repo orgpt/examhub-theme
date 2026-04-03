@@ -46,10 +46,17 @@ $js_config = [
     'result_base_url'  => add_query_arg( 'result', '', get_permalink( $exam_id ) ),
 ];
 
+$exam_css_ver = file_exists( EXAMHUB_DIR . '/assets/css/exam.css' )
+    ? filemtime( EXAMHUB_DIR . '/assets/css/exam.css' )
+    : EXAMHUB_VERSION;
+$exam_js_ver = file_exists( EXAMHUB_DIR . '/assets/js/exam-engine.js' )
+    ? filemtime( EXAMHUB_DIR . '/assets/js/exam-engine.js' )
+    : EXAMHUB_VERSION;
+
 // Enqueue exam CSS + JS
-wp_enqueue_style(  'examhub-exam', EXAMHUB_ASSETS . 'css/exam.css', [], EXAMHUB_VERSION );
+wp_enqueue_style(  'examhub-exam', EXAMHUB_ASSETS . 'css/exam.css', [], $exam_css_ver );
 wp_enqueue_script( 'sortablejs', 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js', [], '1.15.2', true );
-wp_enqueue_script( 'examhub-exam-engine', EXAMHUB_ASSETS . 'js/exam-engine.js', [ 'jquery', 'sortablejs' ], EXAMHUB_VERSION, true );
+wp_enqueue_script( 'examhub-exam-engine', EXAMHUB_ASSETS . 'js/exam-engine.js', [ 'jquery', 'sortablejs' ], $exam_js_ver, true );
 wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
 
 // Output minimal HTML — exam engine builds UI via JS
