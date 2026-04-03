@@ -15,6 +15,8 @@ function examhub_enqueue_assets() {
     $main_css_ver   = file_exists( EXAMHUB_DIR . '/assets/css/main.css' ) ? filemtime( EXAMHUB_DIR . '/assets/css/main.css' ) : $ver;
     $main_js_ver    = file_exists( EXAMHUB_DIR . '/assets/js/main.js' ) ? filemtime( EXAMHUB_DIR . '/assets/js/main.js' ) : $ver;
     $filter_js_ver  = file_exists( EXAMHUB_DIR . '/assets/js/filter.js' ) ? filemtime( EXAMHUB_DIR . '/assets/js/filter.js' ) : $ver;
+    $exam_css_ver   = file_exists( EXAMHUB_DIR . '/assets/css/exam.css' ) ? filemtime( EXAMHUB_DIR . '/assets/css/exam.css' ) : $ver;
+    $exam_js_ver    = file_exists( EXAMHUB_DIR . '/assets/js/exam-engine.js' ) ? filemtime( EXAMHUB_DIR . '/assets/js/exam-engine.js' ) : $ver;
 
     // ─── Styles ────────────────────────────────────────────────────────────
 
@@ -39,7 +41,7 @@ function examhub_enqueue_assets() {
 
     // Exam-specific styles (only on exam pages)
     if ( is_singular( 'eh_exam' ) || examhub_is_exam_page() ) {
-        wp_enqueue_style( 'examhub-exam', EXAMHUB_ASSETS . 'css/exam.css', [ 'examhub-main' ], $ver );
+        wp_enqueue_style( 'examhub-exam', EXAMHUB_ASSETS . 'css/exam.css', [ 'examhub-main' ], $exam_css_ver );
     }
 
     // Dashboard styles
@@ -78,7 +80,7 @@ function examhub_enqueue_assets() {
 
     // Exam engine JS (only on exam pages)
     if ( is_singular( 'eh_exam' ) || examhub_is_exam_page() ) {
-        wp_enqueue_script( 'examhub-exam-engine', EXAMHUB_ASSETS . 'js/exam-engine.js', [ 'examhub-main', 'sortablejs' ], $ver, true );
+        wp_enqueue_script( 'examhub-exam-engine', EXAMHUB_ASSETS . 'js/exam-engine.js', [ 'examhub-main', 'sortablejs' ], $exam_js_ver, true );
 
         // Localize exam data for JS
         $exam_id = get_queried_object_id();
