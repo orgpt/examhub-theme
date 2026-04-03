@@ -248,6 +248,7 @@ function examhub_render_json_import_page() {
           const answers = (q.answers || []).map(function(answer, answerIndex){
             return `<div>${answer.is_correct ? '<strong style="color:#008a20;">✓</strong> ' : ''}${answerIndex + 1}. ${escapeHtml(answer.answer_text || '')}</div>`;
           }).join('');
+          const body = String(q.body || '').trim();
           const warnings = (q._warnings || []).map(function(item){
             return `<li>${escapeHtml(item)}</li>`;
           }).join('');
@@ -258,6 +259,7 @@ function examhub_render_json_import_page() {
                 <input type="checkbox" class="eh-json-question" value="${index}" checked style="margin-top:3px;">
                 <div style="flex:1;">
                   <div style="font-weight:700;margin-bottom:8px;">${escapeHtml(q.question_text || '')}</div>
+                  ${body ? `<div style="margin-bottom:8px;line-height:1.8;color:#50575e;">${escapeHtml(body)}</div>` : ''}
                   <div style="margin-bottom:8px;">
                     <span style="background:#eef2ff;padding:2px 8px;border-radius:3px;font-size:12px;">${escapeHtml(typeLabels[q.type] || q.type || '')}</span>
                     <span style="background:#fef3c7;padding:2px 8px;border-radius:3px;font-size:12px;margin-right:4px;">${escapeHtml(diffLabels[q.difficulty] || q.difficulty || '')}</span>
@@ -1858,6 +1860,7 @@ function examhub_import_map_question( $question, $index ) {
         'external_id'       => sanitize_text_field( (string) ( $question['external_id'] ?? '' ) ),
         'type'              => $type,
         'question_text'     => $question_text,
+        'body'              => wp_kses_post( (string) ( $question['body'] ?? $question['question_body'] ?? $question['content'] ?? $question['body_html'] ?? '' ) ),
         'difficulty'        => $difficulty,
         'answers'           => $answers,
         'correct_answer'    => sanitize_text_field( (string) ( $question['correct_answer'] ?? '' ) ),
@@ -1913,6 +1916,7 @@ function examhub_insert_imported_question( $question, $extra ) {
     $post_id = wp_insert_post( [
         'post_type'   => 'eh_question',
         'post_title'  => wp_trim_words( $question['question_text'], 8 ),
+        'post_content'=> (string) ( $question['body'] ?? '' ),
         'post_status' => 'publish',
         'post_author' => get_current_user_id(),
     ] );
@@ -2346,6 +2350,7 @@ function examhub_ajax_save_imported_questions() {
         $post_id = wp_insert_post( [
             'post_type'   => 'eh_question',
             'post_title'  => wp_trim_words( $text, 8 ),
+            'post_content'=> wp_kses_post( (string) ( $q['body'] ?? '' ) ),
             'post_status' => 'draft', // Requires manual review
             'post_author' => get_current_user_id(),
         ] );

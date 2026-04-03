@@ -193,6 +193,11 @@
 
     // Question text
     $('#question-text').html(q.text || '');
+    if (q.body) {
+      $('#question-body-content').html(q.body).show();
+    } else {
+      $('#question-body-content').empty().hide();
+    }
 
     // Image
     if (q.image) {

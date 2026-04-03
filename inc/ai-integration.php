@@ -242,6 +242,7 @@ function examhub_ai_normalize_questions( $questions ) {
 
         $normalized[] = [
             'question_text'         => $question_text,
+            'body'                  => wp_kses_post( (string) ( $row['body'] ?? $row['question_body'] ?? $row['content'] ?? $row['body_html'] ?? '' ) ),
             'type'                  => $type,
             'answers'               => $answers,
             'correct_answer_index'  => is_numeric( $correct_index ) ? (int) $correct_index : null,

@@ -129,6 +129,7 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
       <!-- Question text -->
       <div class="eh-question-body">
         <div id="question-text" class="eh-question-text"></div>
+        <div id="question-body-content" class="eh-question-body-content" style="display:none;"></div>
         <div id="question-image-wrap" style="display:none;">
           <img id="question-image" src="" alt="" class="eh-question-image">
         </div>

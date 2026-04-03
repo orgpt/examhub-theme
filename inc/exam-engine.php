@@ -539,12 +539,14 @@ function examhub_build_question_payload( $q_id, $random_answers = false ) {
     $type        = get_field( 'question_type', $q_id );
     $text        = get_field( 'question_text', $q_id );
     $text_en     = get_field( 'question_text_en', $q_id );
+    $body_raw    = get_post_field( 'post_content', $q_id );
     $difficulty  = get_field( 'difficulty', $q_id );
     $image       = get_field( 'question_image', $q_id );
     $math        = get_field( 'question_math', $q_id );
     $points      = (float) ( get_field( 'question_points', $q_id ) ?: 1 );
+    $body        = '' !== trim( (string) $body_raw ) ? apply_filters( 'the_content', $body_raw ) : '';
 
-    $payload = compact( 'type', 'text', 'text_en', 'difficulty', 'math', 'points' );
+    $payload = compact( 'type', 'text', 'text_en', 'body', 'difficulty', 'math', 'points' );
     $payload['id'] = $q_id;
 
     if ( $image && is_array( $image ) ) {

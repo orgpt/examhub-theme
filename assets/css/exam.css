@@ -145,6 +145,20 @@
   user-select: none;
   -webkit-user-select: none;
 }
+.eh-question-body-content {
+  margin-top: 0.9rem;
+  font-size: 1rem;
+  line-height: 1.9;
+  color: var(--eh-text-secondary);
+}
+.eh-question-body-content p:last-child {
+  margin-bottom: 0;
+}
+.eh-question-body-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--eh-radius);
+}
 .eh-question-image {
   max-width: 100%;
   border-radius: var(--eh-radius);
