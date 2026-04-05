@@ -6,6 +6,8 @@
   'use strict';
 
   const AJAX = window.examhubAjax || {};
+  const INSTALL_PROMPT = window.examhubInstallPrompt || {};
+  let deferredInstallPrompt = null;
 
   // ─── Document Ready ──────────────────────────────────────────────────────────
   $(function () {
@@ -19,6 +21,7 @@
     initLazyLoad();
     initInvoiceHistory();
     initSubscriptionActions();
+    initInstallPrompt();
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -383,6 +386,110 @@
         $(this).addClass('active');
       }
     });
+  }
+
+  // INSTALL PROMPT
+  function initInstallPrompt() {
+    const promptEl = document.getElementById('eh-install-prompt');
+    if (!promptEl || !isMobileOrTablet() || isStandaloneMode()) return;
+
+    const actionButton = document.getElementById('eh-install-prompt-action');
+    const dismissButton = document.getElementById('eh-install-prompt-dismiss');
+    const closeButton = document.getElementById('eh-install-prompt-close');
+    const guideEl = document.getElementById('eh-install-prompt-guide');
+
+    const showPrompt = function () {
+      promptEl.hidden = false;
+      promptEl.classList.add('is-visible');
+    };
+
+    const hidePrompt = function () {
+      promptEl.classList.remove('is-visible');
+      window.setTimeout(function () {
+        if (!promptEl.classList.contains('is-visible')) {
+          promptEl.hidden = true;
+        }
+      }, 180);
+    };
+
+    const showGuide = function (title, message) {
+      if (!guideEl) return;
+
+      guideEl.hidden = false;
+      guideEl.innerHTML = `
+        <strong>${escHtml(title)}</strong>
+        <span>${escHtml(message)}</span>
+      `;
+      showPrompt();
+    };
+
+    window.addEventListener('beforeinstallprompt', function (event) {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      showPrompt();
+    });
+
+    window.addEventListener('appinstalled', function () {
+      hidePrompt();
+    });
+
+    actionButton?.addEventListener('click', async function () {
+      if (deferredInstallPrompt) {
+        deferredInstallPrompt.prompt();
+
+        try {
+          await deferredInstallPrompt.userChoice;
+        } catch (error) {
+          // Ignore cancellation and keep the fallback notice available.
+        }
+
+        deferredInstallPrompt = null;
+        return;
+      }
+
+      if (isIosDevice()) {
+        showGuide(
+          INSTALL_PROMPT.i18n?.unsupportedTitle || 'How to add it',
+          INSTALL_PROMPT.i18n?.iosInstructions || 'In Safari, tap the Share button, then choose Add to Home Screen.'
+        );
+        return;
+      }
+
+      if (isAndroidDevice()) {
+        showGuide(
+          INSTALL_PROMPT.i18n?.unsupportedTitle || 'How to add it',
+          INSTALL_PROMPT.i18n?.androidInstructions || 'From your browser menu, choose Install app or Add to Home screen.'
+        );
+        return;
+      }
+
+      showGuide(
+        INSTALL_PROMPT.i18n?.unsupportedTitle || 'How to add it',
+        INSTALL_PROMPT.i18n?.genericInstructions || 'Use your browser menu and choose Add to Home screen to save the shortcut.'
+      );
+    });
+
+    [dismissButton, closeButton].forEach(function (button) {
+      button?.addEventListener('click', hidePrompt);
+    });
+
+    window.setTimeout(showPrompt, 1200);
+  }
+
+  function isMobileOrTablet() {
+    return window.matchMedia('(max-width: 1024px)').matches || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Tablet/i.test(navigator.userAgent);
+  }
+
+  function isStandaloneMode() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+
+  function isIosDevice() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  }
+
+  function isAndroidDevice() {
+    return /Android/i.test(navigator.userAgent);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════

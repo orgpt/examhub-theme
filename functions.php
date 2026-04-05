@@ -27,6 +27,7 @@ $examhub_includes = [
     'inc/taxonomies.php',         // Custom taxonomies
     'inc/theme-setup.php',        // Theme supports, nav menus
     'inc/enqueue.php',            // Scripts & styles
+    'inc/install-prompt.php',     // Mobile/tablet add-to-home-screen prompt
     'inc/ajax-handlers.php',      // AJAX endpoints
     'inc/rest-api.php',           // REST API extensions
     'inc/user-roles.php',         // Custom roles & capabilities
