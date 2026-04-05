@@ -65,6 +65,9 @@ add_action( 'after_setup_theme', 'examhub_content_width', 0 );
 function examhub_body_classes( $classes ) {
     $classes[] = 'examhub-theme';
     $classes[] = 'dark-theme';
+    $classes[] = function_exists( 'examhub_is_theme_activated' ) && examhub_is_theme_activated()
+        ? 'examhub-activated'
+        : 'examhub-locked';
 
     if ( is_user_logged_in() ) {
         $classes[] = 'user-logged-in';

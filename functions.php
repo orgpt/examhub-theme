@@ -15,6 +15,8 @@ define( 'EXAMHUB_URL',       get_template_directory_uri() );
 define( 'EXAMHUB_INC',       EXAMHUB_DIR . '/inc/' );
 define( 'EXAMHUB_ASSETS',    EXAMHUB_URL . '/assets/' );
 define( 'EXAMHUB_TEXT',      'examhub' );
+define( 'EXAMHUB_LICENSE_OPTION', 'examhub_license_key_hash' );
+define( 'EXAMHUB_LICENSE_HASH',   'fcf20d4effacbb1e0df80d1817ccacdcbb8fb8fbcf97c80cc0a1468f2e2e1579' );
 
 // ─── Core Includes ─────────────────────────────────────────────────────────────
 $examhub_includes = [
