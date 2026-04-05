@@ -8,6 +8,8 @@
   const AJAX = window.examhubAjax || {};
   const INSTALL_PROMPT = window.examhubInstallPrompt || {};
   let deferredInstallPrompt = null;
+  let installPromptTriggered = false;
+  const installPromptStorageKey = 'examhub_install_prompt_dismissed_v1';
 
   // ─── Document Ready ──────────────────────────────────────────────────────────
   $(function () {
@@ -391,7 +393,7 @@
   // INSTALL PROMPT
   function initInstallPrompt() {
     const promptEl = document.getElementById('eh-install-prompt');
-    if (!promptEl || !isMobileOrTablet() || isStandaloneMode()) return;
+    if (!promptEl || !isMobileOrTablet() || isStandaloneMode() || hasDismissedInstallPrompt()) return;
 
     const actionButton = document.getElementById('eh-install-prompt-action');
     const dismissButton = document.getElementById('eh-install-prompt-dismiss');
@@ -423,27 +425,48 @@
       showPrompt();
     };
 
+    const triggerNativeInstallPrompt = async function () {
+      if (!deferredInstallPrompt || installPromptTriggered) return false;
+
+      installPromptTriggered = true;
+
+      try {
+        deferredInstallPrompt.prompt();
+        await deferredInstallPrompt.userChoice;
+      } catch (error) {
+        installPromptTriggered = false;
+        return false;
+      }
+
+      deferredInstallPrompt = null;
+      return true;
+    };
+
     window.addEventListener('beforeinstallprompt', function (event) {
       event.preventDefault();
       deferredInstallPrompt = event;
+
+      if (isAndroidDevice()) {
+        window.setTimeout(async function () {
+          const prompted = await triggerNativeInstallPrompt();
+          if (!prompted) {
+            showPrompt();
+          }
+        }, 900);
+        return;
+      }
+
       showPrompt();
     });
 
     window.addEventListener('appinstalled', function () {
+      persistInstallPromptDismissal();
       hidePrompt();
     });
 
     actionButton?.addEventListener('click', async function () {
       if (deferredInstallPrompt) {
-        deferredInstallPrompt.prompt();
-
-        try {
-          await deferredInstallPrompt.userChoice;
-        } catch (error) {
-          // Ignore cancellation and keep the fallback notice available.
-        }
-
-        deferredInstallPrompt = null;
+        await triggerNativeInstallPrompt();
         return;
       }
 
@@ -470,7 +493,10 @@
     });
 
     [dismissButton, closeButton].forEach(function (button) {
-      button?.addEventListener('click', hidePrompt);
+      button?.addEventListener('click', function () {
+        persistInstallPromptDismissal();
+        hidePrompt();
+      });
     });
 
     window.setTimeout(showPrompt, 1200);
@@ -490,6 +516,22 @@
 
   function isAndroidDevice() {
     return /Android/i.test(navigator.userAgent);
+  }
+
+  function hasDismissedInstallPrompt() {
+    try {
+      return window.localStorage.getItem(installPromptStorageKey) === '1';
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function persistInstallPromptDismissal() {
+    try {
+      window.localStorage.setItem(installPromptStorageKey, '1');
+    } catch (error) {
+      // Ignore storage failures and keep default behavior.
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
