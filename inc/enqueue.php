@@ -114,20 +114,6 @@ function examhub_enqueue_assets() {
         'autosave_interval' => 30, // seconds
     ] );
 
-    wp_localize_script( 'examhub-main', 'examhubInstallPrompt', [
-        'siteName' => get_bloginfo( 'name' ),
-        'iconUrl'  => examhub_get_install_prompt_icon_url(),
-        'i18n'     => [
-            'title'               => __( 'أضف أيقونة الموقع إلى جهازك', 'examhub' ),
-            'body'                => __( 'احفظ اختصار الموقع على الشاشة الرئيسية للوصول السريع من الموبايل أو التابلت.', 'examhub' ),
-            'action'              => __( 'إضافة الأيقونة', 'examhub' ),
-            'later'               => __( 'لاحقًا', 'examhub' ),
-            'iosInstructions'     => __( 'في Safari اضغط زر المشاركة، ثم اختر إضافة إلى الشاشة الرئيسية.', 'examhub' ),
-            'androidInstructions' => __( 'من قائمة المتصفح اختر تثبيت التطبيق أو إضافة إلى الشاشة الرئيسية.', 'examhub' ),
-            'genericInstructions' => __( 'استخدم قائمة المتصفح ثم اختر إضافة إلى الشاشة الرئيسية لحفظ الاختصار.', 'examhub' ),
-            'unsupportedTitle'    => __( 'طريقة الإضافة', 'examhub' ),
-        ],
-    ] );
 }
 add_action( 'wp_enqueue_scripts', 'examhub_enqueue_assets' );
 

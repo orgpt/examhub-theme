@@ -93,36 +93,3 @@ function examhub_render_install_prompt_manifest() {
     exit;
 }
 add_action( 'template_redirect', 'examhub_render_install_prompt_manifest', 0 );
-
-/**
- * Renders the mobile/tablet install prompt container.
- *
- * @return void
- */
-function examhub_render_install_prompt_markup() {
-    if ( is_admin() ) {
-        return;
-    }
-
-    $icon_url = examhub_get_install_prompt_icon_url();
-    ?>
-    <aside class="eh-install-prompt" id="eh-install-prompt" hidden aria-live="polite" aria-label="<?php esc_attr_e( 'إضافة اختصار الموقع', 'examhub' ); ?>">
-        <button type="button" class="eh-install-prompt-close" id="eh-install-prompt-close" aria-label="<?php esc_attr_e( 'إغلاق', 'examhub' ); ?>">
-            <i class="bi bi-x-lg" aria-hidden="true"></i>
-        </button>
-        <div class="eh-install-prompt-icon" aria-hidden="true">
-            <img src="<?php echo esc_url( $icon_url ); ?>" alt="">
-        </div>
-        <div class="eh-install-prompt-copy">
-            <h2 class="eh-install-prompt-title"><?php esc_html_e( 'أضف أيقونة الموقع إلى جهازك', 'examhub' ); ?></h2>
-            <p class="eh-install-prompt-text"><?php esc_html_e( 'احفظ اختصار الموقع على الشاشة الرئيسية للوصول السريع من الموبايل أو التابلت.', 'examhub' ); ?></p>
-            <div class="eh-install-prompt-actions">
-                <button type="button" class="btn btn-primary btn-sm" id="eh-install-prompt-action"><?php esc_html_e( 'إضافة الأيقونة', 'examhub' ); ?></button>
-                <button type="button" class="btn btn-ghost btn-sm" id="eh-install-prompt-dismiss"><?php esc_html_e( 'لاحقًا', 'examhub' ); ?></button>
-            </div>
-            <div class="eh-install-prompt-guide" id="eh-install-prompt-guide" hidden></div>
-        </div>
-    </aside>
-    <?php
-}
-add_action( 'wp_footer', 'examhub_render_install_prompt_markup', 20 );
