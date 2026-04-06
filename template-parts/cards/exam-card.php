@@ -40,7 +40,7 @@ $best_pct    = $best_result ? (float) get_field( 'percentage', $best_result ) : 
 ?>
 
 <div class="col-sm-6 col-xl-4">
-  <article class="eh-exam-card <?php echo $is_locked ? 'locked' : ''; ?>" data-exam-id="<?php echo esc_attr( $exam_id ); ?>">
+  <article class="eh-exam-card <?php echo $is_locked ? 'locked' : ''; ?> <?php echo $has_taken ? 'completed' : ''; ?>" data-exam-id="<?php echo esc_attr( $exam_id ); ?>">
 
     <!-- Thumbnail -->
     <div class="card-thumb" style="--subject-color: <?php echo esc_attr( $subject_color ); ?>">
@@ -71,6 +71,13 @@ $best_pct    = $best_result ? (float) get_field( 'percentage', $best_result ) : 
           <?php echo number_format( $best_pct, 0 ); ?>%
         </span>
       <?php endif; ?>
+
+      <?php if ( $has_taken ) : ?>
+        <span class="badge eh-exam-completed-badge" style="position:absolute; bottom:10px; left:10px;">
+          <i class="bi bi-check2-circle me-1"></i>
+          <?php esc_html_e( 'تم الحل', 'examhub' ); ?>
+        </span>
+      <?php endif; ?>
     </div>
 
     <!-- Body -->
@@ -89,7 +96,7 @@ $best_pct    = $best_result ? (float) get_field( 'percentage', $best_result ) : 
 
       <!-- Title -->
       <h3 class="exam-title">
-        <a href="<?php the_permalink(); ?>" class="text-light">
+        <a href="<?php the_permalink(); ?>" class="<?php echo $has_taken ? 'text-muted' : 'text-light'; ?>">
           <?php the_title(); ?>
         </a>
       </h3>
@@ -128,7 +135,7 @@ $best_pct    = $best_result ? (float) get_field( 'percentage', $best_result ) : 
             <?php esc_html_e( 'اشترك للوصول', 'examhub' ); ?>
           </a>
         <?php elseif ( $has_taken ) : ?>
-          <a href="<?php the_permalink(); ?>" class="btn btn-sm btn-ghost w-100">
+          <a href="<?php the_permalink(); ?>" class="btn btn-sm btn-secondary w-100">
             <i class="bi bi-arrow-repeat me-1"></i>
             <?php esc_html_e( 'إعادة الامتحان', 'examhub' ); ?>
           </a>
