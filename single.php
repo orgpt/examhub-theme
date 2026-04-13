@@ -36,10 +36,10 @@ while ( have_posts() ) :
     ?>
   <section class="eh-blog-shell eh-blog-single py-4 py-lg-5">
     <div class="container-xl">
-      <nav class="eh-blog-breadcrumb mb-3" aria-label="<?php esc_attr_e( 'Breadcrumb', 'examhub' ); ?>">
-        <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'Home', 'examhub' ); ?></a>
+      <nav class="eh-blog-breadcrumb mb-3" aria-label="<?php esc_attr_e( 'مسار التنقل', 'examhub' ); ?>">
+        <a href="<?php echo esc_url( home_url( '/' ) ); ?>"><?php esc_html_e( 'الرئيسية', 'examhub' ); ?></a>
         <span>/</span>
-        <a href="<?php echo esc_url( $blog_url ); ?>"><?php esc_html_e( 'Blog', 'examhub' ); ?></a>
+        <a href="<?php echo esc_url( $blog_url ); ?>"><?php esc_html_e( 'المدونة', 'examhub' ); ?></a>
         <span>/</span>
         <span><?php the_title(); ?></span>
       </nav>
@@ -57,7 +57,7 @@ while ( have_posts() ) :
                   <?php endforeach; ?>
                 <?php endif; ?>
                 <span><i class="bi bi-calendar3"></i><?php echo esc_html( get_the_date() ); ?></span>
-                <span><i class="bi bi-clock-history"></i><?php echo esc_html( sprintf( _n( '%s min read', '%s mins read', $reading_minutes, 'examhub' ), $reading_minutes ) ); ?></span>
+                <span><i class="bi bi-clock-history"></i><?php echo esc_html( sprintf( _n( '%s دقيقة قراءة', '%s دقائق قراءة', $reading_minutes, 'examhub' ), $reading_minutes ) ); ?></span>
               </div>
 
               <h1 class="eh-article-title"><?php the_title(); ?></h1>
@@ -71,21 +71,21 @@ while ( have_posts() ) :
                   <span class="eh-blog-author-avatar"><?php echo get_avatar( $author_id, 56 ); ?></span>
                   <span>
                     <strong><?php the_author(); ?></strong>
-                    <small><?php esc_html_e( 'Published by', 'examhub' ); ?></small>
+                    <small><?php esc_html_e( 'نشر بواسطة', 'examhub' ); ?></small>
                   </span>
                 </a>
                 <div class="eh-article-actions">
                   <a class="eh-share-link" target="_blank" rel="noopener" href="<?php echo esc_url( 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode( get_permalink() ) ); ?>">
                     <i class="bi bi-facebook"></i>
-                    <span><?php esc_html_e( 'Share', 'examhub' ); ?></span>
+                    <span><?php esc_html_e( 'مشاركة', 'examhub' ); ?></span>
                   </a>
                   <a class="eh-share-link" target="_blank" rel="noopener" href="<?php echo esc_url( 'https://twitter.com/intent/tweet?url=' . rawurlencode( get_permalink() ) . '&text=' . rawurlencode( get_the_title() ) ); ?>">
                     <i class="bi bi-twitter-x"></i>
-                    <span><?php esc_html_e( 'Post', 'examhub' ); ?></span>
+                    <span><?php esc_html_e( 'نشر', 'examhub' ); ?></span>
                   </a>
                   <button type="button" class="eh-share-link" onclick="navigator.clipboard && navigator.clipboard.writeText('<?php echo esc_js( get_permalink() ); ?>');">
                     <i class="bi bi-link-45deg"></i>
-                    <span><?php esc_html_e( 'Copy link', 'examhub' ); ?></span>
+                    <span><?php esc_html_e( 'نسخ الرابط', 'examhub' ); ?></span>
                   </button>
                 </div>
               </div>
@@ -93,8 +93,8 @@ while ( have_posts() ) :
 
             <div class="col-lg-4">
               <div class="eh-article-highlight">
-                <strong><?php esc_html_e( 'Why this article matters', 'examhub' ); ?></strong>
-                <p class="mb-0"><?php esc_html_e( 'Built for quick understanding, practical takeaways, and better decision-making before your next exam session.', 'examhub' ); ?></p>
+                <strong><?php esc_html_e( 'لماذا هذا المقال مهم؟', 'examhub' ); ?></strong>
+                <p class="mb-0"><?php esc_html_e( 'مصمم ليمنحك فهمًا سريعًا، وفوائد عملية، وقرارات أفضل قبل جلستك القادمة في التدريب أو الامتحان.', 'examhub' ); ?></p>
               </div>
             </div>
           </div>
@@ -137,8 +137,8 @@ while ( have_posts() ) :
               <section class="eh-related-posts mt-4 mt-lg-5">
                 <div class="eh-blog-section-heading">
                   <div>
-                    <span class="eh-blog-kicker"><?php esc_html_e( 'Keep reading', 'examhub' ); ?></span>
-                    <h2><?php esc_html_e( 'Related articles', 'examhub' ); ?></h2>
+                    <span class="eh-blog-kicker"><?php esc_html_e( 'واصل القراءة', 'examhub' ); ?></span>
+                    <h2><?php esc_html_e( 'مقالات ذات صلة', 'examhub' ); ?></h2>
                   </div>
                 </div>
                 <div class="eh-blog-grid">
@@ -178,45 +178,45 @@ while ( have_posts() ) :
             <div class="eh-blog-sidebar eh-blog-sidebar-sticky">
               <section class="eh-blog-sidebar-card">
                 <div class="eh-blog-sidebar-heading">
-                  <h2><?php esc_html_e( 'About the author', 'examhub' ); ?></h2>
-                  <span><?php esc_html_e( 'Meet the writer', 'examhub' ); ?></span>
+                  <h2><?php esc_html_e( 'عن الكاتب', 'examhub' ); ?></h2>
+                  <span><?php esc_html_e( 'تعرّف على الكاتب', 'examhub' ); ?></span>
                 </div>
                 <a class="eh-article-author-card" href="<?php echo esc_url( $author_url ); ?>">
                   <span class="eh-blog-author-avatar"><?php echo get_avatar( $author_id, 72 ); ?></span>
                   <div>
                     <strong><?php the_author(); ?></strong>
-                    <p><?php echo esc_html( wp_trim_words( get_the_author_meta( 'description', $author_id ), 24, '...' ) ?: __( 'Sharing helpful ideas for better learning, exam confidence, and consistent academic progress.', 'examhub' ) ); ?></p>
+                    <p><?php echo esc_html( wp_trim_words( get_the_author_meta( 'description', $author_id ), 24, '...' ) ?: __( 'يشارك أفكارًا مفيدة لتحسين التعلّم، وزيادة الثقة في الامتحانات، وتحقيق تقدم دراسي مستمر.', 'examhub' ) ); ?></p>
                   </div>
                 </a>
               </section>
 
               <section class="eh-blog-sidebar-card">
                 <div class="eh-blog-sidebar-heading">
-                  <h2><?php esc_html_e( 'Article snapshot', 'examhub' ); ?></h2>
-                  <span><?php esc_html_e( 'Quick facts', 'examhub' ); ?></span>
+                  <h2><?php esc_html_e( 'ملخص سريع للمقال', 'examhub' ); ?></h2>
+                  <span><?php esc_html_e( 'معلومات سريعة', 'examhub' ); ?></span>
                 </div>
                 <div class="eh-article-facts">
                   <div>
-                    <span><?php esc_html_e( 'Published', 'examhub' ); ?></span>
+                    <span><?php esc_html_e( 'تاريخ النشر', 'examhub' ); ?></span>
                     <strong><?php echo esc_html( get_the_date() ); ?></strong>
                   </div>
                   <div>
-                    <span><?php esc_html_e( 'Updated', 'examhub' ); ?></span>
+                    <span><?php esc_html_e( 'آخر تحديث', 'examhub' ); ?></span>
                     <strong><?php echo esc_html( get_the_modified_date() ); ?></strong>
                   </div>
                   <div>
-                    <span><?php esc_html_e( 'Reading time', 'examhub' ); ?></span>
-                    <strong><?php echo esc_html( sprintf( _n( '%s minute', '%s minutes', $reading_minutes, 'examhub' ), $reading_minutes ) ); ?></strong>
+                    <span><?php esc_html_e( 'مدة القراءة', 'examhub' ); ?></span>
+                    <strong><?php echo esc_html( sprintf( _n( '%s دقيقة', '%s دقائق', $reading_minutes, 'examhub' ), $reading_minutes ) ); ?></strong>
                   </div>
                 </div>
               </section>
 
               <section class="eh-blog-sidebar-card eh-blog-cta">
-                <span class="eh-blog-kicker"><?php esc_html_e( 'Next step', 'examhub' ); ?></span>
-                <h2><?php esc_html_e( 'Put the idea into practice', 'examhub' ); ?></h2>
-                <p><?php esc_html_e( 'After reading, move into targeted practice to reinforce the concept while it is still fresh.', 'examhub' ); ?></p>
+                <span class="eh-blog-kicker"><?php esc_html_e( 'الخطوة التالية', 'examhub' ); ?></span>
+                <h2><?php esc_html_e( 'حوّل الفكرة إلى تطبيق', 'examhub' ); ?></h2>
+                <p><?php esc_html_e( 'بعد القراءة، انتقل إلى التدريب المستهدف لتثبيت الفكرة وهي ما زالت حاضرة في ذهنك.', 'examhub' ); ?></p>
                 <a href="<?php echo esc_url( get_post_type_archive_link( 'eh_exam' ) ); ?>" class="btn btn-primary">
-                  <?php esc_html_e( 'Start practicing', 'examhub' ); ?>
+                  <?php esc_html_e( 'ابدأ التدريب', 'examhub' ); ?>
                 </a>
               </section>
             </div>

@@ -33,7 +33,7 @@ $recent_posts = new WP_Query(
 );
 
 if ( ! $blog_description ) {
-    $blog_description = __( 'Practical study strategies, exam guidance, and smarter learning tips for students who want consistent progress.', 'examhub' );
+    $blog_description = __( 'استراتيجيات مذاكرة عملية، وإرشادات للامتحانات، ونصائح ذكية تساعدك على التقدم بثبات وتحقيق نتائج أفضل.', 'examhub' );
 }
 ?>
 <section class="eh-blog-shell eh-blog-index py-4 py-lg-5">
@@ -41,7 +41,7 @@ if ( ! $blog_description ) {
     <header class="eh-blog-hero mb-4 mb-lg-5">
       <div class="row g-4 align-items-end">
         <div class="col-lg-8">
-          <span class="eh-blog-kicker"><?php esc_html_e( 'Blog', 'examhub' ); ?></span>
+          <span class="eh-blog-kicker"><?php esc_html_e( 'المدونة', 'examhub' ); ?></span>
           <h1 class="eh-blog-hero-title"><?php echo esc_html( $blog_title ); ?></h1>
           <p class="eh-blog-hero-text mb-0"><?php echo esc_html( $blog_description ); ?></p>
         </div>
@@ -49,11 +49,11 @@ if ( ! $blog_description ) {
           <div class="eh-blog-hero-panel">
             <div class="eh-blog-hero-stat">
               <strong><?php echo esc_html( (string) wp_count_posts( 'post' )->publish ); ?>+</strong>
-              <span><?php esc_html_e( 'Published articles', 'examhub' ); ?></span>
+              <span><?php esc_html_e( 'مقالة منشورة', 'examhub' ); ?></span>
             </div>
             <div class="eh-blog-hero-stat">
               <strong><?php echo esc_html( (string) wp_count_terms( [ 'taxonomy' => 'category', 'hide_empty' => true ] ) ); ?></strong>
-              <span><?php esc_html_e( 'Active categories', 'examhub' ); ?></span>
+              <span><?php esc_html_e( 'تصنيف نشط', 'examhub' ); ?></span>
             </div>
           </div>
         </div>
@@ -94,7 +94,7 @@ if ( ! $blog_description ) {
                       </a>
                     <?php endif; ?>
                     <span><i class="bi bi-calendar3"></i><?php echo esc_html( get_the_date() ); ?></span>
-                    <span><i class="bi bi-clock-history"></i><?php echo esc_html( sprintf( _n( '%s min read', '%s mins read', $reading_time, 'examhub' ), $reading_time ) ); ?></span>
+                    <span><i class="bi bi-clock-history"></i><?php echo esc_html( sprintf( _n( '%s دقيقة قراءة', '%s دقائق قراءة', $reading_time, 'examhub' ), $reading_time ) ); ?></span>
                   </div>
 
                   <h2 class="eh-blog-card-title">
@@ -110,11 +110,11 @@ if ( ! $blog_description ) {
                       <span class="eh-blog-author-avatar"><?php echo get_avatar( get_the_author_meta( 'ID' ), 44 ); ?></span>
                       <div>
                         <strong><?php the_author(); ?></strong>
-                        <span><?php esc_html_e( 'Article author', 'examhub' ); ?></span>
+                        <span><?php esc_html_e( 'كاتب المقال', 'examhub' ); ?></span>
                       </div>
                     </div>
                     <a class="eh-blog-readmore" href="<?php the_permalink(); ?>">
-                      <?php esc_html_e( 'Read article', 'examhub' ); ?>
+                      <?php esc_html_e( 'اقرأ المقال', 'examhub' ); ?>
                       <i class="bi bi-arrow-left-short"></i>
                     </a>
                   </div>
@@ -123,7 +123,7 @@ if ( ! $blog_description ) {
             <?php endwhile; ?>
           </div>
 
-          <nav class="eh-blog-pagination mt-4 mt-lg-5" aria-label="<?php esc_attr_e( 'Posts navigation', 'examhub' ); ?>">
+          <nav class="eh-blog-pagination mt-4 mt-lg-5" aria-label="<?php esc_attr_e( 'التنقل بين المقالات', 'examhub' ); ?>">
             <?php
             echo paginate_links(
                 [
@@ -145,19 +145,19 @@ if ( ! $blog_description ) {
       <aside class="col-xl-4">
         <div class="eh-blog-sidebar">
           <section class="eh-blog-sidebar-card">
-            <h2><?php esc_html_e( 'Search the blog', 'examhub' ); ?></h2>
+            <h2><?php esc_html_e( 'ابحث في المدونة', 'examhub' ); ?></h2>
             <form role="search" method="get" class="eh-blog-search" action="<?php echo esc_url( home_url( '/' ) ); ?>">
-              <label class="screen-reader-text" for="eh-page-blog-search"><?php esc_html_e( 'Search for:', 'examhub' ); ?></label>
-              <input id="eh-page-blog-search" type="search" class="form-control" placeholder="<?php esc_attr_e( 'Search articles, topics, tips...', 'examhub' ); ?>" value="<?php echo esc_attr( get_search_query() ); ?>" name="s">
+              <label class="screen-reader-text" for="eh-page-blog-search"><?php esc_html_e( 'ابحث عن:', 'examhub' ); ?></label>
+              <input id="eh-page-blog-search" type="search" class="form-control" placeholder="<?php esc_attr_e( 'ابحث عن مقالات أو مواضيع أو نصائح...', 'examhub' ); ?>" value="<?php echo esc_attr( get_search_query() ); ?>" name="s">
               <input type="hidden" name="post_type" value="post">
-              <button class="btn btn-primary" type="submit"><?php esc_html_e( 'Search', 'examhub' ); ?></button>
+              <button class="btn btn-primary" type="submit"><?php esc_html_e( 'بحث', 'examhub' ); ?></button>
             </form>
           </section>
 
           <section class="eh-blog-sidebar-card">
             <div class="eh-blog-sidebar-heading">
-              <h2><?php esc_html_e( 'Popular categories', 'examhub' ); ?></h2>
-              <span><?php esc_html_e( 'Browse by topic', 'examhub' ); ?></span>
+              <h2><?php esc_html_e( 'أشهر التصنيفات', 'examhub' ); ?></h2>
+              <span><?php esc_html_e( 'تصفح حسب الموضوع', 'examhub' ); ?></span>
             </div>
             <div class="eh-blog-topic-cloud">
               <?php foreach ( get_categories( [ 'orderby' => 'count', 'order' => 'DESC', 'number' => 8 ] ) as $term ) : ?>
@@ -171,8 +171,8 @@ if ( ! $blog_description ) {
 
           <section class="eh-blog-sidebar-card">
             <div class="eh-blog-sidebar-heading">
-              <h2><?php esc_html_e( 'Fresh reads', 'examhub' ); ?></h2>
-              <span><?php esc_html_e( 'Start with these', 'examhub' ); ?></span>
+              <h2><?php esc_html_e( 'أحدث القراءات', 'examhub' ); ?></h2>
+              <span><?php esc_html_e( 'ابدأ بهذه المقالات', 'examhub' ); ?></span>
             </div>
             <div class="eh-blog-mini-list">
               <?php if ( $recent_posts->have_posts() ) : ?>
@@ -187,11 +187,11 @@ if ( ! $blog_description ) {
           </section>
 
           <section class="eh-blog-sidebar-card eh-blog-cta">
-            <span class="eh-blog-kicker"><?php esc_html_e( 'Study smarter', 'examhub' ); ?></span>
-            <h2><?php esc_html_e( 'Turn reading into progress', 'examhub' ); ?></h2>
-            <p><?php esc_html_e( 'Use the blog for strategy, then jump into practice exams to apply what you learned immediately.', 'examhub' ); ?></p>
+            <span class="eh-blog-kicker"><?php esc_html_e( 'ذاكر بذكاء', 'examhub' ); ?></span>
+            <h2><?php esc_html_e( 'حوّل القراءة إلى تقدم حقيقي', 'examhub' ); ?></h2>
+            <p><?php esc_html_e( 'استخدم المدونة لاكتساب الاستراتيجية، ثم انتقل إلى الامتحانات التدريبية لتطبيق ما تعلمته فورًا.', 'examhub' ); ?></p>
             <a href="<?php echo esc_url( get_post_type_archive_link( 'eh_exam' ) ); ?>" class="btn btn-primary">
-              <?php esc_html_e( 'Explore exams', 'examhub' ); ?>
+              <?php esc_html_e( 'استعرض الامتحانات', 'examhub' ); ?>
             </a>
           </section>
         </div>

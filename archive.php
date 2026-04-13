@@ -41,7 +41,7 @@ $recent_posts        = new WP_Query(
 );
 
 if ( ! $archive_description ) {
-    $archive_description = __( 'A focused collection of articles to help you find the ideas, methods, and exam insights that match this topic.', 'examhub' );
+    $archive_description = __( 'مجموعة مركزة من المقالات تساعدك على الوصول إلى الأفكار والأساليب والنصائح المناسبة لهذا الموضوع.', 'examhub' );
 }
 ?>
 <section class="eh-blog-shell eh-blog-archive py-4 py-lg-5">
@@ -49,7 +49,7 @@ if ( ! $archive_description ) {
     <header class="eh-blog-hero mb-4 mb-lg-5">
       <div class="row g-4 align-items-end">
         <div class="col-lg-8">
-          <span class="eh-blog-kicker"><?php esc_html_e( 'Archive', 'examhub' ); ?></span>
+          <span class="eh-blog-kicker"><?php esc_html_e( 'الأرشيف', 'examhub' ); ?></span>
           <h1 class="eh-blog-hero-title"><?php echo esc_html( $archive_title ); ?></h1>
           <p class="eh-blog-hero-text mb-0"><?php echo esc_html( $archive_description ); ?></p>
         </div>
@@ -57,11 +57,11 @@ if ( ! $archive_description ) {
           <div class="eh-blog-hero-panel">
             <div class="eh-blog-hero-stat">
               <strong><?php echo esc_html( (string) $wp_query->found_posts ); ?></strong>
-              <span><?php esc_html_e( 'Matching posts', 'examhub' ); ?></span>
+              <span><?php esc_html_e( 'مقالة مطابقة', 'examhub' ); ?></span>
             </div>
             <div class="eh-blog-hero-stat">
               <strong><?php echo esc_html( get_post_type_object( 'post' )->labels->name ); ?></strong>
-              <span><?php esc_html_e( 'Content type', 'examhub' ); ?></span>
+              <span><?php esc_html_e( 'نوع المحتوى', 'examhub' ); ?></span>
             </div>
           </div>
         </div>
@@ -102,11 +102,11 @@ if ( ! $archive_description ) {
                       <span class="eh-blog-author-avatar"><?php echo get_avatar( get_the_author_meta( 'ID' ), 44 ); ?></span>
                       <div>
                         <strong><?php the_author(); ?></strong>
-                        <span><?php esc_html_e( 'Author', 'examhub' ); ?></span>
+                        <span><?php esc_html_e( 'الكاتب', 'examhub' ); ?></span>
                       </div>
                     </div>
                     <a class="eh-blog-readmore" href="<?php the_permalink(); ?>">
-                      <?php esc_html_e( 'Read article', 'examhub' ); ?>
+                      <?php esc_html_e( 'اقرأ المقال', 'examhub' ); ?>
                       <i class="bi bi-arrow-left-short"></i>
                     </a>
                   </div>
@@ -115,14 +115,14 @@ if ( ! $archive_description ) {
             <?php endwhile; ?>
           </div>
 
-          <nav class="eh-blog-pagination mt-4 mt-lg-5" aria-label="<?php esc_attr_e( 'Archive navigation', 'examhub' ); ?>">
+          <nav class="eh-blog-pagination mt-4 mt-lg-5" aria-label="<?php esc_attr_e( 'التنقل بين الأرشيف', 'examhub' ); ?>">
             <?php
             the_posts_pagination(
                 [
                     'mid_size'           => 1,
                     'prev_text'          => '<i class="bi bi-arrow-right"></i>',
                     'next_text'          => '<i class="bi bi-arrow-left"></i>',
-                    'screen_reader_text' => __( 'Archive navigation', 'examhub' ),
+                    'screen_reader_text' => __( 'التنقل بين الأرشيف', 'examhub' ),
                 ]
             );
             ?>
@@ -135,19 +135,19 @@ if ( ! $archive_description ) {
       <aside class="col-xl-4">
         <div class="eh-blog-sidebar">
           <section class="eh-blog-sidebar-card">
-            <h2><?php esc_html_e( 'Search the blog', 'examhub' ); ?></h2>
+            <h2><?php esc_html_e( 'ابحث في المدونة', 'examhub' ); ?></h2>
             <form role="search" method="get" class="eh-blog-search" action="<?php echo esc_url( home_url( '/' ) ); ?>">
-              <label class="screen-reader-text" for="eh-archive-search"><?php esc_html_e( 'Search for:', 'examhub' ); ?></label>
-              <input id="eh-archive-search" type="search" class="form-control" placeholder="<?php esc_attr_e( 'Search articles...', 'examhub' ); ?>" value="<?php echo esc_attr( get_search_query() ); ?>" name="s">
+              <label class="screen-reader-text" for="eh-archive-search"><?php esc_html_e( 'ابحث عن:', 'examhub' ); ?></label>
+              <input id="eh-archive-search" type="search" class="form-control" placeholder="<?php esc_attr_e( 'ابحث عن المقالات...', 'examhub' ); ?>" value="<?php echo esc_attr( get_search_query() ); ?>" name="s">
               <input type="hidden" name="post_type" value="post">
-              <button class="btn btn-primary" type="submit"><?php esc_html_e( 'Search', 'examhub' ); ?></button>
+              <button class="btn btn-primary" type="submit"><?php esc_html_e( 'بحث', 'examhub' ); ?></button>
             </form>
           </section>
 
           <section class="eh-blog-sidebar-card">
             <div class="eh-blog-sidebar-heading">
-              <h2><?php esc_html_e( 'Recent articles', 'examhub' ); ?></h2>
-              <span><?php esc_html_e( 'Keep reading', 'examhub' ); ?></span>
+              <h2><?php esc_html_e( 'أحدث المقالات', 'examhub' ); ?></h2>
+              <span><?php esc_html_e( 'واصل القراءة', 'examhub' ); ?></span>
             </div>
             <div class="eh-blog-mini-list">
               <?php if ( $recent_posts->have_posts() ) : ?>
@@ -164,8 +164,8 @@ if ( ! $archive_description ) {
 
           <section class="eh-blog-sidebar-card">
             <div class="eh-blog-sidebar-heading">
-              <h2><?php esc_html_e( 'Categories', 'examhub' ); ?></h2>
-              <span><?php esc_html_e( 'Explore more topics', 'examhub' ); ?></span>
+              <h2><?php esc_html_e( 'التصنيفات', 'examhub' ); ?></h2>
+              <span><?php esc_html_e( 'اكتشف المزيد من المواضيع', 'examhub' ); ?></span>
             </div>
             <div class="eh-blog-topic-cloud">
               <?php foreach ( get_categories( [ 'orderby' => 'name', 'order' => 'ASC', 'number' => 10 ] ) as $term ) : ?>
