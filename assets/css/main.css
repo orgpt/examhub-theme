@@ -1129,6 +1129,26 @@ img { max-width: 100%; height: auto; }
   font-size: .9rem;
 }
 
+.eh-landing-news-card {
+  height: 100%;
+}
+
+.eh-landing-news-card .eh-blog-card-media {
+  min-height: 220px;
+}
+
+.eh-landing-news-card .eh-blog-card-title {
+  font-size: 1.2rem;
+}
+
+.eh-landing-news-card .eh-blog-card-excerpt {
+  font-size: .95rem;
+}
+
+.eh-landing-news-card .eh-blog-card-footer {
+  justify-content: flex-start;
+}
+
 .eh-landing-final-cta {
   text-align: center;
   border: 1px solid var(--eh-border);

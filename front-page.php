@@ -11,6 +11,19 @@ get_header();
 $plans   = examhub_get_all_plans();
 $user_id = get_current_user_id();
 $sub     = $user_id ? examhub_get_user_subscription_status( $user_id ) : [ 'state' => 'free', 'plan_id' => null ];
+$blog_page    = get_page_by_path( 'blog' );
+$blog_url     = $blog_page ? get_permalink( $blog_page ) : home_url( '/blog' );
+$latest_posts = new WP_Query(
+  [
+    'post_type'              => 'post',
+    'post_status'            => 'publish',
+    'posts_per_page'         => 3,
+    'ignore_sticky_posts'    => true,
+    'no_found_rows'          => true,
+    'update_post_meta_cache' => false,
+    'update_post_term_cache' => false,
+  ]
+);
 
 usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_priority'] ?? 0) );
 ?>
@@ -143,6 +156,61 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
     </div>
   </section>
 
+  <?php if ( $latest_posts->have_posts() ) : ?>
+  <section class="eh-landing-news mt-5">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+      <div>
+        <span class="eh-blog-kicker mb-2">آخر الأخبار</span>
+        <h2 class="eh-landing-section-title mb-0">أحدث المقالات من المدونة</h2>
+      </div>
+      <a href="<?php echo esc_url( $blog_url ); ?>" class="btn btn-sm btn-ghost">عرض كل المقالات</a>
+    </div>
+
+    <div class="row g-4">
+      <?php while ( $latest_posts->have_posts() ) : $latest_posts->the_post(); ?>
+        <?php $category = get_the_category(); ?>
+        <div class="col-md-6 col-xl-4">
+          <article <?php post_class( 'eh-blog-card eh-landing-news-card' ); ?>>
+            <a class="eh-blog-card-media" href="<?php the_permalink(); ?>" aria-label="<?php the_title_attribute(); ?>">
+              <?php if ( has_post_thumbnail() ) : ?>
+                <?php the_post_thumbnail( 'medium_large', [ 'loading' => 'lazy' ] ); ?>
+              <?php else : ?>
+                <span class="eh-blog-card-placeholder">
+                  <i class="bi bi-newspaper"></i>
+                </span>
+              <?php endif; ?>
+            </a>
+
+            <div class="eh-blog-card-content">
+              <div class="eh-blog-card-meta">
+                <?php if ( ! empty( $category ) ) : ?>
+                  <a class="eh-blog-pill" href="<?php echo esc_url( get_category_link( $category[0]->term_id ) ); ?>">
+                    <?php echo esc_html( $category[0]->name ); ?>
+                  </a>
+                <?php endif; ?>
+                <span><i class="bi bi-calendar3"></i><?php echo esc_html( get_the_date() ); ?></span>
+              </div>
+
+              <h3 class="eh-blog-card-title">
+                <a href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+              </h3>
+
+              <p class="eh-blog-card-excerpt"><?php echo esc_html( wp_trim_words( get_the_excerpt(), 20 ) ); ?></p>
+
+              <div class="eh-blog-card-footer">
+                <a class="eh-blog-readmore" href="<?php the_permalink(); ?>">
+                  اقرأ المزيد
+                  <i class="bi bi-arrow-left-short"></i>
+                </a>
+              </div>
+            </div>
+          </article>
+        </div>
+      <?php endwhile; ?>
+    </div>
+  </section>
+  <?php endif; ?>
+
   <section class="eh-landing-final-cta mt-5">
     <h2>جاهز تبدأ التفوق؟</h2>
     <p>ابدأ الآن واختبر نفسك في آلاف الامتحانات المصممة على المنهج المصري.</p>
@@ -154,4 +222,5 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
 
 </div>
 
+<?php wp_reset_postdata(); ?>
 <?php get_footer(); ?>

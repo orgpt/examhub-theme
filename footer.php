@@ -2,6 +2,8 @@
 
 <?php
 $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'focus';
+$blog_page    = get_page_by_path( 'blog' );
+$blog_url     = $blog_page ? get_permalink( $blog_page ) : home_url( '/blog' );
 if ( ! $is_exam_mode ) :
 ?>
 <footer class="eh-footer" role="contentinfo">
@@ -45,6 +47,7 @@ if ( ! $is_exam_mode ) :
         <h6 class="text-light fw-bold mb-3"><?php esc_html_e( 'روابط سريعة', 'examhub' ); ?></h6>
         <ul class="list-unstyled mb-0 small">
           <li class="mb-2"><a href="<?php echo get_post_type_archive_link( 'eh_exam' ); ?>"><?php esc_html_e( 'الامتحانات', 'examhub' ); ?></a></li>
+          <li class="mb-2"><a href="<?php echo esc_url( $blog_url ); ?>"><?php esc_html_e( 'المدونة', 'examhub' ); ?></a></li>
           <li class="mb-2"><a href="<?php echo home_url( '/leaderboard' ); ?>"><?php esc_html_e( 'المتصدرون', 'examhub' ); ?></a></li>
           <li class="mb-2"><a href="<?php echo home_url( '/pricing' ); ?>"><?php esc_html_e( 'الاشتراك', 'examhub' ); ?></a></li>
           <li class="mb-2"><a href="<?php echo home_url( '/affiliate' ); ?>"><?php esc_html_e( 'الأفلييت', 'examhub' ); ?></a></li>
