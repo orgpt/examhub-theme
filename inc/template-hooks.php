@@ -67,7 +67,7 @@ add_action( 'wp_head', function() {
             $description = __( 'اختبر مستواك، اجمع XP، وتحدى أصحابك على امتحانكم.', 'examhub' );
         }
 
-        if ( has_post_thumbnail( $post_id ) ) {
+        if ( ! is_singular( 'eh_exam' ) && has_post_thumbnail( $post_id ) ) {
             $thumbnail = get_the_post_thumbnail_url( $post_id, 'full' );
             if ( $thumbnail ) {
                 $image = $thumbnail;
