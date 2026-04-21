@@ -54,6 +54,20 @@ $score_color = $pct >= $pass_pct ? 'var(--eh-success)' : 'var(--eh-danger)';
 $pass_label  = $passed ? __( 'ناجح', 'examhub' ) : __( 'راسب', 'examhub' );
 $status_label = $status === 'timed_out' ? __( 'انتهى الوقت', 'examhub' ) : __( 'تم التسليم', 'examhub' );
 $status_class = $status === 'timed_out' ? 'text-warning' : 'text-success';
+$exam_url = get_permalink( $exam_id );
+$facebook_share_text = sprintf(
+    __( 'حققت %1$s%% في اختبار %2$s على امتحانكم. هل تستطيع التفوق علي؟', 'examhub' ),
+    number_format_i18n( $pct, 0 ),
+    get_the_title( $exam_id )
+);
+$facebook_share_url = add_query_arg(
+    [
+        'u'       => $exam_url,
+        'quote'   => $facebook_share_text,
+        'hashtag' => '#امتحانكم',
+    ],
+    'https://www.facebook.com/sharer/sharer.php'
+);
 
 if ( ! function_exists( 'examhub_result_is_correct' ) ) {
     function examhub_result_is_correct( $detail ) {
@@ -267,7 +281,15 @@ get_header();
 
       <!-- Action buttons -->
       <div class="d-flex gap-2 flex-wrap justify-content-center">
-        <a href="<?php echo get_permalink( $exam_id ); ?>" class="btn btn-ghost">
+        <a href="<?php echo esc_url( $facebook_share_url ); ?>" class="btn eh-facebook-share-btn" target="_blank" rel="noopener noreferrer">
+          <span class="eh-facebook-share-icon"><i class="bi bi-facebook"></i></span>
+          <span class="eh-facebook-share-copy">
+            <strong><?php esc_html_e( 'تحدى أصحابك', 'examhub' ); ?></strong>
+            <small><?php esc_html_e( 'شارك نتيجتك على فيسبوك', 'examhub' ); ?></small>
+          </span>
+          <i class="bi bi-stars eh-facebook-share-spark"></i>
+        </a>
+        <a href="<?php echo esc_url( $exam_url ); ?>" class="btn btn-ghost">
           <i class="bi bi-arrow-repeat me-1"></i>
           <?php esc_html_e( 'إعادة الامتحان', 'examhub' ); ?>
         </a>
