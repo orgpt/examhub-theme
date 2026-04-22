@@ -20,10 +20,32 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
 
   <!-- Page header -->
   <div class="text-center mb-5">
-    <h1 class="fw-bold" style="font-size:2.2rem;"><?php esc_html_e( 'اختر خطتك', 'examhub' ); ?></h1>
+    <h1 class="fw-bold" style="font-size:2.2rem;"><?php esc_html_e( 'لفترة محدودة للثانوية العامة', 'examhub' ); ?></h1>
     <p class="text-muted" style="max-width:520px;margin:0 auto;">
       <?php esc_html_e( 'ابدأ مجاناً بـ امتحان واحد يومياً. اشترك للوصول الكامل لآلاف الامتحانات.', 'examhub' ); ?>
     </p>
+    <div class="eh-offer-countdown mt-4" data-countdown-duration="7200" aria-label="<?php echo esc_attr__( 'عرض لفترة محدودة ينتهي خلال ساعتين', 'examhub' ); ?>">
+      <div class="eh-offer-countdown-copy">
+        <span class="eh-offer-kicker"><?php esc_html_e( 'العرض يتجدد تلقائيًا', 'examhub' ); ?></span>
+        <strong><?php esc_html_e( 'خصم الثانوية العامة ينتهي خلال', 'examhub' ); ?></strong>
+      </div>
+      <div class="eh-offer-countdown-timer">
+        <div class="eh-countdown-unit">
+          <strong data-countdown-hours>02</strong>
+          <span><?php esc_html_e( 'ساعة', 'examhub' ); ?></span>
+        </div>
+        <div class="eh-countdown-separator">:</div>
+        <div class="eh-countdown-unit">
+          <strong data-countdown-minutes>00</strong>
+          <span><?php esc_html_e( 'دقيقة', 'examhub' ); ?></span>
+        </div>
+        <div class="eh-countdown-separator">:</div>
+        <div class="eh-countdown-unit">
+          <strong data-countdown-seconds>00</strong>
+          <span><?php esc_html_e( 'ثانية', 'examhub' ); ?></span>
+        </div>
+      </div>
+    </div>
 
     <?php if ( $user_id && $sub['state'] !== 'free' ) : ?>
     <div class="alert alert-info d-inline-flex align-items-center gap-2 mt-3 py-2 px-4" style="border-radius:20px;">
@@ -69,7 +91,7 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
     <?php foreach ( $plans as $plan ) :
       $is_current  = $user_id && $sub['plan_id'] === $plan['plan_slug'];
       $is_featured = ! empty( $plan['plan_featured'] );
-      $price       = (float) ( $plan['plan_price'] ?? 0 );
+      $offer       = examhub_get_plan_offer_prices( $plan );
       $duration    = (int)   ( $plan['plan_duration_days'] ?? 30 );
       $features    = array_filter( explode( "\n", $plan['plan_features_list'] ?? '' ) );
       ?>
@@ -80,9 +102,18 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
         <?php endif; ?>
 
         <div class="plan-name mt-3"><?php echo esc_html( $plan['plan_name_ar'] ?: $plan['plan_name'] ); ?></div>
+        <?php if ( $offer['discount'] ) : ?>
+          <div class="plan-discount-badge"><?php printf( esc_html__( 'خصم %s%%', 'examhub' ), esc_html( $offer['discount'] ) ); ?></div>
+        <?php endif; ?>
+        <?php if ( $offer['regular'] > $offer['current'] ) : ?>
+          <div class="plan-old-price">
+            <?php esc_html_e( 'بدلًا من', 'examhub' ); ?>
+            <del><?php echo esc_html( number_format_i18n( $offer['regular'] ) ); ?> <?php esc_html_e( 'جنيه', 'examhub' ); ?></del>
+          </div>
+        <?php endif; ?>
 
         <div class="plan-price mt-2">
-          <?php echo number_format( $price ); ?>
+          <?php echo number_format_i18n( $offer['current'] ); ?>
           <span>
             <?php esc_html_e( 'جنيه', 'examhub' ); ?>
             <?php if ( $duration ) echo ' / ' . $duration . ' ' . esc_html__( 'يوم', 'examhub' ); ?>
@@ -126,14 +157,13 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
           <a href="<?php echo esc_url( home_url( '/checkout?plan=' . esc_attr( $plan['plan_slug'] ) ) ); ?>"
              class="btn <?php echo $is_featured ? 'btn-primary' : 'btn-outline-primary'; ?> w-100">
             <?php
-            if ( $sub['state'] === 'free' ) esc_html_e( 'اشترك الآن', 'examhub' );
-            else esc_html_e( 'الترقية', 'examhub' );
+            esc_html_e( 'اشترك دلوقتي وابدأ فورًا', 'examhub' );
             ?>
           </a>
         <?php else : ?>
           <a href="<?php echo esc_url( wp_registration_url() . '?redirect_to=' . urlencode( home_url( '/checkout?plan=' . $plan['plan_slug'] ) ) ); ?>"
              class="btn <?php echo $is_featured ? 'btn-primary' : 'btn-outline-primary'; ?> w-100">
-            <?php esc_html_e( 'ابدأ الآن', 'examhub' ); ?>
+            <?php esc_html_e( 'اشترك دلوقتي وابدأ فورًا', 'examhub' ); ?>
           </a>
         <?php endif; ?>
       </div>

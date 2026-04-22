@@ -191,6 +191,37 @@ function examhub_get_all_plans() {
     return array_filter( $plans, fn( $p ) => ! empty( $p['plan_active'] ) );
 }
 
+/**
+ * Get the visual offer prices for a subscription plan.
+ *
+ * The active checkout price remains plan_price. The regular price can be
+ * supplied later via plan_regular_price/plan_before_discount_price, otherwise
+ * a rounded marketing price is derived for the limited-time offer display.
+ */
+function examhub_get_plan_offer_prices( $plan ) {
+    $current = (float) ( $plan['plan_price'] ?? 0 );
+    $regular = (float) (
+        $plan['plan_regular_price']
+        ?? $plan['plan_before_discount_price']
+        ?? $plan['plan_old_price']
+        ?? 0
+    );
+
+    if ( $current > 0 && $regular <= $current ) {
+        $regular = max( $current + 1, round( ( $current * 1.5 ) / 10 ) * 10 );
+    }
+
+    $discount = ( $regular > $current && $regular > 0 )
+        ? max( 1, round( ( ( $regular - $current ) / $regular ) * 100 ) )
+        : 0;
+
+    return [
+        'current'  => $current,
+        'regular'  => $regular,
+        'discount' => $discount,
+    ];
+}
+
 // ─── Daily Exam Limit ────────────────────────────────────────────────────────
 
 /**

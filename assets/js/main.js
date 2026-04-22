@@ -23,6 +23,7 @@
     initInvoiceHistory();
     initSubscriptionActions();
     initInstallPrompt();
+    initOfferCountdown();
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -422,6 +423,37 @@
     window.addEventListener('appinstalled', function () {
       persistInstallPromptDismissal();
     });
+  }
+
+  function initOfferCountdown() {
+    const countdowns = document.querySelectorAll('[data-countdown-duration]');
+    if (!countdowns.length) return;
+
+    const pad = value => String(value).padStart(2, '0');
+
+    const updateCountdowns = function () {
+      countdowns.forEach(function (countdown) {
+        const durationSeconds = parseInt(countdown.dataset.countdownDuration, 10) || 7200;
+        const cycleMs = durationSeconds * 1000;
+        const elapsed = Date.now() % cycleMs;
+        const remaining = Math.max(0, cycleMs - elapsed);
+        const totalSeconds = Math.ceil(remaining / 1000) % durationSeconds || durationSeconds;
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        const hoursEl = countdown.querySelector('[data-countdown-hours]');
+        const minutesEl = countdown.querySelector('[data-countdown-minutes]');
+        const secondsEl = countdown.querySelector('[data-countdown-seconds]');
+
+        if (hoursEl) hoursEl.textContent = pad(hours);
+        if (minutesEl) minutesEl.textContent = pad(minutes);
+        if (secondsEl) secondsEl.textContent = pad(seconds);
+      });
+    };
+
+    updateCountdowns();
+    window.setInterval(updateCountdowns, 1000);
   }
 
   function isMobileOrTablet() {

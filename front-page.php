@@ -97,8 +97,30 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
 
   <section class="eh-landing-pricing mt-5">
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-      <h2 class="eh-landing-section-title mb-0">خطط الأسعار</h2>
+      <h2 class="eh-landing-section-title mb-0">لفترة محدودة للثانوية العامة</h2>
       <a href="<?php echo esc_url( home_url( '/pricing' ) ); ?>" class="btn btn-sm btn-ghost">مقارنة كل الخطط</a>
+    </div>
+    <div class="eh-offer-countdown mb-4" data-countdown-duration="7200" aria-label="عرض لفترة محدودة ينتهي خلال ساعتين">
+      <div class="eh-offer-countdown-copy">
+        <span class="eh-offer-kicker">العرض يتجدد تلقائيًا</span>
+        <strong>خصم الثانوية العامة ينتهي خلال</strong>
+      </div>
+      <div class="eh-offer-countdown-timer">
+        <div class="eh-countdown-unit">
+          <strong data-countdown-hours>02</strong>
+          <span>ساعة</span>
+        </div>
+        <div class="eh-countdown-separator">:</div>
+        <div class="eh-countdown-unit">
+          <strong data-countdown-minutes>00</strong>
+          <span>دقيقة</span>
+        </div>
+        <div class="eh-countdown-separator">:</div>
+        <div class="eh-countdown-unit">
+          <strong data-countdown-seconds>00</strong>
+          <span>ثانية</span>
+        </div>
+      </div>
     </div>
 
     <div class="row g-4 justify-content-center">
@@ -122,7 +144,7 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
       <?php foreach ( array_slice( $plans, 0, 3 ) as $plan ) :
         $is_current  = $user_id && $sub['plan_id'] === $plan['plan_slug'];
         $is_featured = ! empty( $plan['plan_featured'] );
-        $price       = (float) ( $plan['plan_price'] ?? 0 );
+        $offer       = examhub_get_plan_offer_prices( $plan );
         $duration    = (int) ( $plan['plan_duration_days'] ?? 30 );
       ?>
       <div class="col-lg-3 col-md-6">
@@ -131,8 +153,14 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
             <div class="plan-badge">الأشهر</div>
           <?php endif; ?>
           <div class="plan-name mt-3"><?php echo esc_html( $plan['plan_name_ar'] ?: $plan['plan_name'] ); ?></div>
+          <?php if ( $offer['discount'] ) : ?>
+            <div class="plan-discount-badge">خصم <?php echo esc_html( $offer['discount'] ); ?>%</div>
+          <?php endif; ?>
+          <?php if ( $offer['regular'] > $offer['current'] ) : ?>
+            <div class="plan-old-price">بدلًا من <del><?php echo number_format_i18n( $offer['regular'] ); ?> جنيه</del></div>
+          <?php endif; ?>
           <div class="plan-price mt-2">
-            <?php echo number_format_i18n( $price ); ?>
+            <?php echo number_format_i18n( $offer['current'] ); ?>
             <span>جنيه<?php if ( $duration ) echo ' / ' . $duration . ' يوم'; ?></span>
           </div>
           <ul class="plan-features">
@@ -147,7 +175,7 @@ usort( $plans, fn($a, $b) => (int)($a['plan_priority'] ?? 0) - (int)($b['plan_pr
             <button class="btn btn-ghost w-100" disabled>خطتك الحالية</button>
           <?php else : ?>
             <a href="<?php echo esc_url( home_url( '/checkout?plan=' . esc_attr( $plan['plan_slug'] ) ) ); ?>" class="btn btn-primary w-100">
-              اشترك الآن
+              اشترك دلوقتي وابدأ فورًا
             </a>
           <?php endif; ?>
         </div>
