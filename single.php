@@ -20,6 +20,34 @@ while ( have_posts() ) :
     $reading_minutes = max( 1, (int) ceil( str_word_count( wp_strip_all_tags( get_the_content() ) ) / 200 ) );
     $posts_page_id   = (int) get_option( 'page_for_posts' );
     $blog_url        = $posts_page_id ? get_permalink( $posts_page_id ) : home_url( '/' );
+    $permalink       = get_permalink();
+    $encoded_url     = rawurlencode( $permalink );
+    $encoded_title   = rawurlencode( get_the_title() );
+    $content_data    = examhub_prepare_article_toc( apply_filters( 'the_content', get_the_content() ) );
+    $article_content = $content_data['content'];
+    $toc_items       = $content_data['items'];
+    $share_links     = [
+        [
+            'label' => __( 'فيسبوك', 'examhub' ),
+            'icon'  => 'bi-facebook',
+            'url'   => 'https://www.facebook.com/sharer/sharer.php?u=' . $encoded_url,
+        ],
+        [
+            'label' => __( 'X', 'examhub' ),
+            'icon'  => 'bi-twitter-x',
+            'url'   => 'https://twitter.com/intent/tweet?url=' . $encoded_url . '&text=' . $encoded_title,
+        ],
+        [
+            'label' => __( 'واتساب', 'examhub' ),
+            'icon'  => 'bi-whatsapp',
+            'url'   => 'https://wa.me/?text=' . $encoded_title . '%20' . $encoded_url,
+        ],
+        [
+            'label' => __( 'تيليجرام', 'examhub' ),
+            'icon'  => 'bi-telegram',
+            'url'   => 'https://t.me/share/url?url=' . $encoded_url . '&text=' . $encoded_title,
+        ],
+    ];
 
     $related_post_args = [
         'post_type'           => 'post',
@@ -75,15 +103,13 @@ while ( have_posts() ) :
                   </span>
                 </a>
                 <div class="eh-article-actions">
-                  <a class="eh-share-link" target="_blank" rel="noopener" href="<?php echo esc_url( 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode( get_permalink() ) ); ?>">
-                    <i class="bi bi-facebook"></i>
-                    <span><?php esc_html_e( 'مشاركة', 'examhub' ); ?></span>
-                  </a>
-                  <a class="eh-share-link" target="_blank" rel="noopener" href="<?php echo esc_url( 'https://twitter.com/intent/tweet?url=' . rawurlencode( get_permalink() ) . '&text=' . rawurlencode( get_the_title() ) ); ?>">
-                    <i class="bi bi-twitter-x"></i>
-                    <span><?php esc_html_e( 'نشر', 'examhub' ); ?></span>
-                  </a>
-                  <button type="button" class="eh-share-link" onclick="navigator.clipboard && navigator.clipboard.writeText('<?php echo esc_js( get_permalink() ); ?>');">
+                  <?php foreach ( $share_links as $share_link ) : ?>
+                    <a class="eh-share-link" target="_blank" rel="noopener" href="<?php echo esc_url( $share_link['url'] ); ?>">
+                      <i class="bi <?php echo esc_attr( $share_link['icon'] ); ?>"></i>
+                      <span><?php echo esc_html( $share_link['label'] ); ?></span>
+                    </a>
+                  <?php endforeach; ?>
+                  <button type="button" class="eh-share-link" data-share-copy="<?php echo esc_url( $permalink ); ?>">
                     <i class="bi bi-link-45deg"></i>
                     <span><?php esc_html_e( 'نسخ الرابط', 'examhub' ); ?></span>
                   </button>
@@ -111,7 +137,7 @@ while ( have_posts() ) :
             <div class="eh-article-body">
               <div class="entry-content">
                 <?php
-                the_content();
+                echo $article_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 
                 wp_link_pages(
                     [
@@ -176,6 +202,44 @@ while ( have_posts() ) :
 
           <aside class="col-xl-4">
             <div class="eh-blog-sidebar eh-blog-sidebar-sticky">
+              <?php if ( ! empty( $toc_items ) ) : ?>
+                <section class="eh-blog-sidebar-card eh-article-toc-card">
+                  <button class="eh-article-toc-toggle" type="button" aria-expanded="true" aria-controls="eh-article-toc">
+                    <span>
+                      <i class="bi bi-list-ul"></i>
+                      <?php esc_html_e( 'جدول المحتويات', 'examhub' ); ?>
+                    </span>
+                    <i class="bi bi-chevron-up"></i>
+                  </button>
+                  <nav id="eh-article-toc" class="eh-article-toc" aria-label="<?php esc_attr_e( 'جدول محتويات المقال', 'examhub' ); ?>">
+                    <?php foreach ( $toc_items as $toc_item ) : ?>
+                      <a class="eh-article-toc-link eh-article-toc-level-<?php echo esc_attr( $toc_item['level'] ); ?>" href="#<?php echo esc_attr( $toc_item['id'] ); ?>">
+                        <?php echo esc_html( $toc_item['title'] ); ?>
+                      </a>
+                    <?php endforeach; ?>
+                  </nav>
+                </section>
+              <?php endif; ?>
+
+              <section class="eh-blog-sidebar-card eh-article-share-card">
+                <div class="eh-blog-sidebar-heading">
+                  <h2><?php esc_html_e( 'شارك المقال', 'examhub' ); ?></h2>
+                  <span><?php esc_html_e( 'انشر الفائدة', 'examhub' ); ?></span>
+                </div>
+                <div class="eh-article-share-grid">
+                  <?php foreach ( $share_links as $share_link ) : ?>
+                    <a class="eh-share-link" target="_blank" rel="noopener" href="<?php echo esc_url( $share_link['url'] ); ?>">
+                      <i class="bi <?php echo esc_attr( $share_link['icon'] ); ?>"></i>
+                      <span><?php echo esc_html( $share_link['label'] ); ?></span>
+                    </a>
+                  <?php endforeach; ?>
+                  <button type="button" class="eh-share-link" data-share-copy="<?php echo esc_url( $permalink ); ?>">
+                    <i class="bi bi-link-45deg"></i>
+                    <span><?php esc_html_e( 'نسخ الرابط', 'examhub' ); ?></span>
+                  </button>
+                </div>
+              </section>
+
               <section class="eh-blog-sidebar-card">
                 <div class="eh-blog-sidebar-heading">
                   <h2><?php esc_html_e( 'عن الكاتب', 'examhub' ); ?></h2>

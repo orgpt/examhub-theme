@@ -24,6 +24,7 @@
     initSubscriptionActions();
     initInstallPrompt();
     initOfferCountdown();
+    initArticleTools();
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -454,6 +455,53 @@
 
     updateCountdowns();
     window.setInterval(updateCountdowns, 1000);
+  }
+
+  function initArticleTools() {
+    $(document).on('click', '.eh-article-toc-toggle', function () {
+      const $button = $(this);
+      const targetId = $button.attr('aria-controls');
+      const $toc = targetId ? $('#' + targetId) : $button.next('.eh-article-toc');
+      const expanded = $button.attr('aria-expanded') === 'true';
+
+      $button.attr('aria-expanded', expanded ? 'false' : 'true');
+      $button.closest('.eh-article-toc-card').toggleClass('is-collapsed', expanded);
+      $toc.prop('hidden', expanded);
+    });
+
+    $(document).on('click', '[data-share-copy]', function () {
+      const url = $(this).data('share-copy');
+      if (!url) return;
+
+      copyText(url).then(function () {
+        if (window.showToast) {
+          window.showToast('تم نسخ الرابط', 'success');
+        }
+      });
+    });
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      return navigator.clipboard.writeText(text);
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+      document.execCommand('copy');
+    } catch (error) {
+      // Older browsers may deny clipboard access; keep the UI usable.
+    }
+
+    document.body.removeChild(textarea);
+    return Promise.resolve();
   }
 
   function isMobileOrTablet() {

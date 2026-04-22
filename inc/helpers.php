@@ -401,6 +401,74 @@ function examhub_add_xp( $user_id, $amount, $reason = '' ) {
 // ─── Template Helpers ─────────────────────────────────────────────────────────
 
 /**
+ * Add stable heading anchors to article content and return table-of-contents items.
+ *
+ * @param string $content Filtered post content.
+ * @return array
+ */
+function examhub_prepare_article_toc( $content ) {
+    if ( ! is_string( $content ) || false === stripos( $content, '<h' ) ) {
+        return [
+            'content' => (string) $content,
+            'items'   => [],
+        ];
+    }
+
+    $items = [];
+    $used  = [];
+
+    $content = preg_replace_callback(
+        '/<h([2-4])\b([^>]*)>(.*?)<\/h\1>/is',
+        static function ( $matches ) use ( &$items, &$used ) {
+            $level        = (int) $matches[1];
+            $attributes   = (string) $matches[2];
+            $heading_html = (string) $matches[3];
+            $title        = trim( wp_strip_all_tags( $heading_html ) );
+
+            if ( '' === $title ) {
+                return $matches[0];
+            }
+
+            $id = '';
+            if ( preg_match( '/\sid=(["\'])(.*?)\1/i', $attributes, $id_match ) ) {
+                $id = sanitize_title( $id_match[2] );
+            }
+
+            if ( '' === $id || isset( $used[ $id ] ) ) {
+                $id = sanitize_title( $title );
+                if ( '' === $id ) {
+                    $id = 'article-section';
+                }
+            }
+
+            $base   = $id;
+            $suffix = 2;
+            while ( isset( $used[ $id ] ) ) {
+                $id = $base . '-' . $suffix;
+                $suffix++;
+            }
+            $used[ $id ] = true;
+
+            $items[] = [
+                'level' => $level,
+                'id'    => $id,
+                'title' => $title,
+            ];
+
+            $attributes = preg_replace( '/\sid=(["\']).*?\1/i', '', $attributes );
+
+            return '<h' . $level . $attributes . ' id="' . esc_attr( $id ) . '">' . $heading_html . '</h' . $level . '>';
+        },
+        $content
+    );
+
+    return [
+        'content' => $content,
+        'items'   => $items,
+    ];
+}
+
+/**
  * Get difficulty label in Arabic.
  */
 function examhub_difficulty_label( $difficulty ) {

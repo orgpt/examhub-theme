@@ -2216,6 +2216,7 @@ select[name="default_grade"]:focus {
 .eh-article .entry-content h4,
 .eh-article .entry-content h5,
 .eh-article .entry-content h6 {
+  scroll-margin-top: 110px;
   margin-top: 2rem;
   margin-bottom: .9rem;
   color: #fff;
@@ -2316,6 +2317,89 @@ button.eh-share-link {
   cursor: pointer;
 }
 
+.eh-article-share-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .65rem;
+}
+
+.eh-article-share-grid .eh-share-link {
+  justify-content: center;
+}
+
+.eh-article-toc-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.eh-article-toc-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 1.15rem;
+  border: 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  background: linear-gradient(135deg, rgba(67,97,238,.16), rgba(90,167,255,.07));
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.eh-article-toc-toggle span {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+}
+
+.eh-article-toc-toggle > .bi:last-child {
+  transition: transform .2s ease;
+}
+
+.eh-article-toc-card.is-collapsed .eh-article-toc-toggle > .bi:last-child {
+  transform: rotate(180deg);
+}
+
+.eh-article-toc {
+  display: grid;
+  gap: .35rem;
+  padding: 1rem;
+}
+
+.eh-article-toc[hidden] {
+  display: none;
+}
+
+.eh-article-toc-link {
+  display: block;
+  padding: .6rem .75rem;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: #cbd8ff;
+  line-height: 1.6;
+  text-decoration: none;
+}
+
+.eh-article-toc-link:hover,
+.eh-article-toc-link:focus {
+  border-color: rgba(90,167,255,.26);
+  background: rgba(90,167,255,.08);
+  color: #fff;
+}
+
+.eh-article-toc-level-3 {
+  margin-inline-start: .8rem;
+  font-size: .94rem;
+}
+
+.eh-article-toc-level-4 {
+  margin-inline-start: 1.45rem;
+  font-size: .9rem;
+  color: #aebdec;
+}
+
 .eh-article-facts div {
   display: grid;
   gap: .2rem;
@@ -2383,8 +2467,13 @@ button.eh-share-link {
 
   .eh-blog-search .form-control,
   .eh-blog-search .btn,
-  .eh-article-actions .eh-share-link {
+  .eh-article-actions .eh-share-link,
+  .eh-article-share-grid .eh-share-link {
     width: 100%;
+  }
+
+  .eh-article-share-grid {
+    grid-template-columns: 1fr;
   }
 
   .eh-blog-card-footer,
