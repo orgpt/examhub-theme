@@ -135,25 +135,6 @@ while ( have_posts() ) :
         <div class="row g-4 g-xl-5">
           <div class="col-xl-8">
             <div class="eh-article-body">
-              <?php if ( ! empty( $toc_items ) ) : ?>
-                <section class="eh-article-toc-card">
-                  <button class="eh-article-toc-toggle" type="button" aria-expanded="true" aria-controls="eh-article-toc">
-                    <span>
-                      <i class="bi bi-list-ul"></i>
-                      <?php esc_html_e( 'جدول المحتويات', 'examhub' ); ?>
-                    </span>
-                    <i class="bi bi-arrows-expand"></i>
-                  </button>
-                  <nav id="eh-article-toc" class="eh-article-toc" aria-label="<?php esc_attr_e( 'جدول محتويات المقال', 'examhub' ); ?>">
-                    <?php foreach ( $toc_items as $toc_item ) : ?>
-                      <a class="eh-article-toc-link eh-article-toc-level-<?php echo esc_attr( $toc_item['level'] ); ?>" href="#<?php echo esc_attr( $toc_item['id'] ); ?>">
-                        <?php echo esc_html( $toc_item['title'] ); ?>
-                      </a>
-                    <?php endforeach; ?>
-                  </nav>
-                </section>
-              <?php endif; ?>
-
               <div class="entry-content">
                 <?php
                 echo $article_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -221,6 +202,25 @@ while ( have_posts() ) :
 
           <aside class="col-xl-4">
             <div class="eh-blog-sidebar eh-blog-sidebar-sticky">
+              <?php if ( ! empty( $toc_items ) ) : ?>
+                <section class="eh-blog-sidebar-card eh-article-toc-card">
+                  <button class="eh-article-toc-toggle" type="button" aria-expanded="true" aria-controls="eh-article-toc">
+                    <span>
+                      <i class="bi bi-list-ul"></i>
+                      <?php esc_html_e( 'جدول المحتويات', 'examhub' ); ?>
+                    </span>
+                    <i class="bi bi-chevron-up"></i>
+                  </button>
+                  <nav id="eh-article-toc" class="eh-article-toc" aria-label="<?php esc_attr_e( 'جدول محتويات المقال', 'examhub' ); ?>">
+                    <?php foreach ( $toc_items as $toc_item ) : ?>
+                      <a class="eh-article-toc-link eh-article-toc-level-<?php echo esc_attr( $toc_item['level'] ); ?>" href="#<?php echo esc_attr( $toc_item['id'] ); ?>">
+                        <?php echo esc_html( $toc_item['title'] ); ?>
+                      </a>
+                    <?php endforeach; ?>
+                  </nav>
+                </section>
+              <?php endif; ?>
+
               <section class="eh-blog-sidebar-card eh-article-share-card">
                 <div class="eh-blog-sidebar-heading">
                   <h2><?php esc_html_e( 'شارك المقال', 'examhub' ); ?></h2>
