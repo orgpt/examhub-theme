@@ -26,7 +26,6 @@ usort( $plans, fn($a,$b) => (int)($a['plan_priority']??0) - (int)($b['plan_prior
     </p>
     <div class="eh-offer-countdown mt-4" data-countdown-duration="7200" aria-label="<?php echo esc_attr__( 'عرض لفترة محدودة ينتهي خلال ساعتين', 'examhub' ); ?>">
       <div class="eh-offer-countdown-copy">
-        <span class="eh-offer-kicker"><?php esc_html_e( 'العرض يتجدد تلقائيًا', 'examhub' ); ?></span>
         <strong><?php esc_html_e( 'خصم الثانوية العامة ينتهي خلال', 'examhub' ); ?></strong>
       </div>
       <div class="eh-offer-countdown-timer">
