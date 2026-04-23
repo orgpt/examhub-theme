@@ -20,6 +20,9 @@ $subject_id = (int) get_field( 'exam_subject', $exam_id );
 $subject_rtl = $subject_id ? (bool) get_field( 'subject_rtl', $subject_id ) : true;
 $page_dir = $subject_rtl ? 'rtl' : 'ltr';
 $body_classes = 'examhub-theme dark-theme exam-mode exam-subject-' . $page_dir;
+$prev_icon = $subject_rtl ? 'bi-chevron-right' : 'bi-chevron-left';
+$next_icon = $subject_rtl ? 'bi-chevron-left' : 'bi-chevron-right';
+$skip_icon = $next_icon;
 $ui = $subject_rtl ? [
     'exit_title'           => __( 'الخروج', 'examhub' ),
     'exit'                 => __( 'خروج', 'examhub' ),
@@ -340,20 +343,20 @@ if ( ! $subject_rtl ) {
       <!-- Nav buttons -->
       <div class="d-flex gap-2 align-items-center">
         <button class="btn btn-ghost" id="btn-prev" disabled>
-          <i class="bi bi-chevron-right"></i>
+          <i class="bi <?php echo esc_attr( $prev_icon ); ?>"></i>
           <span class="d-none d-sm-inline"><?php echo esc_html( $ui['previous'] ); ?></span>
         </button>
 
         <?php if ( $allow_skip ) : ?>
           <button class="btn btn-ghost btn-sm" id="btn-skip">
             <?php echo esc_html( $ui['skip'] ); ?>
-            <i class="bi bi-chevron-left"></i>
+            <i class="bi <?php echo esc_attr( $skip_icon ); ?>"></i>
           </button>
         <?php endif; ?>
 
         <button class="btn btn-primary" id="btn-next">
           <span class="d-none d-sm-inline"><?php echo esc_html( $ui['next'] ); ?></span>
-          <i class="bi bi-chevron-left"></i>
+          <i class="bi <?php echo esc_attr( $next_icon ); ?>"></i>
         </button>
       </div>
 

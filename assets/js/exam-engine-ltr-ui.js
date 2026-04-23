@@ -14,29 +14,6 @@
       .replace(/%s/g, () => values.shift() ?? '');
   }
 
-  function setText(selector, value) {
-    if (!value) return;
-    const $el = $(selector);
-    if ($el.length) {
-      $el.text(value);
-    }
-  }
-
-  function replaceTrailingText($el, value) {
-    if (!$el.length || !value) return;
-    const textNodes = $el.contents().filter(function() {
-      return this.nodeType === 3;
-    });
-
-    if (textNodes.length) {
-      textNodes.each(function() {
-        this.textContent = ' ' + value;
-      });
-    } else {
-      $el.append(document.createTextNode(' ' + value));
-    }
-  }
-
   function typeLabel(type) {
     const labels = {
       mcq: text('type_mcq'),
@@ -64,50 +41,48 @@
   }
 
   function translateStaticUi() {
-    setText('#review-label', text('review'));
-    setText('#btn-prev .d-none.d-sm-inline', text('previous'));
-    setText('#btn-next .d-none.d-sm-inline', text('next'));
-    setText('#btn-submit-exam .d-none.d-sm-inline', text('submit'));
-    setText('#q-navigator .eh-q-nav-header span:first', text('question_nav'));
-    setText('#autosave-indicator span', text('saved'));
-    setText('#submit-modal h4', text('submit_exam'));
-    setText('#btn-cancel-submit', text('review_action'));
-    setText('#submitting-overlay h5', text('grading'));
-
-    replaceTrailingText($('#btn-skip'), text('skip'));
-    replaceTrailingText($('#btn-confirm-submit'), text('final_submit'));
-    replaceTrailingText($('#submit-modal-review-warn'), text('review_warning'));
+    $('#review-label').text(text('review'));
+    $('#q-navigator .eh-q-nav-header span').first().text(text('question_nav'));
+    $('#autosave-indicator span').text(text('saved'));
+    $('#submit-modal h4').text(text('submit_exam'));
+    $('#btn-cancel-submit').text(text('review_action'));
+    $('#submitting-overlay h5').text(text('grading'));
 
     const $legend = $('#q-navigator .eh-q-nav-legend');
-    if ($legend.length && !$legend.data('ltrTranslated')) {
+    if ($legend.length) {
       $legend.html(
         `<span class="eh-dot answered"></span> ${text('answered')}
          <span class="eh-dot current ms-3"></span> ${text('current')}
          <span class="eh-dot review ms-3"></span> ${text('review')}
          <span class="eh-dot unanswered ms-3"></span> ${text('unanswered')}`
       );
-      $legend.data('ltrTranslated', true);
+    }
+
+    const $reviewWarn = $('#submit-modal-review-warn');
+    if ($reviewWarn.length) {
+      $reviewWarn.html(`<i class="bi bi-flag me-1"></i>${text('review_warning')}`);
+    }
+
+    const $confirm = $('#btn-confirm-submit');
+    if ($confirm.length) {
+      $confirm.html(`<i class="bi bi-check-circle me-1"></i>${text('final_submit')}`);
     }
   }
 
   function translateDynamicUi() {
-    const $typeBadge = $('#q-type-badge');
-    if ($typeBadge.length && currentQuestionMeta?.type) {
-      $typeBadge.text(typeLabel(currentQuestionMeta.type));
+    if (currentQuestionMeta?.type) {
+      $('#q-type-badge').text(typeLabel(currentQuestionMeta.type));
+    }
+
+    if (currentQuestionMeta?.difficulty) {
+      $('#q-diff-badge').text(diffLabel(currentQuestionMeta.difficulty));
     }
 
     const $points = $('#q-points-badge');
-    if ($points.length) {
-      const match = $points.text().trim().match(/^(\d+)/);
-      if (match) {
-        const count = Number(match[1]);
-        $points.text(`${count} ${count === 1 ? text('point_singular') : text('point_plural')}`);
-      }
-    }
-
-    const $diff = $('#q-diff-badge');
-    if ($diff.length && currentQuestionMeta?.difficulty) {
-      $diff.text(diffLabel(currentQuestionMeta.difficulty));
+    const pointMatch = $points.text().trim().match(/^(\d+)/);
+    if ($points.length && pointMatch) {
+      const count = Number(pointMatch[1]);
+      $points.text(`${count} ${count === 1 ? text('point_singular') : text('point_plural')}`);
     }
 
     $('.eh-tf-btn').each(function() {
@@ -116,10 +91,7 @@
     });
 
     $('.eh-match-right select').each(function() {
-      const $firstOption = $(this).find('option').first();
-      if ($firstOption.length) {
-        $firstOption.text(text('matching_placeholder'));
-      }
+      $(this).find('option').first().text(text('matching_placeholder'));
     });
 
     $('.eh-essay-textarea').attr('placeholder', text('essay_placeholder'));
@@ -136,7 +108,7 @@
       $('#btn-next').html(
         current >= total
           ? `<i class="bi bi-check-circle me-1"></i>${text('submit')}`
-          : `<span class="d-none d-sm-inline">${text('next')}</span><i class="bi bi-chevron-left"></i>`
+          : `<span class="d-none d-sm-inline">${text('next')}</span><i class="bi bi-chevron-right"></i>`
       );
     }
 
@@ -144,8 +116,8 @@
       $(this).attr('title', `${text('question_label')} ${index + 1}`);
     });
 
-    const answeredCount = Number($('#answered-count').text()) || 0;
     if ($('#submit-modal').is(':visible')) {
+      const answeredCount = Number($('#answered-count').text()) || 0;
       $('#submit-modal-answered').text(format(text('submit_modal_answered'), answeredCount, total));
 
       const unanswered = Math.max(0, total - answeredCount);
@@ -160,8 +132,7 @@
   }
 
   function bindExitOverride() {
-    $(document).off('click.examhubLtrExit', '#btn-exam-exit');
-    $(document).on('click.examhubLtrExit', '#btn-exam-exit', function(e) {
+    $('#btn-exam-exit').off('click.examhubLtrUi').on('click.examhubLtrUi', function(e) {
       e.preventDefault();
       e.stopImmediatePropagation();
 
@@ -171,11 +142,10 @@
     });
   }
 
-  function bindAjaxHooks() {
+  function bindHooks() {
     $(document).ajaxSuccess(function(_event, _xhr, settings, response) {
-      if (!settings?.data) return;
+      const payload = String(settings?.data || '');
 
-      const payload = String(settings.data);
       if (payload.includes('action=eh_load_question') && response?.data) {
         currentQuestionMeta = {
           type: response.data.type || '',
@@ -185,21 +155,9 @@
 
       window.setTimeout(translateDynamicUi, 0);
     });
-  }
 
-  function startObserver() {
-    const target = document.getElementById('eh-exam-app');
-    if (!target) return;
-
-    const observer = new MutationObserver(function() {
-      translateStaticUi();
-      translateDynamicUi();
-    });
-
-    observer.observe(target, {
-      childList: true,
-      subtree: true,
-      characterData: true
+    $('#btn-submit-exam, #btn-next, #btn-skip, #btn-q-nav-toggle').on('click.examhubLtrUi', function() {
+      window.setTimeout(translateDynamicUi, 0);
     });
   }
 
@@ -209,7 +167,6 @@
     translateStaticUi();
     translateDynamicUi();
     bindExitOverride();
-    bindAjaxHooks();
-    startObserver();
+    bindHooks();
   });
 })(jQuery);
