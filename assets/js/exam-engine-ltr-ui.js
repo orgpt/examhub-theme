@@ -70,6 +70,10 @@
   }
 
   function translateDynamicUi() {
+    $('.eh-answer-option .option-letter').each(function(index) {
+      $(this).text(String.fromCharCode(65 + index));
+    });
+
     if (currentQuestionMeta?.type) {
       $('#q-type-badge').text(typeLabel(currentQuestionMeta.type));
     }
@@ -86,7 +90,7 @@
     }
 
     $('.eh-tf-btn').each(function() {
-      const value = $(this).data('val');
+      const value = String($(this).attr('data-val') || $(this).data('val') || '');
       $(this).text(value === 'true' ? text('true_label') : text('false_label'));
     });
 
