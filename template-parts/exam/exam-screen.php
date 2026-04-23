@@ -16,6 +16,14 @@ if ( ! is_user_logged_in() ) {
 
 $exam_id = get_the_ID();
 $user_id = get_current_user_id();
+$subject_id = (int) get_field( 'exam_subject', $exam_id );
+$subject_rtl = $subject_id ? (bool) get_field( 'subject_rtl', $subject_id ) : true;
+$page_dir = $subject_rtl ? 'rtl' : 'ltr';
+$body_classes = 'examhub-theme dark-theme exam-mode exam-subject-' . $page_dir;
+
+if ( ! $subject_rtl ) {
+    $body_classes .= ' ltr en';
+}
 
 $access = examhub_verify_exam_access( $exam_id, $user_id );
 if ( is_wp_error( $access ) ) {
@@ -61,14 +69,14 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
 
 // Output minimal HTML — exam engine builds UI via JS
 ?><!DOCTYPE html>
-<html <?php language_attributes(); ?> dir="rtl">
+<html <?php language_attributes(); ?> dir="<?php echo esc_attr( $page_dir ); ?>">
 <head>
 <meta charset="<?php bloginfo( 'charset' ); ?>">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title><?php the_title(); ?> — <?php bloginfo( 'name' ); ?></title>
 <?php wp_head(); ?>
 </head>
-<body class="examhub-theme dark-theme exam-mode">
+<body class="<?php echo esc_attr( $body_classes ); ?>">
 <?php wp_body_open(); ?>
 
 <!-- ═══════════════════════════════════════════════════════════════════

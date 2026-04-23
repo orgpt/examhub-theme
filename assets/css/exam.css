@@ -145,6 +145,13 @@
   user-select: none;
   -webkit-user-select: none;
 }
+.exam-subject-ltr .eh-question-text,
+.exam-subject-ltr .eh-question-body-content,
+.exam-subject-ltr .eh-fill-blank-wrapper,
+.exam-subject-ltr .eh-essay-textarea {
+  direction: ltr;
+  text-align: left;
+}
 .eh-question-body-content {
   margin-top: 0.9rem;
   font-size: 1rem;
@@ -235,6 +242,9 @@
   user-select: none;
   -webkit-user-select: none;
 }
+.exam-subject-ltr .eh-answer-option {
+  text-align: left;
+}
 .eh-answer-option:hover {
   border-color: var(--eh-accent);
   background: var(--eh-accent-light);
@@ -258,6 +268,10 @@
   background: var(--eh-accent);
   color: #fff;
   border-color: var(--eh-accent);
+}
+.exam-subject-ltr .eh-answer-option img {
+  margin-right: 0 !important;
+  margin-left: auto;
 }
 /* After submit: correct / wrong */
 .eh-answer-option.correct {
@@ -404,6 +418,13 @@
   outline: none;
 }
 .eh-essay-word-count { font-size: 0.78rem; color: var(--eh-text-muted); margin-top: 0.4rem; text-align: left; }
+.exam-subject-ltr .eh-question-meta,
+.exam-subject-ltr .eh-question-timer,
+.exam-subject-ltr .eh-q-nav-header,
+.exam-subject-ltr .eh-q-nav-legend,
+.exam-subject-ltr .eh-q-dots {
+  direction: ltr;
+}
 
 /* ─── Explanation (post-submit) ──────────────────────────────────────────── */
 .eh-explanation-block {
