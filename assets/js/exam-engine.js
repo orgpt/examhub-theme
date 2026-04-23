@@ -9,6 +9,7 @@
   // ─── Config & State ─────────────────────────────────────────────────────────
   const C = window.examhubConfig || {};
   const AJAX = window.examhubAjax || {};
+  const I18N = C.i18n || {};
 
   const state = {
     resultId:      null,

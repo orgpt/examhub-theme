@@ -20,6 +20,45 @@ $subject_id = (int) get_field( 'exam_subject', $exam_id );
 $subject_rtl = $subject_id ? (bool) get_field( 'subject_rtl', $subject_id ) : true;
 $page_dir = $subject_rtl ? 'rtl' : 'ltr';
 $body_classes = 'examhub-theme dark-theme exam-mode exam-subject-' . $page_dir;
+$ui = $subject_rtl ? [
+    'exit_title'           => __( 'الخروج', 'examhub' ),
+    'exit'                 => __( 'خروج', 'examhub' ),
+    'loading_exam'         => __( 'جاري تحميل الامتحان...', 'examhub' ),
+    'review'               => __( 'للمراجعة', 'examhub' ),
+    'question_nav'         => __( 'التنقل بين الأسئلة', 'examhub' ),
+    'previous'             => __( 'السابق', 'examhub' ),
+    'skip'                 => __( 'تخطي', 'examhub' ),
+    'next'                 => __( 'التالي', 'examhub' ),
+    'submit'               => __( 'تسليم', 'examhub' ),
+    'answered'             => __( 'أجبت', 'examhub' ),
+    'current'              => __( 'الحالي', 'examhub' ),
+    'unanswered'           => __( 'لم تجب', 'examhub' ),
+    'saved'                => __( 'تم الحفظ', 'examhub' ),
+    'submit_exam'          => __( 'تسليم الامتحان؟', 'examhub' ),
+    'review_warning'       => __( 'لديك أسئلة موضوعة للمراجعة.', 'examhub' ),
+    'review_action'        => __( 'مراجعة', 'examhub' ),
+    'final_submit'         => __( 'تسليم نهائي', 'examhub' ),
+    'grading'              => __( 'جاري التصحيح...', 'examhub' ),
+] : [
+    'exit_title'           => 'Exit exam',
+    'exit'                 => 'Exit',
+    'loading_exam'         => 'Loading exam...',
+    'review'               => 'Review',
+    'question_nav'         => 'Question navigator',
+    'previous'             => 'Previous',
+    'skip'                 => 'Skip',
+    'next'                 => 'Next',
+    'submit'               => 'Submit',
+    'answered'             => 'Answered',
+    'current'              => 'Current',
+    'unanswered'           => 'Unanswered',
+    'saved'                => 'Saved',
+    'submit_exam'          => 'Submit exam?',
+    'review_warning'       => 'You have questions marked for review.',
+    'review_action'        => 'Review',
+    'final_submit'         => 'Final submit',
+    'grading'              => 'Grading...',
+];
 
 if ( ! $subject_rtl ) {
     $body_classes .= ' ltr en';
@@ -52,6 +91,70 @@ $js_config = [
     'nonce'            => wp_create_nonce( 'examhub_ajax' ),
     'exam_url'         => get_permalink( $exam_id ),
     'result_base_url'  => add_query_arg( 'result', '', get_permalink( $exam_id ) ),
+    'is_rtl'           => $subject_rtl,
+    'i18n'             => $subject_rtl ? [
+        'start_error'              => __( 'حدث خطأ في بدء الامتحان.', 'examhub' ),
+        'connection_error'         => __( 'تعذر الاتصال بالخادم. يرجى التحقق من الإنترنت.', 'examhub' ),
+        'point_singular'           => __( 'درجة', 'examhub' ),
+        'point_plural'             => __( 'درجات', 'examhub' ),
+        'true_label'               => 'صح ✓',
+        'false_label'              => 'خطأ ✕',
+        'matching_placeholder'     => '— اختر —',
+        'essay_placeholder'        => __( 'اكتب إجابتك هنا...', 'examhub' ),
+        'word_count_unit'          => __( 'كلمة', 'examhub' ),
+        'exit_confirm'             => __( 'هل تريد الخروج من الامتحان؟ سيتم حفظ تقدمك.', 'examhub' ),
+        'next_button'              => __( 'التالي', 'examhub' ),
+        'submit_button'            => __( 'تسليم', 'examhub' ),
+        'question_label'           => __( 'سؤال', 'examhub' ),
+        'submit_modal_answered'    => __( 'أجبت على %1$s من %2$s سؤال', 'examhub' ),
+        'submit_modal_unanswered'  => __( 'لم تجب على %s سؤال', 'examhub' ),
+        'submit_error'             => __( 'حدث خطأ. حاول مجدداً.', 'examhub' ),
+        'network_error'            => __( 'خطأ في الاتصال. يرجى التحقق من الإنترنت.', 'examhub' ),
+        'type_mcq'                 => __( 'اختيار متعدد', 'examhub' ),
+        'type_correct'             => __( 'الصحيح', 'examhub' ),
+        'type_true_false'          => __( 'صح/خطأ', 'examhub' ),
+        'type_fill_blank'          => __( 'اكمل', 'examhub' ),
+        'type_matching'            => __( 'مطابقة', 'examhub' ),
+        'type_ordering'            => __( 'ترتيب', 'examhub' ),
+        'type_essay'               => __( 'مقال', 'examhub' ),
+        'type_image'               => __( 'صورة', 'examhub' ),
+        'type_math'                => __( 'رياضيات', 'examhub' ),
+        'diff_easy'                => __( 'سهل', 'examhub' ),
+        'diff_medium'              => __( 'متوسط', 'examhub' ),
+        'diff_hard'                => __( 'صعب', 'examhub' ),
+        'back'                     => __( 'رجوع', 'examhub' ),
+    ] : [
+        'start_error'              => 'There was an error starting the exam.',
+        'connection_error'         => 'Unable to reach the server. Please check your internet connection.',
+        'point_singular'           => 'point',
+        'point_plural'             => 'points',
+        'true_label'               => 'True ✓',
+        'false_label'              => 'False ✕',
+        'matching_placeholder'     => '— Select —',
+        'essay_placeholder'        => 'Write your answer here...',
+        'word_count_unit'          => 'words',
+        'exit_confirm'             => 'Do you want to leave the exam? Your progress will be saved.',
+        'next_button'              => 'Next',
+        'submit_button'            => 'Submit',
+        'question_label'           => 'Question',
+        'submit_modal_answered'    => 'You answered %1$s of %2$s questions',
+        'submit_modal_unanswered'  => 'You left %s questions unanswered',
+        'submit_error'             => 'Something went wrong. Please try again.',
+        'network_error'            => 'Connection error. Please check your internet connection.',
+        'type_mcq'                 => 'Multiple choice',
+        'type_correct'             => 'Correct answer',
+        'type_true_false'          => 'True/False',
+        'type_fill_blank'          => 'Fill in the blank',
+        'type_matching'            => 'Matching',
+        'type_ordering'            => 'Ordering',
+        'type_essay'               => 'Essay',
+        'type_image'               => 'Image',
+        'type_math'                => 'Math',
+        'diff_easy'                => 'Easy',
+        'diff_medium'              => 'Medium',
+        'diff_hard'                => 'Hard',
+        'back'                     => 'Back',
+    ],
 ];
 
 $exam_css_ver = file_exists( EXAMHUB_DIR . '/assets/css/exam.css' )
@@ -60,12 +163,64 @@ $exam_css_ver = file_exists( EXAMHUB_DIR . '/assets/css/exam.css' )
 $exam_js_ver = file_exists( EXAMHUB_DIR . '/assets/js/exam-engine.js' )
     ? filemtime( EXAMHUB_DIR . '/assets/js/exam-engine.js' )
     : EXAMHUB_VERSION;
+$exam_ltr_js_ver = file_exists( EXAMHUB_DIR . '/assets/js/exam-engine-ltr-ui.js' )
+    ? filemtime( EXAMHUB_DIR . '/assets/js/exam-engine-ltr-ui.js' )
+    : EXAMHUB_VERSION;
 
 // Enqueue exam CSS + JS
 wp_enqueue_style(  'examhub-exam', EXAMHUB_ASSETS . 'css/exam.css', [], $exam_css_ver );
 wp_enqueue_script( 'sortablejs', 'https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js', [], '1.15.2', true );
 wp_enqueue_script( 'examhub-exam-engine', EXAMHUB_ASSETS . 'js/exam-engine.js', [ 'jquery', 'sortablejs' ], $exam_js_ver, true );
 wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
+
+if ( ! $subject_rtl ) {
+    wp_enqueue_script( 'examhub-exam-ltr-ui', EXAMHUB_ASSETS . 'js/exam-engine-ltr-ui.js', [ 'jquery', 'examhub-exam-engine' ], $exam_ltr_js_ver, true );
+    wp_localize_script( 'examhub-exam-ltr-ui', 'examhubExamLtrUi', [
+        'review'                 => $ui['review'],
+        'previous'               => $ui['previous'],
+        'next'                   => $ui['next'],
+        'submit'                 => $ui['submit'],
+        'skip'                   => $ui['skip'],
+        'question_nav'           => $ui['question_nav'],
+        'answered'               => $ui['answered'],
+        'current'                => $ui['current'],
+        'unanswered'             => $ui['unanswered'],
+        'saved'                  => $ui['saved'],
+        'submit_exam'            => $ui['submit_exam'],
+        'review_warning'         => $ui['review_warning'],
+        'review_action'          => $ui['review_action'],
+        'final_submit'           => $ui['final_submit'],
+        'grading'                => $ui['grading'],
+        'point_singular'         => 'point',
+        'point_plural'           => 'points',
+        'type_mcq'               => 'Multiple choice',
+        'type_correct'           => 'Correct answer',
+        'type_true_false'        => 'True/False',
+        'type_fill_blank'        => 'Fill in the blank',
+        'type_matching'          => 'Matching',
+        'type_ordering'          => 'Ordering',
+        'type_essay'             => 'Essay',
+        'type_image'             => 'Image',
+        'type_math'              => 'Math',
+        'diff_easy'              => 'Easy',
+        'diff_medium'            => 'Medium',
+        'diff_hard'              => 'Hard',
+        'true_label'             => 'True ✓',
+        'false_label'            => 'False ✕',
+        'matching_placeholder'   => '— Select —',
+        'essay_placeholder'      => 'Write your answer here...',
+        'word_count_unit'        => 'words',
+        'exit_confirm'           => 'Do you want to leave the exam? Your progress will be saved.',
+        'submit_modal_answered'  => 'You answered %1$s of %2$s questions',
+        'submit_modal_unanswered'=> 'You left %s questions unanswered',
+        'question_label'         => 'Question',
+        'back'                   => 'Back',
+        'start_error'            => 'There was an error starting the exam.',
+        'connection_error'       => 'Unable to reach the server. Please check your internet connection.',
+        'submit_error'           => 'Something went wrong. Please try again.',
+        'network_error'          => 'Connection error. Please check your internet connection.',
+    ] );
+}
 
 // Output minimal HTML — exam engine builds UI via JS
 ?><!DOCTYPE html>
@@ -89,9 +244,9 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
     <div class="eh-exam-header-inner">
 
       <!-- Exit button -->
-      <button id="btn-exam-exit" class="btn btn-ghost btn-sm" title="<?php esc_attr_e( 'الخروج', 'examhub' ); ?>">
+      <button id="btn-exam-exit" class="btn btn-ghost btn-sm" title="<?php echo esc_attr( $ui['exit_title'] ); ?>">
         <i class="bi bi-x-lg"></i>
-        <span class="d-none d-md-inline ms-1"><?php esc_html_e( 'خروج', 'examhub' ); ?></span>
+        <span class="d-none d-md-inline ms-1"><?php echo esc_html( $ui['exit'] ); ?></span>
       </button>
 
       <!-- Title + progress -->
@@ -122,7 +277,7 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
     <!-- Loading state (shown while JS initialises) -->
     <div id="exam-loading" class="eh-exam-loading-screen">
       <div class="eh-loading-spinner"></div>
-      <p class="mt-3 text-muted"><?php esc_html_e( 'جاري تحميل الامتحان...', 'examhub' ); ?></p>
+      <p class="mt-3 text-muted"><?php echo esc_html( $ui['loading_exam'] ); ?></p>
     </div>
 
     <!-- Question container (rendered by JS) -->
@@ -136,7 +291,7 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
         <?php if ( $allow_review ) : ?>
           <button class="btn btn-ghost btn-sm eh-review-btn" id="btn-mark-review">
             <i class="bi bi-flag me-1" id="review-icon"></i>
-            <span id="review-label"><?php esc_html_e( 'للمراجعة', 'examhub' ); ?></span>
+            <span id="review-label"><?php echo esc_html( $ui['review'] ); ?></span>
           </button>
         <?php endif; ?>
       </div>
@@ -177,7 +332,7 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
     <div class="eh-exam-footer-inner">
 
       <!-- Question dot navigator -->
-      <button class="btn btn-ghost btn-sm" id="btn-q-nav-toggle" title="<?php esc_attr_e( 'التنقل بين الأسئلة', 'examhub' ); ?>">
+      <button class="btn btn-ghost btn-sm" id="btn-q-nav-toggle" title="<?php echo esc_attr( $ui['question_nav'] ); ?>">
         <i class="bi bi-grid-3x3-gap"></i>
         <span id="answered-count" class="badge badge-accent ms-1">0</span>
       </button>
@@ -186,18 +341,18 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
       <div class="d-flex gap-2 align-items-center">
         <button class="btn btn-ghost" id="btn-prev" disabled>
           <i class="bi bi-chevron-right"></i>
-          <span class="d-none d-sm-inline"><?php esc_html_e( 'السابق', 'examhub' ); ?></span>
+          <span class="d-none d-sm-inline"><?php echo esc_html( $ui['previous'] ); ?></span>
         </button>
 
         <?php if ( $allow_skip ) : ?>
           <button class="btn btn-ghost btn-sm" id="btn-skip">
-            <?php esc_html_e( 'تخطي', 'examhub' ); ?>
+            <?php echo esc_html( $ui['skip'] ); ?>
             <i class="bi bi-chevron-left"></i>
           </button>
         <?php endif; ?>
 
         <button class="btn btn-primary" id="btn-next">
-          <span class="d-none d-sm-inline"><?php esc_html_e( 'التالي', 'examhub' ); ?></span>
+          <span class="d-none d-sm-inline"><?php echo esc_html( $ui['next'] ); ?></span>
           <i class="bi bi-chevron-left"></i>
         </button>
       </div>
@@ -205,7 +360,7 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
       <!-- Submit -->
       <button class="btn btn-success" id="btn-submit-exam">
         <i class="bi bi-check-circle me-1"></i>
-        <span class="d-none d-sm-inline"><?php esc_html_e( 'تسليم', 'examhub' ); ?></span>
+        <span class="d-none d-sm-inline"><?php echo esc_html( $ui['submit'] ); ?></span>
       </button>
 
     </div>
@@ -214,14 +369,14 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
   <!-- Question navigator panel (shown on toggle) -->
   <div class="eh-q-navigator" id="q-navigator" style="display:none;">
     <div class="eh-q-nav-header">
-      <span><?php esc_html_e( 'التنقل بين الأسئلة', 'examhub' ); ?></span>
+      <span><?php echo esc_html( $ui['question_nav'] ); ?></span>
       <button class="btn btn-ghost btn-sm" id="btn-close-nav"><i class="bi bi-x"></i></button>
     </div>
     <div class="eh-q-nav-legend">
-      <span class="eh-dot answered"></span> <?php esc_html_e( 'أجبت', 'examhub' ); ?>
-      <span class="eh-dot current ms-3"></span> <?php esc_html_e( 'الحالي', 'examhub' ); ?>
-      <span class="eh-dot review ms-3"></span> <?php esc_html_e( 'للمراجعة', 'examhub' ); ?>
-      <span class="eh-dot unanswered ms-3"></span> <?php esc_html_e( 'لم تجب', 'examhub' ); ?>
+      <span class="eh-dot answered"></span> <?php echo esc_html( $ui['answered'] ); ?>
+      <span class="eh-dot current ms-3"></span> <?php echo esc_html( $ui['current'] ); ?>
+      <span class="eh-dot review ms-3"></span> <?php echo esc_html( $ui['review'] ); ?>
+      <span class="eh-dot unanswered ms-3"></span> <?php echo esc_html( $ui['unanswered'] ); ?>
     </div>
     <div class="eh-q-dots" id="q-dots"></div>
   </div>
@@ -229,25 +384,25 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
   <!-- Autosave indicator -->
   <div id="autosave-indicator" class="eh-autosave-indicator" style="display:none;">
     <i class="bi bi-cloud-check me-1"></i>
-    <span><?php esc_html_e( 'تم الحفظ', 'examhub' ); ?></span>
+    <span><?php echo esc_html( $ui['saved'] ); ?></span>
   </div>
 
   <!-- Submit confirm modal -->
   <div class="eh-modal-overlay" id="submit-modal" style="display:none;">
     <div class="eh-modal-box">
       <div class="eh-modal-icon text-success"><i class="bi bi-check-circle fs-1"></i></div>
-      <h4 class="text-light mb-2"><?php esc_html_e( 'تسليم الامتحان؟', 'examhub' ); ?></h4>
+      <h4 class="text-light mb-2"><?php echo esc_html( $ui['submit_exam'] ); ?></h4>
       <p class="text-muted mb-1" id="submit-modal-answered"></p>
       <p class="text-muted small" id="submit-modal-unanswered"></p>
       <div id="submit-modal-review-warn" class="alert alert-warning small py-2" style="display:none;">
         <i class="bi bi-flag me-1"></i>
-        <?php esc_html_e( 'لديك أسئلة موضوعة للمراجعة.', 'examhub' ); ?>
+        <?php echo esc_html( $ui['review_warning'] ); ?>
       </div>
       <div class="d-flex gap-2 justify-content-center mt-4">
-        <button class="btn btn-ghost" id="btn-cancel-submit"><?php esc_html_e( 'مراجعة', 'examhub' ); ?></button>
+        <button class="btn btn-ghost" id="btn-cancel-submit"><?php echo esc_html( $ui['review_action'] ); ?></button>
         <button class="btn btn-success px-4" id="btn-confirm-submit">
           <i class="bi bi-check-circle me-1"></i>
-          <?php esc_html_e( 'تسليم نهائي', 'examhub' ); ?>
+          <?php echo esc_html( $ui['final_submit'] ); ?>
         </button>
       </div>
     </div>
@@ -257,7 +412,7 @@ wp_localize_script( 'examhub-exam-engine', 'examhubConfig', $js_config );
   <div class="eh-modal-overlay" id="submitting-overlay" style="display:none;">
     <div class="eh-modal-box text-center">
       <div class="eh-loading mb-3" style="width:40px;height:40px;border-width:3px;"></div>
-      <h5 class="text-light"><?php esc_html_e( 'جاري التصحيح...', 'examhub' ); ?></h5>
+      <h5 class="text-light"><?php echo esc_html( $ui['grading'] ); ?></h5>
     </div>
   </div>
 
