@@ -388,6 +388,31 @@
   font-size: 1.1rem;
   flex-shrink: 0;
 }
+.eh-ordering-text {
+  flex: 1;
+}
+.eh-ordering-actions {
+  display: flex;
+  gap: 0.35rem;
+  margin-inline-start: auto;
+}
+.eh-ordering-move {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--eh-border);
+  background: var(--eh-bg-secondary);
+  color: var(--eh-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--eh-transition);
+}
+.eh-ordering-move:hover {
+  border-color: var(--eh-accent);
+  color: var(--eh-accent);
+}
 .eh-ordering-num {
   width: 28px; height: 28px;
   border-radius: 50%;

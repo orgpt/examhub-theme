@@ -358,26 +358,56 @@
         <li class="eh-ordering-item" data-item="${escHtml(item)}">
           <span class="drag-handle"><i class="bi bi-grip-vertical"></i></span>
           <span class="eh-ordering-num">${i+1}</span>
-          <span>${escHtml(item)}</span>
+          <span class="eh-ordering-text">${escHtml(item)}</span>
+          <div class="eh-ordering-actions">
+            <button type="button" class="eh-ordering-move" data-dir="up" aria-label="Move up">
+              <i class="bi bi-chevron-up"></i>
+            </button>
+            <button type="button" class="eh-ordering-move" data-dir="down" aria-label="Move down">
+              <i class="bi bi-chevron-down"></i>
+            </button>
+          </div>
         </li>
       `);
       $list.append($li);
     });
     $area.append($list);
 
-    if (typeof Sortable !== 'undefined') {
-      Sortable.create(document.getElementById('eh-ordering-list'), {
+    const syncOrderingState = () => {
+      const order = [];
+      $list.find('.eh-ordering-item').each(function(i) {
+        $(this).find('.eh-ordering-num').text(i + 1);
+        order.push($(this).data('item'));
+      });
+      state.answers[q.id] = order;
+      state.answered.add(q.id);
+      saveAnswer(q.id, order, 'ordering');
+    };
+
+    $list.on('click', '.eh-ordering-move', function() {
+      const dir = $(this).data('dir');
+      const $item = $(this).closest('.eh-ordering-item');
+      if (dir === 'up') {
+        const $prev = $item.prev('.eh-ordering-item');
+        if ($prev.length) {
+          $item.insertBefore($prev);
+          syncOrderingState();
+        }
+      } else if (dir === 'down') {
+        const $next = $item.next('.eh-ordering-item');
+        if ($next.length) {
+          $item.insertAfter($next);
+          syncOrderingState();
+        }
+      }
+    });
+
+    if (typeof Sortable !== 'undefined' && $list[0]) {
+      Sortable.create($list[0], {
         animation: 200,
         handle: '.drag-handle',
         onEnd() {
-          const order = [];
-          $('#eh-ordering-list .eh-ordering-item').each(function(i) {
-            $(this).find('.eh-ordering-num').text(i + 1);
-            order.push($(this).data('item'));
-          });
-          state.answers[q.id] = order;
-          state.answered.add(q.id);
-          saveAnswer(q.id, order, 'ordering');
+          syncOrderingState();
         }
       });
     }
