@@ -192,6 +192,14 @@
       })
       .forEach((node) => node.remove());
 
+    Array.from(doc.querySelectorAll('p, div, li, span'))
+      .filter((node) => /^\s*\d+[\.\-\)]\s+/.test((node.textContent || '').trim()))
+      .forEach((node) => node.remove());
+
+    Array.from(doc.querySelectorAll('p, div'))
+      .filter((node) => !(node.textContent || '').replace(/\s+/g, ' ').trim())
+      .forEach((node) => node.remove());
+
     return doc.innerHTML.trim();
   }
 
