@@ -740,13 +740,17 @@ function examhub_render_admin_analytics_page() {
             <div class="postbox">
                 <div class="inside">
                     <h2><?php esc_html_e( 'User Activity', 'examhub' ); ?></h2>
-                    <canvas id="eh-analytics-users-chart" height="120"></canvas>
+                    <div class="eh-admin-chart-wrap">
+                        <canvas id="eh-analytics-users-chart"></canvas>
+                    </div>
                 </div>
             </div>
             <div class="postbox">
                 <div class="inside">
                     <h2><?php esc_html_e( 'Revenue and Exam Activity', 'examhub' ); ?></h2>
-                    <canvas id="eh-analytics-business-chart" height="120"></canvas>
+                    <div class="eh-admin-chart-wrap">
+                        <canvas id="eh-analytics-business-chart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -939,7 +943,12 @@ function examhub_render_admin_analytics_page() {
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
                 }
             });
         }
@@ -974,6 +983,11 @@ function examhub_render_admin_analytics_page() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    },
                     scales: {
                         y: {
                             beginAtZero: true,
