@@ -197,6 +197,40 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
             }
         }
 
+        if ( function_exists( 'examhub_get_subscription_status_from_latest_payment' ) ) {
+            $payment_status = examhub_get_subscription_status_from_latest_payment( $user_id );
+            if ( ! empty( $payment_status ) ) {
+                $plan    = $payment_status['plan'];
+                $plan_id = $payment_status['plan_id'];
+
+                update_user_meta( $user_id, 'eh_active_plan_id', $plan_id );
+                update_user_meta( $user_id, 'eh_sub_expires', $payment_status['end_dt'] ?: 'lifetime' );
+
+                if ( 'lifetime' === $payment_status['state'] ) {
+                    update_user_meta( $user_id, 'eh_lifetime', 1 );
+                } else {
+                    delete_user_meta( $user_id, 'eh_lifetime' );
+                }
+
+                return [
+                    'state'              => $payment_status['state'],
+                    'plan_name'          => $plan['plan_name_ar'] ?? $plan['plan_name'] ?? $plan_id,
+                    'plan_id'            => $plan_id,
+                    'subscription_id'    => 0,
+                    'expires_at'         => $payment_status['end_dt'],
+                    'days_left'          => $payment_status['days_left'],
+                    'unlimited'          => (bool) ( $plan['plan_unlimited'] ?? false ),
+                    'ai_access'          => (bool) ( $plan['plan_ai_access'] ?? false ),
+                    'explanation_access' => (bool) ( $plan['plan_explanation_access'] ?? true ),
+                    'download_access'    => (bool) ( $plan['plan_download_access'] ?? false ),
+                    'leaderboard_access' => (bool) ( $plan['plan_leaderboard_access'] ?? true ),
+                    'exams_limit'        => (int) ( $plan['plan_exams_limit'] ?? $plan['plan_questions_limit'] ?? 9999 ),
+                    'questions_limit'    => (int) ( $plan['plan_exams_limit'] ?? $plan['plan_questions_limit'] ?? 9999 ),
+                    'attempts_limit'     => (int) ( $plan['plan_attempts_limit'] ?? 0 ),
+                ];
+            }
+        }
+
         delete_user_meta( $user_id, 'eh_active_sub_id' );
         delete_user_meta( $user_id, 'eh_active_plan_id' );
         delete_user_meta( $user_id, 'eh_sub_expires' );

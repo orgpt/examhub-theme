@@ -181,6 +181,83 @@ function examhub_restore_subscription_from_latest_payment( $user_id ) {
 }
 
 /**
+ * Build an active subscription-style payload directly from the latest paid payment.
+ *
+ * @param int $user_id
+ * @return array|null
+ */
+function examhub_get_subscription_status_from_latest_payment( $user_id ) {
+    $payments = get_posts( [
+        'post_type'      => 'eh_payment',
+        'posts_per_page' => 1,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+        'post_status'    => 'publish',
+        'meta_query'     => [
+            [
+                'key'   => 'pay_user_id',
+                'value' => $user_id,
+                'type'  => 'NUMERIC',
+            ],
+            [
+                'key'   => 'payment_status',
+                'value' => 'paid',
+            ],
+        ],
+    ] );
+
+    if ( empty( $payments ) ) {
+        $payments = get_posts( [
+            'post_type'      => 'eh_payment',
+            'author'         => $user_id,
+            'posts_per_page' => 1,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'post_status'    => 'publish',
+            'meta_query'     => [
+                [
+                    'key'   => 'payment_status',
+                    'value' => 'paid',
+                ],
+            ],
+        ] );
+    }
+
+    if ( empty( $payments ) ) {
+        return null;
+    }
+
+    $payment    = $payments[0];
+    $payment_id = (int) $payment->ID;
+    $plan_id    = function_exists( 'examhub_get_plan_slug_from_meta' ) ? examhub_get_plan_slug_from_meta( $payment_id, 'pay_plan_id' ) : get_field( 'pay_plan_id', $payment_id );
+    $plan       = examhub_get_plan_by_id( $plan_id );
+
+    if ( ! $plan ) {
+        return null;
+    }
+
+    $duration    = (int) ( $plan['plan_duration_days'] ?? 30 );
+    $is_lifetime = $duration <= 0;
+    $start_dt    = $payment->post_date ?: current_time( 'mysql' );
+    $end_dt      = $is_lifetime ? null : date( 'Y-m-d H:i:s', strtotime( "+{$duration} days", strtotime( $start_dt ) ) );
+
+    if ( ! $is_lifetime && strtotime( $end_dt ) < current_time( 'timestamp' ) ) {
+        return null;
+    }
+
+    return [
+        'payment_id'     => $payment_id,
+        'plan_id'        => $plan_id,
+        'plan'           => $plan,
+        'state'          => $is_lifetime ? 'lifetime' : 'active',
+        'start_dt'       => $start_dt,
+        'end_dt'         => $end_dt,
+        'days_left'      => $is_lifetime ? 9999 : max( 0, (int) ceil( ( strtotime( $end_dt ) - time() ) / DAY_IN_SECONDS ) ),
+        'subscription_id'=> 0,
+    ];
+}
+
+/**
  * Cancel existing active subscription for a user.
  */
 function examhub_cancel_existing_subscription( $user_id, $reason = 'upgraded' ) {
