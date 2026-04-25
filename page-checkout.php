@@ -212,7 +212,6 @@ get_header();
           <span class="eh-proof-instruction-badge"><?php echo esc_js( __( 'تحويل يدوي آمن', 'examhub' ) ); ?></span>
         </div>
         <div class="eh-proof-instruction-line"><strong>InstaPay ID:</strong> <code><?php echo esc_js( get_field( 'instapay_username', 'option' ) ); ?></code></div>
-        <div class="eh-proof-instruction-text"><?php echo esc_js( __( 'حوّل المبلغ أولاً، ثم أضف رقم المرجع ورقم الهاتف وأرفق صورة الإيصال.', 'examhub' ) ); ?></div>
       </div>`
     },
     bank_transfer: {
