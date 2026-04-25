@@ -370,6 +370,200 @@ function examhub_ajax_admin_reject_payment() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+add_action( 'admin_menu', 'examhub_register_manual_payment_admin_page' );
+function examhub_register_manual_payment_admin_page() {
+    add_submenu_page(
+        'edit.php?post_type=eh_payment',
+        __( 'Add Manual Subscription', 'examhub' ),
+        __( 'Add Manual Subscription', 'examhub' ),
+        'edit_eh_payments',
+        'examhub-manual-payment',
+        'examhub_render_manual_payment_admin_page'
+    );
+}
+
+add_filter( 'views_edit-eh_payment', 'examhub_add_manual_payment_view_link' );
+function examhub_add_manual_payment_view_link( $views ) {
+    if ( ! current_user_can( 'edit_eh_payments' ) ) {
+        return $views;
+    }
+
+    $views['manual_subscription'] = sprintf(
+        '<a href="%s">%s</a>',
+        esc_url( admin_url( 'edit.php?post_type=eh_payment&page=examhub-manual-payment' ) ),
+        esc_html__( 'Add Manual Subscription', 'examhub' )
+    );
+
+    return $views;
+}
+
+function examhub_render_manual_payment_admin_page() {
+    if ( ! current_user_can( 'edit_eh_payments' ) ) {
+        wp_die( esc_html__( 'You are not allowed to access this page.', 'examhub' ) );
+    }
+
+    $plans   = function_exists( 'examhub_get_all_plans' ) ? examhub_get_all_plans() : [];
+    $success = isset( $_GET['manual_added'] ) ? sanitize_text_field( wp_unslash( $_GET['manual_added'] ) ) : '';
+    $error   = isset( $_GET['manual_error'] ) ? sanitize_text_field( wp_unslash( $_GET['manual_error'] ) ) : '';
+    $payment = isset( $_GET['payment_id'] ) ? absint( $_GET['payment_id'] ) : 0;
+    $sub     = isset( $_GET['sub_id'] ) ? absint( $_GET['sub_id'] ) : 0;
+    ?>
+    <div class="wrap">
+        <h1><?php esc_html_e( 'Add Manual Subscription', 'examhub' ); ?></h1>
+        <p><?php esc_html_e( 'Create a paid payment record manually and activate a subscription for a user immediately.', 'examhub' ); ?></p>
+
+        <?php if ( '1' === $success ) : ?>
+            <div class="notice notice-success is-dismissible">
+                <p><?php echo esc_html( sprintf( __( 'Manual subscription created successfully. Payment #%1$d and subscription #%2$d are now active.', 'examhub' ), $payment, $sub ) ); ?></p>
+            </div>
+        <?php endif; ?>
+
+        <?php if ( $error ) : ?>
+            <div class="notice notice-error is-dismissible"><p><?php echo esc_html( $error ); ?></p></div>
+        <?php endif; ?>
+
+        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+            <?php wp_nonce_field( 'examhub_create_manual_payment', 'examhub_manual_payment_nonce' ); ?>
+            <input type="hidden" name="action" value="examhub_create_manual_payment">
+
+            <table class="form-table" role="presentation">
+                <tbody>
+                    <tr>
+                        <th scope="row"><label for="examhub-manual-user"><?php esc_html_e( 'User', 'examhub' ); ?></label></th>
+                        <td>
+                            <?php
+                            wp_dropdown_users( [
+                                'name'              => 'user_id',
+                                'id'                => 'examhub-manual-user',
+                                'show_option_none'  => __( 'Select a user', 'examhub' ),
+                                'option_none_value' => '',
+                                'selected'          => 0,
+                                'class'             => 'regular-text',
+                            ] );
+                            ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="examhub-manual-plan"><?php esc_html_e( 'Plan', 'examhub' ); ?></label></th>
+                        <td>
+                            <select name="plan_id" id="examhub-manual-plan" class="regular-text" required>
+                                <option value=""><?php esc_html_e( 'Select a plan', 'examhub' ); ?></option>
+                                <?php foreach ( $plans as $plan ) : ?>
+                                    <?php
+                                    $plan_slug  = sanitize_text_field( $plan['plan_slug'] ?? '' );
+                                    $plan_name  = $plan['plan_name_ar'] ?? $plan['plan_name'] ?? $plan_slug;
+                                    $plan_price = isset( $plan['plan_price'] ) ? (float) $plan['plan_price'] : 0;
+                                    if ( '' === $plan_slug ) {
+                                        continue;
+                                    }
+                                    ?>
+                                    <option value="<?php echo esc_attr( $plan_slug ); ?>"><?php echo esc_html( sprintf( '%s - %.2f', $plan_name, $plan_price ) ); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="description"><?php esc_html_e( 'Only active subscription plans are listed here.', 'examhub' ); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="examhub-manual-amount"><?php esc_html_e( 'Amount (EGP)', 'examhub' ); ?></label></th>
+                        <td>
+                            <input type="number" step="0.01" min="0" name="amount_egp" id="examhub-manual-amount" class="regular-text" placeholder="0.00">
+                            <p class="description"><?php esc_html_e( 'Leave empty to use the plan price.', 'examhub' ); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="examhub-manual-transaction"><?php esc_html_e( 'Reference / Transaction ID', 'examhub' ); ?></label></th>
+                        <td><input type="text" name="transaction_id" id="examhub-manual-transaction" class="regular-text"></td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="examhub-manual-notes"><?php esc_html_e( 'Admin Notes', 'examhub' ); ?></label></th>
+                        <td><textarea name="admin_notes" id="examhub-manual-notes" rows="5" class="large-text"></textarea></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <?php submit_button( __( 'Create Payment and Activate Subscription', 'examhub' ) ); ?>
+        </form>
+    </div>
+    <?php
+}
+
+add_action( 'admin_post_examhub_create_manual_payment', 'examhub_handle_manual_payment_admin_post' );
+function examhub_handle_manual_payment_admin_post() {
+    if ( ! current_user_can( 'edit_eh_payments' ) ) {
+        wp_die( esc_html__( 'You are not allowed to do this action.', 'examhub' ) );
+    }
+
+    check_admin_referer( 'examhub_create_manual_payment', 'examhub_manual_payment_nonce' );
+
+    $redirect_url = admin_url( 'edit.php?post_type=eh_payment&page=examhub-manual-payment' );
+    $user_id      = isset( $_POST['user_id'] ) ? absint( $_POST['user_id'] ) : 0;
+    $plan_id      = isset( $_POST['plan_id'] ) ? sanitize_text_field( wp_unslash( $_POST['plan_id'] ) ) : '';
+    $amount_raw   = isset( $_POST['amount_egp'] ) ? wp_unslash( $_POST['amount_egp'] ) : '';
+    $amount_egp   = '' === $amount_raw ? null : (float) $amount_raw;
+    $transaction  = isset( $_POST['transaction_id'] ) ? sanitize_text_field( wp_unslash( $_POST['transaction_id'] ) ) : '';
+    $admin_notes  = isset( $_POST['admin_notes'] ) ? sanitize_textarea_field( wp_unslash( $_POST['admin_notes'] ) ) : '';
+
+    $user = $user_id ? get_userdata( $user_id ) : false;
+    $plan = $plan_id ? examhub_get_plan_by_id( $plan_id ) : null;
+
+    if ( ! $user ) {
+        wp_safe_redirect( add_query_arg( 'manual_error', __( 'Please choose a valid user.', 'examhub' ), $redirect_url ) );
+        exit;
+    }
+
+    if ( ! $plan || empty( $plan['plan_active'] ) ) {
+        wp_safe_redirect( add_query_arg( 'manual_error', __( 'Please choose a valid active plan.', 'examhub' ), $redirect_url ) );
+        exit;
+    }
+
+    if ( null === $amount_egp ) {
+        $amount_egp = (float) ( $plan['plan_price'] ?? 0 );
+    }
+
+    $payment_id = examhub_create_payment( [
+        'user_id'         => $user_id,
+        'pay_user_id'     => $user_id,
+        'pay_plan_id'     => $plan_id,
+        'amount_egp'      => max( 0, $amount_egp ),
+        'payment_method'  => 'admin_manual',
+        'payment_status'  => 'pending',
+        'transaction_id'  => $transaction,
+        'admin_notes'     => $admin_notes,
+        'tax_amount'      => 0,
+        'processing_fee'  => 0,
+    ] );
+
+    if ( is_wp_error( $payment_id ) ) {
+        wp_safe_redirect( add_query_arg( 'manual_error', $payment_id->get_error_message() , $redirect_url ) );
+        exit;
+    }
+
+    wp_update_post( [
+        'ID'         => $payment_id,
+        'post_title' => sprintf( 'دفعة - %s - مستخدم %d - %s', $plan_id, $user_id, current_time( 'Y-m-d H:i:s' ) ),
+    ] );
+
+    if ( ! examhub_mark_payment_paid( $payment_id, $transaction ) ) {
+        wp_safe_redirect( add_query_arg( 'manual_error', __( 'The payment was created, but the subscription could not be activated.', 'examhub' ), $redirect_url ) );
+        exit;
+    }
+
+    $sub_id = (int) get_user_meta( $user_id, 'eh_active_sub_id', true );
+    examhub_log_payment_event( $payment_id, 'admin_manual_subscription_created', [
+        'admin_id' => get_current_user_id(),
+        'user_id'  => $user_id,
+        'plan_id'  => $plan_id,
+        'sub_id'   => $sub_id,
+    ] );
+
+    wp_safe_redirect( add_query_arg( [
+        'manual_added' => '1',
+        'payment_id'   => $payment_id,
+        'sub_id'       => $sub_id,
+    ], $redirect_url ) );
+    exit;
+}
+
 // PAYMENT LOGS
 // ═══════════════════════════════════════════════════════════════════════════════
 
