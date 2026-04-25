@@ -95,7 +95,7 @@ function examhub_notify_admin_pending_payment( $payment_id ) {
     $user         = get_userdata( $user_id );
     $method       = get_field( 'payment_method', $payment_id );
     $amount       = get_field( 'amount_egp', $payment_id );
-    $plan_id      = get_field( 'pay_plan_id', $payment_id );
+    $plan_id      = function_exists( 'examhub_get_plan_slug_from_meta' ) ? examhub_get_plan_slug_from_meta( $payment_id, 'pay_plan_id' ) : get_field( 'pay_plan_id', $payment_id );
     $admin_url    = admin_url( "post.php?post={$payment_id}&action=edit" );
 
     wp_mail(

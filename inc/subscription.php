@@ -79,6 +79,87 @@ function examhub_activate_subscription( $user_id, $plan_id, $payment_id = 0 ) {
 }
 
 /**
+ * Rebuild a missing active subscription from the latest paid payment.
+ *
+ * @param int $user_id
+ * @return int|false|WP_Error
+ */
+function examhub_restore_subscription_from_latest_payment( $user_id ) {
+    $payments = get_posts( [
+        'post_type'      => 'eh_payment',
+        'author'         => $user_id,
+        'posts_per_page' => 1,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
+        'post_status'    => 'publish',
+        'meta_query'     => [
+            [
+                'key'   => 'payment_status',
+                'value' => 'paid',
+            ],
+        ],
+    ] );
+
+    if ( empty( $payments ) ) {
+        return false;
+    }
+
+    $payment    = $payments[0];
+    $payment_id = (int) $payment->ID;
+    $plan_id    = function_exists( 'examhub_get_plan_slug_from_meta' ) ? examhub_get_plan_slug_from_meta( $payment_id, 'pay_plan_id' ) : get_field( 'pay_plan_id', $payment_id );
+    $plan       = examhub_get_plan_by_id( $plan_id );
+
+    if ( ! $plan ) {
+        return false;
+    }
+
+    $duration    = (int) ( $plan['plan_duration_days'] ?? 30 );
+    $is_lifetime = $duration <= 0;
+    $start_dt    = $payment->post_date ?: current_time( 'mysql' );
+    $start_ts    = strtotime( $start_dt );
+    $end_dt      = $is_lifetime ? null : date( 'Y-m-d H:i:s', strtotime( "+{$duration} days", $start_ts ) );
+
+    if ( ! $is_lifetime && strtotime( $end_dt ) < current_time( 'timestamp' ) ) {
+        return false;
+    }
+
+    $sub_id = wp_insert_post( [
+        'post_type'   => 'eh_subscription',
+        'post_title'  => sprintf( 'اشتراك - %s - مستخدم %d', $plan['plan_name'] ?? $plan_id, $user_id ),
+        'post_status' => 'publish',
+        'post_author' => $user_id,
+    ] );
+
+    if ( is_wp_error( $sub_id ) ) {
+        return $sub_id;
+    }
+
+    update_field( 'sub_user_id', $user_id, $sub_id );
+    update_field( 'plan_name', $plan['plan_name'] ?? '', $sub_id );
+    update_field( 'plan_id', $plan_id, $sub_id );
+    update_field( 'sub_status', $is_lifetime ? 'lifetime' : 'active', $sub_id );
+    update_field( 'sub_start_date', $start_dt, $sub_id );
+    update_field( 'sub_end_date', $end_dt, $sub_id );
+    update_field( 'sub_payment_id', $payment_id, $sub_id );
+    update_field( 'daily_questions_used', 0, $sub_id );
+    update_field( 'daily_reset_date', current_time( 'Y-m-d' ), $sub_id );
+
+    update_user_meta( $user_id, 'eh_active_sub_id', $sub_id );
+    update_user_meta( $user_id, 'eh_active_plan_id', $plan_id );
+    update_user_meta( $user_id, 'eh_sub_expires', $end_dt ?: 'lifetime' );
+
+    if ( $is_lifetime ) {
+        update_user_meta( $user_id, 'eh_lifetime', 1 );
+    } else {
+        delete_user_meta( $user_id, 'eh_lifetime' );
+    }
+
+    examhub_log( "Subscription restored from payment: user={$user_id} plan={$plan_id} payment={$payment_id} sub={$sub_id}" );
+
+    return $sub_id;
+}
+
+/**
  * Cancel existing active subscription for a user.
  */
 function examhub_cancel_existing_subscription( $user_id, $reason = 'upgraded' ) {
@@ -201,7 +282,7 @@ function examhub_ajax_get_invoice_history() {
             'method'     => get_field( 'payment_method', $p->ID ),
             'status'     => get_field( 'payment_status', $p->ID ),
             'invoice_url'=> get_field( 'invoice_url', $p->ID ),
-            'plan'       => get_field( 'pay_plan_id', $p->ID ),
+            'plan'       => function_exists( 'examhub_get_plan_slug_from_meta' ) ? examhub_get_plan_slug_from_meta( $p->ID, 'pay_plan_id' ) : get_field( 'pay_plan_id', $p->ID ),
         ];
     }
 

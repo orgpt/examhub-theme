@@ -216,7 +216,9 @@ function examhub_get_enabled_payment_methods() {
  */
 function examhub_mark_payment_paid( $payment_id, $transaction_id = '' ) {
     $user_id = (int) get_field( 'pay_user_id', $payment_id );
-    $plan_id = get_field( 'pay_plan_id', $payment_id );
+    $plan_id = function_exists( 'examhub_get_plan_slug_from_meta' )
+        ? examhub_get_plan_slug_from_meta( $payment_id, 'pay_plan_id' )
+        : sanitize_text_field( (string) get_post_meta( $payment_id, 'pay_plan_id', true ) );
 
     if ( ! $user_id || ! $plan_id ) return false;
 
@@ -224,15 +226,15 @@ function examhub_mark_payment_paid( $payment_id, $transaction_id = '' ) {
     $current_status = get_field( 'payment_status', $payment_id );
     if ( $current_status === 'paid' ) return true;
 
-    update_field( 'payment_status',  'paid',          $payment_id );
-    update_field( 'transaction_id',  $transaction_id, $payment_id );
-
     $sub_id = examhub_activate_subscription( $user_id, $plan_id, $payment_id );
 
     if ( is_wp_error( $sub_id ) ) {
         examhub_log( "Failed to activate subscription after payment {$payment_id}: " . $sub_id->get_error_message() );
         return false;
     }
+
+    update_field( 'payment_status',  'paid',          $payment_id );
+    update_field( 'transaction_id',  $transaction_id, $payment_id );
 
     do_action( 'examhub_payment_paid', $payment_id, $user_id, $plan_id );
 

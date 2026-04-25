@@ -607,7 +607,7 @@ function examhub_register_acf_fields() {
         'fields' => [
             [ 'key' => 'field_sub_user_id',     'label' => 'المستخدم',        'name' => 'sub_user_id',     'type' => 'number' ],
             [ 'key' => 'field_sub_plan_name',   'label' => 'اسم الخطة',       'name' => 'plan_name',       'type' => 'text' ],
-            [ 'key' => 'field_sub_plan_id',     'label' => 'معرف الخطة',       'name' => 'plan_id',         'type' => 'number' ],
+            [ 'key' => 'field_sub_plan_id',     'label' => 'معرف الخطة',       'name' => 'plan_id',         'type' => 'text' ],
             [ 'key' => 'field_sub_status',      'label' => 'الحالة',          'name' => 'sub_status',      'type' => 'select',
               'choices' => [ 'active' => 'نشط', 'expired' => 'منتهي', 'cancelled' => 'ملغي', 'pending' => 'معلق', 'trial' => 'تجريبي', 'lifetime' => 'مدى الحياة' ] ],
             [ 'key' => 'field_sub_start',       'label' => 'تاريخ البداية',   'name' => 'sub_start_date',  'type' => 'date_time_picker' ],
@@ -628,7 +628,7 @@ function examhub_register_acf_fields() {
         'title'  => 'بيانات الدفع',
         'fields' => [
             [ 'key' => 'field_pay_user',        'label' => 'المستخدم',       'name' => 'pay_user_id',      'type' => 'number' ],
-            [ 'key' => 'field_pay_plan',        'label' => 'الخطة',          'name' => 'pay_plan_id',      'type' => 'number' ],
+            [ 'key' => 'field_pay_plan',        'label' => 'الخطة',          'name' => 'pay_plan_id',      'type' => 'text' ],
             [ 'key' => 'field_pay_amount',      'label' => 'المبلغ (جنيه)', 'name' => 'amount_egp',       'type' => 'number' ],
             [ 'key' => 'field_pay_method',      'label' => 'طريقة الدفع',    'name' => 'payment_method',   'type' => 'select',
               'choices' => [ 'fawaterk' => 'Fawaterk', 'vodafone_cash' => 'Vodafone Cash', 'bank_transfer' => 'حوالة بنكية', 'instapay' => 'InstaPay', 'wallet' => 'محفظة' ] ],

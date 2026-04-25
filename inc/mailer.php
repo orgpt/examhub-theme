@@ -168,7 +168,7 @@ function examhub_send_payment_created_email( $payment_id, $data = [] ) {
         return;
     }
 
-    $plan_id = $data['plan_id'] ?? get_field( 'pay_plan_id', $payment_id );
+    $plan_id = $data['plan_id'] ?? ( function_exists( 'examhub_get_plan_slug_from_meta' ) ? examhub_get_plan_slug_from_meta( $payment_id, 'pay_plan_id' ) : get_field( 'pay_plan_id', $payment_id ) );
     $plan    = function_exists( 'examhub_get_plan_by_id' ) ? examhub_get_plan_by_id( $plan_id ) : null;
     $amount  = isset( $data['amount'] ) ? (float) $data['amount'] : (float) get_field( 'amount_egp', $payment_id );
     $method  = $data['method'] ?? get_field( 'payment_method', $payment_id );

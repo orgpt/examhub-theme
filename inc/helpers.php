@@ -8,6 +8,34 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/**
+ * Read a plan slug from post meta, with fallback to raw meta values.
+ *
+ * Some older field definitions stored plan slugs in ACF number fields, so we
+ * fall back to the underlying post meta when ACF returns an empty value.
+ *
+ * @param int    $post_id
+ * @param string $meta_key
+ * @return string
+ */
+function examhub_get_plan_slug_from_meta( $post_id, $meta_key ) {
+    $value = get_field( $meta_key, $post_id );
+
+    if ( is_scalar( $value ) ) {
+        $value = sanitize_text_field( (string) $value );
+        if ( '' !== $value ) {
+            return $value;
+        }
+    }
+
+    $raw_value = get_post_meta( $post_id, $meta_key, true );
+    if ( is_scalar( $raw_value ) ) {
+        return sanitize_text_field( (string) $raw_value );
+    }
+
+    return '';
+}
+
 // ─── Subscription Status ──────────────────────────────────────────────────────
 
 /**
@@ -122,6 +150,13 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
     ] );
 
     if ( empty( $subs ) ) {
+        if ( function_exists( 'examhub_restore_subscription_from_latest_payment' ) ) {
+            $restored = examhub_restore_subscription_from_latest_payment( $user_id );
+            if ( $restored && ! is_wp_error( $restored ) ) {
+                return examhub_get_user_subscription_status( $user_id );
+            }
+        }
+
         delete_user_meta( $user_id, 'eh_active_sub_id' );
         delete_user_meta( $user_id, 'eh_active_plan_id' );
         delete_user_meta( $user_id, 'eh_sub_expires' );
@@ -132,8 +167,12 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
     $sub        = $subs[0];
     $status     = get_field( 'sub_status', $sub->ID );
     $end_date   = get_field( 'sub_end_date', $sub->ID );
-    $plan_id    = get_field( 'plan_id', $sub->ID );
     $payment_id = (int) get_field( 'sub_payment_id', $sub->ID );
+    $plan_id    = examhub_get_plan_slug_from_meta( $sub->ID, 'plan_id' );
+
+    if ( '' === $plan_id && $payment_id ) {
+        $plan_id = examhub_get_plan_slug_from_meta( $payment_id, 'pay_plan_id' );
+    }
 
     if ( $payment_id && 'refunded' === get_field( 'payment_status', $payment_id ) ) {
         update_field( 'sub_status', 'cancelled', $sub->ID );
