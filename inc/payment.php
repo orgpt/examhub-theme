@@ -287,9 +287,13 @@ function examhub_mark_payment_refunded( $payment_id, $reason = '' ) {
         'post_type'      => 'eh_subscription',
         'post_status'    => 'publish',
         'posts_per_page' => -1,
-        'author'         => $user_id,
         'meta_query'     => [
             'relation' => 'AND',
+            [
+                'key'   => 'sub_user_id',
+                'value' => $user_id,
+                'type'  => 'NUMERIC',
+            ],
             [
                 'key'   => 'sub_payment_id',
                 'value' => $payment_id,
@@ -301,6 +305,27 @@ function examhub_mark_payment_refunded( $payment_id, $reason = '' ) {
             ],
         ],
     ] );
+
+    if ( empty( $subs ) ) {
+        $subs = get_posts( [
+            'post_type'      => 'eh_subscription',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'author'         => $user_id,
+            'meta_query'     => [
+                'relation' => 'AND',
+                [
+                    'key'   => 'sub_payment_id',
+                    'value' => $payment_id,
+                ],
+                [
+                    'key'     => 'sub_status',
+                    'value'   => [ 'active', 'trial', 'lifetime' ],
+                    'compare' => 'IN',
+                ],
+            ],
+        ] );
+    }
 
     foreach ( $subs as $sub ) {
         update_field( 'sub_status', 'cancelled', $sub->ID );

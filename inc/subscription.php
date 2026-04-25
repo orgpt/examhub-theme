@@ -87,18 +87,39 @@ function examhub_activate_subscription( $user_id, $plan_id, $payment_id = 0 ) {
 function examhub_restore_subscription_from_latest_payment( $user_id ) {
     $payments = get_posts( [
         'post_type'      => 'eh_payment',
-        'author'         => $user_id,
         'posts_per_page' => 1,
         'orderby'        => 'date',
         'order'          => 'DESC',
         'post_status'    => 'publish',
         'meta_query'     => [
             [
+                'key'   => 'pay_user_id',
+                'value' => $user_id,
+                'type'  => 'NUMERIC',
+            ],
+            [
                 'key'   => 'payment_status',
                 'value' => 'paid',
             ],
         ],
     ] );
+
+    if ( empty( $payments ) ) {
+        $payments = get_posts( [
+            'post_type'      => 'eh_payment',
+            'author'         => $user_id,
+            'posts_per_page' => 1,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'post_status'    => 'publish',
+            'meta_query'     => [
+                [
+                    'key'   => 'payment_status',
+                    'value' => 'paid',
+                ],
+            ],
+        ] );
+    }
 
     if ( empty( $payments ) ) {
         return false;
@@ -165,12 +186,23 @@ function examhub_restore_subscription_from_latest_payment( $user_id ) {
 function examhub_cancel_existing_subscription( $user_id, $reason = 'upgraded' ) {
     $subs = get_posts( [
         'post_type'      => 'eh_subscription',
-        'author'         => $user_id,
         'posts_per_page' => 5,
         'meta_query'     => [
+            [ 'key' => 'sub_user_id', 'value' => $user_id, 'type' => 'NUMERIC' ],
             [ 'key' => 'sub_status', 'value' => [ 'active', 'trial' ], 'compare' => 'IN' ],
         ],
     ] );
+
+    if ( empty( $subs ) ) {
+        $subs = get_posts( [
+            'post_type'      => 'eh_subscription',
+            'author'         => $user_id,
+            'posts_per_page' => 5,
+            'meta_query'     => [
+                [ 'key' => 'sub_status', 'value' => [ 'active', 'trial' ], 'compare' => 'IN' ],
+            ],
+        ] );
+    }
 
     foreach ( $subs as $sub ) {
         update_field( 'sub_status', 'cancelled', $sub->ID );

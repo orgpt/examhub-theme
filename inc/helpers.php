@@ -153,12 +153,16 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
     // Get latest active subscription
     $subs = get_posts( [
         'post_type'      => 'eh_subscription',
-        'author'         => $user_id,
         'posts_per_page' => 1,
         'orderby'        => 'date',
         'order'          => 'DESC',
         'post_status'    => 'publish',
         'meta_query'     => [
+            [
+                'key'   => 'sub_user_id',
+                'value' => $user_id,
+                'type'  => 'NUMERIC',
+            ],
             [
                 'key'     => 'sub_status',
                 'value'   => [ 'active', 'trial', 'lifetime' ],
@@ -166,6 +170,24 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
             ],
         ],
     ] );
+
+    if ( empty( $subs ) ) {
+        $subs = get_posts( [
+            'post_type'      => 'eh_subscription',
+            'author'         => $user_id,
+            'posts_per_page' => 1,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'post_status'    => 'publish',
+            'meta_query'     => [
+                [
+                    'key'     => 'sub_status',
+                    'value'   => [ 'active', 'trial', 'lifetime' ],
+                    'compare' => 'IN',
+                ],
+            ],
+        ] );
+    }
 
     if ( empty( $subs ) ) {
         if ( function_exists( 'examhub_restore_subscription_from_latest_payment' ) ) {
