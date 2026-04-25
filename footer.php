@@ -76,7 +76,7 @@ if ( ! $is_exam_mode ) :
         <?php endif; ?>
         <p class="small mb-0 mt-3">
           <i class="bi bi-whatsapp me-2 text-accent"></i>
-          <a href="https://wa.me/201558811537" target="_blank" rel="noopener">واتساب</a>
+          <a href="https://wa.me/201090094039" target="_blank" rel="noopener">واتساب</a>
         </p>
       </div>
 
