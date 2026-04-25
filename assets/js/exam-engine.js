@@ -154,6 +154,47 @@
     else if (pct <= 40) $bar.addClass('low');
   }
 
+  function parseOrderingItemsFromHtml(html) {
+    if (!html) return [];
+    const doc = document.createElement('div');
+    doc.innerHTML = html;
+
+    const listItems = Array.from(doc.querySelectorAll('li'))
+      .map((node) => node.textContent.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    if (listItems.length >= 2) {
+      return listItems;
+    }
+
+    const text = (doc.textContent || '').replace(/\r/g, '');
+    const matches = [...text.matchAll(/(?:^|\n)\s*\d+[\.\-\)]\s*(.+?)(?=(?:\n\s*\d+[\.\-\)]\s*)|$)/gs)];
+    return matches
+      .map((match) => (match[1] || '').replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+  }
+
+  function stripOrderingListFromBody(html) {
+    if (!html) return html;
+    const doc = document.createElement('div');
+    doc.innerHTML = html;
+
+    doc.querySelectorAll('ol, ul').forEach((node) => node.remove());
+
+    Array.from(doc.querySelectorAll('p, div, strong, h1, h2, h3, h4, h5, h6'))
+      .filter((node) => {
+        const text = (node.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase();
+        return text === 'items to order:' ||
+          text === 'items to order' ||
+          text === 'arrange the following:' ||
+          text === 'رتب العناصر التالية' ||
+          text === 'رتب ما يلي';
+      })
+      .forEach((node) => node.remove());
+
+    return doc.innerHTML.trim();
+  }
+
   // ─── Question Loading ────────────────────────────────────────────────────────
   async function loadQuestion(index) {
     const qId = state.questions[index];
@@ -194,8 +235,16 @@
 
     // Question text
     $('#question-text').html(q.text || '');
-    if (q.body) {
-      $('#question-body-content').html(q.body).show();
+    const orderingItems = Array.isArray(q.ordering_items) && q.ordering_items.length
+      ? q.ordering_items
+      : parseOrderingItemsFromHtml(q.body);
+    if (q.type === 'ordering') {
+      q.ordering_items = orderingItems;
+    }
+
+    const bodyHtml = q.type === 'ordering' && orderingItems.length ? stripOrderingListFromBody(q.body) : q.body;
+    if (bodyHtml) {
+      $('#question-body-content').html(bodyHtml).show();
     } else {
       $('#question-body-content').empty().hide();
     }
@@ -351,7 +400,14 @@
   }
 
   function renderOrdering($area, q, savedAnswer) {
-    const items = savedAnswer && Array.isArray(savedAnswer) ? savedAnswer : q.ordering_items;
+    const fallbackItems = Array.isArray(q.ordering_items) && q.ordering_items.length
+      ? q.ordering_items
+      : parseOrderingItemsFromHtml(q.body);
+    const items = savedAnswer && Array.isArray(savedAnswer) ? savedAnswer : fallbackItems;
+    if (!items.length) {
+      $area.append('<div class="eh-answer-help">Unable to load ordering items for this question.</div>');
+      return;
+    }
     const $list = $('<ul class="eh-ordering-list" id="eh-ordering-list"></ul>');
     items.forEach((item, i) => {
       const $li = $(`

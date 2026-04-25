@@ -488,6 +488,58 @@ function examhub_build_exam_question_list( $exam_id, $randomize = null ) {
 /**
  * Build question payload for sending to JS (no correct answers).
  */
+function examhub_extract_ordering_items_from_body( $body_html ) {
+    $body_html = (string) $body_html;
+    if ( '' === trim( $body_html ) ) {
+        return [];
+    }
+
+    $items = [];
+
+    if ( preg_match_all( '/<li\b[^>]*>(.*?)<\/li>/is', $body_html, $matches ) ) {
+        foreach ( $matches[1] as $raw_item ) {
+            $text = trim( wp_strip_all_tags( html_entity_decode( $raw_item, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) ) );
+            $text = preg_replace( '/^\d+[\.\-\)\s]+/u', '', $text );
+            if ( '' !== $text ) {
+                $items[] = $text;
+            }
+        }
+    }
+
+    if ( count( $items ) >= 2 ) {
+        return array_values( array_unique( $items ) );
+    }
+
+    $plain = wp_strip_all_tags( html_entity_decode( $body_html, ENT_QUOTES | ENT_HTML5, 'UTF-8' ) );
+    $plain = preg_replace( "/\r\n|\r/u", "\n", $plain );
+
+    if ( preg_match_all( '/(?:^|\n)\s*\d+[\.\-\)]\s*(.+?)(?=(?:\n\s*\d+[\.\-\)]\s*)|\z)/us', $plain, $matches ) ) {
+        foreach ( $matches[1] as $raw_item ) {
+            $text = trim( preg_replace( '/\s+/u', ' ', $raw_item ) );
+            if ( '' !== $text ) {
+                $items[] = $text;
+            }
+        }
+    }
+
+    return count( $items ) >= 2 ? array_values( array_unique( $items ) ) : [];
+}
+
+function examhub_get_ordering_items( $q_id ) {
+    $items = get_field( 'ordering_items', $q_id ) ?: [];
+    $list  = is_array( $items ) ? array_column( $items, 'item' ) : [];
+    $list  = array_values( array_filter( array_map( 'trim', $list ), static function( $item ) {
+        return '' !== $item;
+    } ) );
+
+    if ( count( $list ) >= 2 ) {
+        return $list;
+    }
+
+    $body_raw = get_post_field( 'post_content', $q_id );
+    return examhub_extract_ordering_items_from_body( $body_raw );
+}
+
 function examhub_build_question_payload( $q_id, $random_answers = false ) {
     $type    = get_field( 'question_type', $q_id );
     $text    = get_field( 'question_text', $q_id );
@@ -541,8 +593,7 @@ function examhub_build_question_payload( $q_id, $random_answers = false ) {
             break;
 
         case 'ordering':
-            $items = get_field( 'ordering_items', $q_id ) ?: [];
-            $items = array_column( $items, 'item' );
+            $items = examhub_get_ordering_items( $q_id );
             if ( $random_answers ) shuffle( $items );
             $payload['ordering_items'] = $items;
             break;
@@ -701,8 +752,7 @@ function examhub_check_answer( $q_id, $type, $user_answer ) {
             return true;
 
         case 'ordering':
-            $items = get_field( 'ordering_items', $q_id ) ?: [];
-            $correct_order = array_column( $items, 'item' );
+            $correct_order = examhub_get_ordering_items( $q_id );
             if ( ! is_array( $user_answer ) ) return false;
             return $user_answer === $correct_order;
 
@@ -746,8 +796,7 @@ function examhub_get_correct_answer_display( $q_id, $type ) {
             return array_map( fn( $p ) => $p['left'] . ' → ' . $p['right'], $pairs );
 
         case 'ordering':
-            $items = get_field( 'ordering_items', $q_id ) ?: [];
-            return array_column( $items, 'item' );
+            return examhub_get_ordering_items( $q_id );
     }
     return '';
 }
