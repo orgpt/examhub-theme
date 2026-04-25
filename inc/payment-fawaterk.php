@@ -175,6 +175,8 @@ function examhub_fawaterk_handle_webhook() {
 
     if ( in_array( strtolower( $status ), [ 'paid', 'success', 'successful' ], true ) ) {
         examhub_mark_payment_paid( $payment_id, $invoice_key );
+    } elseif ( in_array( strtolower( $status ), [ 'refunded', 'refund' ], true ) ) {
+        examhub_mark_payment_refunded( $payment_id, 'fawaterk_refund' );
     } elseif ( in_array( strtolower( $status ), [ 'failed', 'fail', 'cancelled' ], true ) ) {
         update_field( 'payment_status', 'failed', $payment_id );
         examhub_log_payment_event( $payment_id, 'fawaterk_payment_failed', [ 'status' => $status ] );

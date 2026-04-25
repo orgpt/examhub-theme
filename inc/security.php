@@ -327,7 +327,7 @@ function examhub_verify_exam_access( $exam_id, $user_id = 0 ) {
 
     $access_level = get_field( 'exam_access', $exam_id ) ?: 'free_limit';
     $sub          = examhub_get_user_subscription_status( $user_id );
-    $is_paid_user = in_array( $sub['state'], [ 'subscribed', 'trial', 'lifetime' ], true );
+    $is_paid_user = in_array( $sub['state'], [ 'active', 'trial', 'lifetime' ], true );
 
     if ( $access_level === 'free' ) {
         return true;

@@ -108,7 +108,7 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
           <?php endif; ?>
 
           <!-- Subscription status pill -->
-          <?php if ( $sub['state'] === 'subscribed' ) : ?>
+          <?php if ( in_array( $sub['state'], [ 'active', 'trial', 'lifetime' ], true ) ) : ?>
             <span class="badge" style="background: rgba(34,197,94,.15); color: var(--eh-success); border: 1px solid rgba(34,197,94,.3); font-size: 0.72rem;">
               <i class="bi bi-star-fill me-1"></i><?php echo esc_html( $sub['plan_name'] ); ?>
             </span>

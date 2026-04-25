@@ -29,8 +29,8 @@ function examhub_activate_subscription( $user_id, $plan_id, $payment_id = 0 ) {
         return new WP_Error( 'invalid_plan', __( 'الخطة غير موجودة.', 'examhub' ) );
     }
 
-    $duration = (int) ( $plan['plan_duration_days'] ?? 30 );
-    $unlimited = ! empty( $plan['plan_unlimited'] );
+    $duration    = (int) ( $plan['plan_duration_days'] ?? 30 );
+    $is_lifetime = $duration <= 0;
 
     $sub_id = wp_insert_post( [
         'post_type'   => 'eh_subscription',
@@ -42,12 +42,12 @@ function examhub_activate_subscription( $user_id, $plan_id, $payment_id = 0 ) {
     if ( is_wp_error( $sub_id ) ) return $sub_id;
 
     $start_dt = current_time( 'Y-m-d H:i:s' );
-    $end_dt   = $unlimited ? null : date( 'Y-m-d H:i:s', strtotime( "+{$duration} days" ) );
+    $end_dt   = $is_lifetime ? null : date( 'Y-m-d H:i:s', strtotime( "+{$duration} days" ) );
 
     update_field( 'sub_user_id',       $user_id,                  $sub_id );
     update_field( 'plan_name',         $plan['plan_name'] ?? '',   $sub_id );
     update_field( 'plan_id',           $plan_id,                   $sub_id );
-    update_field( 'sub_status',        $unlimited ? 'lifetime' : 'active', $sub_id );
+    update_field( 'sub_status',        $is_lifetime ? 'lifetime' : 'active', $sub_id );
     update_field( 'sub_start_date',    $start_dt,                  $sub_id );
     update_field( 'sub_end_date',      $end_dt,                    $sub_id );
     update_field( 'sub_payment_id',    $payment_id,                $sub_id );
@@ -59,8 +59,10 @@ function examhub_activate_subscription( $user_id, $plan_id, $payment_id = 0 ) {
     update_user_meta( $user_id, 'eh_active_plan_id',  $plan_id );
     update_user_meta( $user_id, 'eh_sub_expires',     $end_dt ?? 'lifetime' );
 
-    if ( $unlimited ) {
+    if ( $is_lifetime ) {
         update_user_meta( $user_id, 'eh_lifetime', 1 );
+    } else {
+        delete_user_meta( $user_id, 'eh_lifetime' );
     }
 
     // Award first-subscription XP
@@ -97,6 +99,7 @@ function examhub_cancel_existing_subscription( $user_id, $reason = 'upgraded' ) 
     delete_user_meta( $user_id, 'eh_active_sub_id' );
     delete_user_meta( $user_id, 'eh_active_plan_id' );
     delete_user_meta( $user_id, 'eh_sub_expires' );
+    delete_user_meta( $user_id, 'eh_lifetime' );
 }
 
 /**

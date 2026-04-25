@@ -27,7 +27,7 @@ $subject_color = $subject_id ? ( get_field( 'subject_color',  $subject_id ) ?: '
 // User state
 $sub         = $user_id ? examhub_get_user_subscription_status( $user_id ) : null;
 $is_locked   = false;
-if ( $access_level === 'subscribed' && ( ! $sub || ! in_array( $sub['state'], [ 'subscribed', 'trial', 'lifetime' ] ) ) ) {
+if ( $access_level === 'subscribed' && ( ! $sub || ! in_array( $sub['state'], [ 'active', 'trial', 'lifetime' ], true ) ) ) {
     $is_locked = true;
 } elseif ( $access_level === 'free_limit' && $user_id && examhub_get_remaining_questions( $user_id ) <= 0 ) {
     $is_locked = true;

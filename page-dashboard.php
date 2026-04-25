@@ -80,7 +80,7 @@ get_header();
         </p>
       </div>
       <!-- Subscription status -->
-      <?php if ( $sub['state'] === 'subscribed' && $sub['expires_at'] ) : ?>
+      <?php if ( in_array( $sub['state'], [ 'active', 'trial', 'lifetime' ], true ) && $sub['expires_at'] ) : ?>
         <div class="badge py-2 px-3" style="background:var(--eh-success-bg); color:var(--eh-success); border:1px solid rgba(34,197,94,.3); font-size:.85rem;">
           <i class="bi bi-star-fill me-1"></i>
           <?php echo esc_html( $sub['plan_name'] ); ?>

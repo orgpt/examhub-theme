@@ -239,6 +239,68 @@ function examhub_mark_payment_paid( $payment_id, $transaction_id = '' ) {
     return true;
 }
 
+/**
+ * Mark payment as refunded and revoke any linked subscription.
+ *
+ * @param int    $payment_id
+ * @param string $reason
+ * @return bool
+ */
+function examhub_mark_payment_refunded( $payment_id, $reason = '' ) {
+    $payment_id = (int) $payment_id;
+    if ( ! $payment_id ) return false;
+
+    if ( get_field( 'payment_status', $payment_id ) !== 'refunded' ) {
+        update_field( 'payment_status', 'refunded', $payment_id );
+    }
+
+    if ( '' !== $reason ) {
+        update_field( 'admin_notes', $reason, $payment_id );
+    }
+
+    $user_id = (int) get_field( 'pay_user_id', $payment_id );
+    $subs    = get_posts( [
+        'post_type'      => 'eh_subscription',
+        'post_status'    => 'publish',
+        'posts_per_page' => -1,
+        'author'         => $user_id,
+        'meta_query'     => [
+            'relation' => 'AND',
+            [
+                'key'   => 'sub_payment_id',
+                'value' => $payment_id,
+            ],
+            [
+                'key'     => 'sub_status',
+                'value'   => [ 'active', 'trial', 'lifetime' ],
+                'compare' => 'IN',
+            ],
+        ],
+    ] );
+
+    foreach ( $subs as $sub ) {
+        update_field( 'sub_status', 'cancelled', $sub->ID );
+        do_action( 'examhub_subscription_cancelled', $sub->ID, $user_id, 'refunded' );
+    }
+
+    if ( $user_id ) {
+        $revoked_sub_ids = wp_list_pluck( $subs, 'ID' );
+        $active_sub_id   = (int) get_user_meta( $user_id, 'eh_active_sub_id', true );
+
+        if ( ! $active_sub_id || in_array( $active_sub_id, $revoked_sub_ids, true ) ) {
+            delete_user_meta( $user_id, 'eh_active_sub_id' );
+            delete_user_meta( $user_id, 'eh_active_plan_id' );
+            delete_user_meta( $user_id, 'eh_sub_expires' );
+            delete_user_meta( $user_id, 'eh_lifetime' );
+        }
+    }
+
+    examhub_log_payment_event( $payment_id, 'payment_refunded', [ 'reason' => $reason ] );
+    do_action( 'examhub_payment_refunded', $payment_id, $user_id, $reason, $subs );
+
+    return true;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // ADMIN: APPROVE / REJECT MANUAL PAYMENTS
 // ═══════════════════════════════════════════════════════════════════════════════
