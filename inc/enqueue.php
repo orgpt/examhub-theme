@@ -127,6 +127,10 @@ function examhub_admin_enqueue( $hook ) {
     wp_enqueue_style( 'examhub-admin', EXAMHUB_ASSETS . 'css/admin.css', [], $admin_css_ver );
     wp_enqueue_script( 'examhub-admin', EXAMHUB_ASSETS . 'js/admin.js', [ 'jquery' ], $admin_js_ver, true );
 
+    if ( 'examhub-content_page_examhub-analytics' === $hook ) {
+        wp_enqueue_script( 'chartjs', 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js', [], '4.4.0', true );
+    }
+
     wp_localize_script( 'examhub-admin', 'examhubAdmin', [
         'ajax_url' => admin_url( 'admin-ajax.php' ),
         'nonce'    => wp_create_nonce( 'examhub_admin_ajax' ),

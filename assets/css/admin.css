@@ -88,3 +88,72 @@
   font-size: 13px;
   direction: rtl;
 }
+
+/* Analytics page */
+.eh-admin-analytics .description {
+  margin-bottom: 16px;
+}
+
+.eh-admin-analytics-toolbar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0 20px;
+}
+
+.eh-analytics-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.eh-analytics-card {
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.eh-analytics-card strong {
+  display: block;
+  font-size: 24px;
+  line-height: 1.2;
+  margin: 8px 0 4px;
+}
+
+.eh-analytics-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #50575e;
+}
+
+.eh-analytics-card small {
+  color: #646970;
+}
+
+.eh-analytics-chart-grid,
+.eh-analytics-table-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.eh-admin-analytics .postbox {
+  margin: 0;
+}
+
+.eh-admin-analytics .postbox .inside {
+  margin: 0;
+  padding: 16px;
+}
+
+.eh-admin-analytics canvas {
+  width: 100% !important;
+  min-height: 280px;
+}
