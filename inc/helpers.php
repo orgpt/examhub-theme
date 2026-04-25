@@ -30,7 +30,25 @@ function examhub_get_plan_slug_from_meta( $post_id, $meta_key ) {
 
     $raw_value = get_post_meta( $post_id, $meta_key, true );
     if ( is_scalar( $raw_value ) ) {
-        return sanitize_text_field( (string) $raw_value );
+        $raw_value = sanitize_text_field( (string) $raw_value );
+        if ( '' !== $raw_value && '0' !== $raw_value ) {
+            return $raw_value;
+        }
+    }
+
+    $post = get_post( $post_id );
+    if ( $post ) {
+        $title = sanitize_text_field( $post->post_title );
+        $plans = get_field( 'subscription_plans', 'option' );
+
+        if ( is_array( $plans ) ) {
+            foreach ( $plans as $plan ) {
+                $slug = sanitize_text_field( (string) ( $plan['plan_slug'] ?? '' ) );
+                if ( '' !== $slug && false !== stripos( $title, $slug ) ) {
+                    return $slug;
+                }
+            }
+        }
     }
 
     return '';
