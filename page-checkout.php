@@ -79,15 +79,25 @@ get_header();
         <div class="eh-proof-steps">
           <div class="eh-proof-step"><span class="eh-proof-step-num">1</span><span><?php esc_html_e( 'قم بعمل التحويل أولاً', 'examhub' ); ?></span></div>
           <div class="eh-proof-step"><span class="eh-proof-step-num">2</span><span><?php esc_html_e( 'ثم املأ البيانات أدناه', 'examhub' ); ?></span></div>
-          <div class="eh-proof-step"><span class="eh-proof-step-num">3</span><span><?php esc_html_e( 'أرفق الإيصال ثم أكد الإرسال', 'examhub' ); ?></span></div>
+          <div class="eh-proof-step"><span class="eh-proof-step-num">3</span><span><?php esc_html_e( 'أكد الإرسال بعد كتابة البيانات', 'examhub' ); ?></span></div>
         </div>
 
         <div class="eh-proof-fields">
           <label class="eh-proof-field">
-            <span class="eh-proof-label"><?php esc_html_e( 'رقم المرجع', 'examhub' ); ?></span>
+            <span class="eh-proof-label eh-proof-label-help">
+              <span><?php esc_html_e( 'رقم المعاملة', 'examhub' ); ?></span>
+              <button type="button" class="eh-proof-help-btn" id="transaction-help-btn" aria-expanded="false" aria-controls="transaction-help-tooltip">
+                <i class="bi bi-question-circle"></i>
+                <span><?php esc_html_e( 'كيفية الحصول عليه', 'examhub' ); ?></span>
+              </button>
+            </span>
             <span class="eh-proof-input-wrap">
               <i class="bi bi-upc-scan"></i>
               <input type="text" id="proof-reference" class="form-control eh-proof-input" placeholder="<?php esc_attr_e( 'مثال: TXN123456', 'examhub' ); ?>">
+            </span>
+            <span class="eh-proof-help-tooltip" id="transaction-help-tooltip" hidden>
+              <span class="eh-proof-help-tooltip-title"><?php esc_html_e( 'مكان رقم المعاملة', 'examhub' ); ?></span>
+              <img src="<?php echo esc_url( EXAMHUB_ASSETS . 'images/transaction-number.webp' ); ?>" alt="<?php esc_attr_e( 'توضيح مكان رقم المعاملة', 'examhub' ); ?>" class="eh-proof-help-image">
             </span>
           </label>
 
@@ -100,13 +110,6 @@ get_header();
           </label>
         </div>
 
-        <label for="proof-file" id="proof-upload-zone" class="eh-proof-upload">
-          <input type="file" id="proof-file" accept="image/*,.pdf" hidden>
-          <div class="eh-proof-upload-icon"><i class="bi bi-cloud-arrow-up"></i></div>
-          <div class="eh-proof-upload-title"><?php esc_html_e( 'ارفع صورة الإيصال أو اسحبها هنا', 'examhub' ); ?></div>
-          <div class="eh-proof-upload-subtitle"><?php esc_html_e( 'PNG, JPG أو PDF', 'examhub' ); ?></div>
-          <div id="proof-file-name" class="eh-proof-file-name"><?php esc_html_e( 'لم يتم اختيار ملف بعد', 'examhub' ); ?></div>
-        </label>
       </div>
 
       <button type="button" id="btn-pay-now" class="btn btn-primary btn-lg w-100" style="display:none;">
@@ -241,12 +244,6 @@ get_header();
     return selectedMethod === 'vodafone_cash' ? 'eh_vodafone_submit_proof' : 'eh_manual_submit_proof';
   }
 
-  function updateFileName() {
-    const file = document.getElementById('proof-file').files[0];
-    $('#proof-file-name').text(file ? file.name : '<?php echo esc_js( __( 'لم يتم اختيار ملف بعد', 'examhub' ) ); ?>');
-    validateManualForm();
-  }
-
   function validateManualForm() {
     if (!isManualMethod()) {
       return true;
@@ -254,8 +251,7 @@ get_header();
 
     const hasReference = $.trim($('#proof-reference').val()).length > 0;
     const hasPhone = $.trim($('#proof-phone').val()).length > 0;
-    const hasFile = !!document.getElementById('proof-file').files[0];
-    const valid = hasReference && hasPhone && hasFile;
+    const valid = hasReference && hasPhone;
 
     $('#btn-pay-now')
       .prop('disabled', !valid)
@@ -303,11 +299,6 @@ get_header();
     fd.append('reference', $('#proof-reference').val());
     fd.append('phone', $('#proof-phone').val());
 
-    const file = document.getElementById('proof-file').files[0];
-    if (file) {
-      fd.append('proof', file);
-    }
-
     return $.ajax({
       url: AJAX_URL,
       type: 'POST',
@@ -343,23 +334,19 @@ get_header();
   });
 
   $('#proof-reference, #proof-phone').on('input', validateManualForm);
-  $('#proof-file').on('change', updateFileName);
 
-  $('#proof-upload-zone').on('dragover', function(e) {
+  $('#transaction-help-btn').on('click', function(e) {
     e.preventDefault();
-    $(this).addClass('is-dragover');
+    const $tooltip = $('#transaction-help-tooltip');
+    const willShow = $tooltip.is('[hidden]');
+    $tooltip.attr('hidden', !willShow);
+    $(this).attr('aria-expanded', willShow ? 'true' : 'false');
   });
 
-  $('#proof-upload-zone').on('dragleave drop', function(e) {
-    e.preventDefault();
-    $(this).removeClass('is-dragover');
-  });
-
-  $('#proof-upload-zone').on('drop', function(e) {
-    const files = e.originalEvent.dataTransfer.files;
-    if (files && files.length) {
-      document.getElementById('proof-file').files = files;
-      updateFileName();
+  $(document).on('click', function(e) {
+    if (!$(e.target).closest('.eh-proof-field').length) {
+      $('#transaction-help-tooltip').attr('hidden', true);
+      $('#transaction-help-btn').attr('aria-expanded', 'false');
     }
   });
 
@@ -368,7 +355,7 @@ get_header();
 
     if (isManualMethod()) {
       if (!validateManualForm()) {
-        showStatus('error', '<?php echo esc_js( __( 'أكمل رقم المرجع ورقم الهاتف وأرفق الإيصال أولاً.', 'examhub' ) ); ?>');
+        showStatus('error', '<?php echo esc_js( __( 'أكمل رقم المعاملة ورقم الهاتف أولاً.', 'examhub' ) ); ?>');
         return;
       }
 
