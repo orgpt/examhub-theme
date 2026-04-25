@@ -305,6 +305,19 @@ function examhub_mark_payment_refunded( $payment_id, $reason = '' ) {
 // ADMIN: APPROVE / REJECT MANUAL PAYMENTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
+add_action( 'save_post_eh_payment', 'examhub_sync_refunded_payment_subscription', 20, 3 );
+function examhub_sync_refunded_payment_subscription( $post_id, $post, $update ) {
+    if ( ! $update || wp_is_post_revision( $post_id ) ) {
+        return;
+    }
+
+    if ( 'refunded' !== get_field( 'payment_status', $post_id ) ) {
+        return;
+    }
+
+    examhub_mark_payment_refunded( $post_id, 'admin_refund_sync' );
+}
+
 add_action( 'wp_ajax_eh_admin_approve_payment', 'examhub_ajax_admin_approve_payment' );
 function examhub_ajax_admin_approve_payment() {
     check_ajax_referer( 'examhub_admin_ajax', 'nonce' );

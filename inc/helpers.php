@@ -90,7 +90,7 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
     if ( ! $user_id ) return $default;
 
     // Check lifetime
-    $lifetime = get_user_meta( $user_id, 'eh_lifetime', true );
+    $lifetime = false;
     if ( $lifetime ) {
         return array_merge( $default, [
             'state'     => 'lifetime',
@@ -115,20 +115,34 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
         'meta_query'     => [
             [
                 'key'     => 'sub_status',
-                'value'   => [ 'active', 'trial' ],
+                'value'   => [ 'active', 'trial', 'lifetime' ],
                 'compare' => 'IN',
             ],
         ],
     ] );
 
     if ( empty( $subs ) ) {
+        delete_user_meta( $user_id, 'eh_active_sub_id' );
+        delete_user_meta( $user_id, 'eh_active_plan_id' );
+        delete_user_meta( $user_id, 'eh_sub_expires' );
+        delete_user_meta( $user_id, 'eh_lifetime' );
         return $default;
     }
 
-    $sub       = $subs[0];
-    $status    = get_field( 'sub_status', $sub->ID );
-    $end_date  = get_field( 'sub_end_date', $sub->ID );
-    $plan_id   = get_field( 'plan_id', $sub->ID );
+    $sub        = $subs[0];
+    $status     = get_field( 'sub_status', $sub->ID );
+    $end_date   = get_field( 'sub_end_date', $sub->ID );
+    $plan_id    = get_field( 'plan_id', $sub->ID );
+    $payment_id = (int) get_field( 'sub_payment_id', $sub->ID );
+
+    if ( $payment_id && 'refunded' === get_field( 'payment_status', $payment_id ) ) {
+        update_field( 'sub_status', 'cancelled', $sub->ID );
+        delete_user_meta( $user_id, 'eh_active_sub_id' );
+        delete_user_meta( $user_id, 'eh_active_plan_id' );
+        delete_user_meta( $user_id, 'eh_sub_expires' );
+        delete_user_meta( $user_id, 'eh_lifetime' );
+        return $default;
+    }
 
     if ( $end_date ) {
         $end_ts   = strtotime( $end_date );
@@ -138,6 +152,10 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
             // Expired — update status
             wp_update_post( [ 'ID' => $sub->ID ] );
             update_field( 'sub_status', 'expired', $sub->ID );
+            delete_user_meta( $user_id, 'eh_active_sub_id' );
+            delete_user_meta( $user_id, 'eh_active_plan_id' );
+            delete_user_meta( $user_id, 'eh_sub_expires' );
+            delete_user_meta( $user_id, 'eh_lifetime' );
             return $default;
         }
     } else {
@@ -145,7 +163,17 @@ function examhub_get_user_subscription_status( $user_id = 0 ) {
     }
 
     // Get plan details from options
-    $plan = examhub_get_plan_by_id( $plan_id );
+    $plan = examhub_get_plan_by_id( $plan_id ) ?: [];
+
+    update_user_meta( $user_id, 'eh_active_sub_id', $sub->ID );
+    update_user_meta( $user_id, 'eh_active_plan_id', $plan_id );
+    update_user_meta( $user_id, 'eh_sub_expires', $end_date ?: 'lifetime' );
+
+    if ( 'lifetime' === $status && ! $end_date ) {
+        update_user_meta( $user_id, 'eh_lifetime', 1 );
+    } else {
+        delete_user_meta( $user_id, 'eh_lifetime' );
+    }
 
     return [
         'state'              => $status,
@@ -236,7 +264,7 @@ function examhub_user_can_access_question( $user_id = 0 ) {
 
     $sub = examhub_get_user_subscription_status( $user_id );
 
-    if ( in_array( $sub['state'], [ 'subscribed', 'trial', 'lifetime' ] ) && $sub['unlimited'] ) {
+    if ( in_array( $sub['state'], [ 'active', 'trial', 'lifetime' ], true ) && $sub['unlimited'] ) {
         return true;
     }
 
