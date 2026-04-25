@@ -50,6 +50,12 @@ get_header();
 
       <div id="payment-methods-list" class="mb-4">
         <?php foreach ( $methods as $index => $m ) : ?>
+        <?php
+        if ( 'vodafone_cash' === ( $m['key'] ?? '' ) ) {
+            $m['label'] = __( 'محفظة إلكترونية', 'examhub' );
+            $m['desc']  = __( 'تحويل على رقم محفظة إلكترونية', 'examhub' );
+        }
+        ?>
         <div class="eh-method-card <?php echo 0 === $index ? 'selected' : ''; ?>"
              data-method="<?php echo esc_attr( $m['key'] ); ?>"
              data-instant="<?php echo ! empty( $m['instant'] ) ? '1' : '0'; ?>">
@@ -193,15 +199,15 @@ get_header();
 
   const manualInstructions = {
     vodafone_cash: {
-      title: 'Vodafone Cash',
+      title: '<?php echo esc_js( __( 'محفظة إلكترونية', 'examhub' ) ); ?>',
       body: `<div class="eh-proof-instruction-card">
         <div class="eh-proof-instruction-head">
-          <span class="eh-proof-instruction-method">Vodafone Cash</span>
+          <span class="eh-proof-instruction-method"><?php echo esc_js( __( 'محفظة إلكترونية', 'examhub' ) ); ?></span>
           <span class="eh-proof-instruction-badge"><?php echo esc_js( __( 'تحويل يدوي آمن', 'examhub' ) ); ?></span>
         </div>
         <div class="eh-proof-instruction-line"><strong><?php echo esc_js( __( 'اسم الحساب', 'examhub' ) ); ?>:</strong> <?php echo esc_js( get_field( 'vodafone_cash_name', 'option' ) ); ?></div>
         <div class="eh-proof-instruction-line"><strong><?php echo esc_js( __( 'الرقم', 'examhub' ) ); ?>:</strong> <code><?php echo esc_js( get_field( 'vodafone_cash_number', 'option' ) ); ?></code></div>
-        <div class="eh-proof-instruction-text"><?php echo esc_js( wp_strip_all_tags( get_field( 'vodafone_cash_instructions', 'option' ) ?: 'قم بالتحويل ثم ارفع صورة الإيصال.' ) ); ?></div>
+        <div class="eh-proof-instruction-text"><?php echo esc_js( __( 'تحويل على رقم محفظة إلكترونية', 'examhub' ) ); ?></div>
       </div>`
     },
     instapay: {
