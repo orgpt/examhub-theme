@@ -354,22 +354,48 @@ function examhub_mark_payment_refunded( $payment_id, $reason = '' ) {
 // ADMIN: APPROVE / REJECT MANUAL PAYMENTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-add_action( 'save_post_eh_payment', 'examhub_sync_payment_subscription_state', 20, 3 );
-function examhub_sync_payment_subscription_state( $post_id, $post, $update ) {
-    if ( ! $update || wp_is_post_revision( $post_id ) ) {
+function examhub_sync_payment_subscription_state_by_id( $post_id ) {
+    static $syncing = [];
+
+    $post_id = (int) $post_id;
+    if ( ! $post_id || isset( $syncing[ $post_id ] ) || wp_is_post_revision( $post_id ) ) {
         return;
     }
+
+    $post = get_post( $post_id );
+    if ( ! $post || 'eh_payment' !== $post->post_type ) {
+        return;
+    }
+
+    $syncing[ $post_id ] = true;
 
     $status = get_field( 'payment_status', $post_id );
 
     if ( 'paid' === $status ) {
         examhub_mark_payment_paid( $post_id, (string) get_field( 'transaction_id', $post_id ) );
+    } elseif ( 'refunded' === $status ) {
+        examhub_mark_payment_refunded( $post_id, 'admin_refund_sync' );
+    }
+
+    unset( $syncing[ $post_id ] );
+}
+
+add_action( 'save_post_eh_payment', 'examhub_sync_payment_subscription_state', 20, 3 );
+function examhub_sync_payment_subscription_state( $post_id, $post, $update ) {
+    if ( ! $update ) {
         return;
     }
 
-    if ( 'refunded' === $status ) {
-        examhub_mark_payment_refunded( $post_id, 'admin_refund_sync' );
+    examhub_sync_payment_subscription_state_by_id( $post_id );
+}
+
+add_action( 'acf/save_post', 'examhub_sync_payment_subscription_state_after_acf', 20 );
+function examhub_sync_payment_subscription_state_after_acf( $post_id ) {
+    if ( ! is_numeric( $post_id ) ) {
+        return;
     }
+
+    examhub_sync_payment_subscription_state_by_id( (int) $post_id );
 }
 
 add_action( 'wp_ajax_eh_admin_approve_payment', 'examhub_ajax_admin_approve_payment' );
