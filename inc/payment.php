@@ -224,7 +224,29 @@ function examhub_mark_payment_paid( $payment_id, $transaction_id = '' ) {
 
     // Idempotency — don't double-activate
     $current_status = get_field( 'payment_status', $payment_id );
-    if ( $current_status === 'paid' ) return true;
+    if ( $current_status === 'paid' ) {
+        $existing_sub = get_posts( [
+            'post_type'      => 'eh_subscription',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'meta_query'     => [
+                [
+                    'key'   => 'sub_payment_id',
+                    'value' => $payment_id,
+                ],
+                [
+                    'key'     => 'sub_status',
+                    'value'   => [ 'active', 'trial', 'lifetime' ],
+                    'compare' => 'IN',
+                ],
+            ],
+        ] );
+
+        if ( ! empty( $existing_sub ) ) {
+            return true;
+        }
+    }
 
     $sub_id = examhub_activate_subscription( $user_id, $plan_id, $payment_id );
 
@@ -307,17 +329,22 @@ function examhub_mark_payment_refunded( $payment_id, $reason = '' ) {
 // ADMIN: APPROVE / REJECT MANUAL PAYMENTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-add_action( 'save_post_eh_payment', 'examhub_sync_refunded_payment_subscription', 20, 3 );
-function examhub_sync_refunded_payment_subscription( $post_id, $post, $update ) {
+add_action( 'save_post_eh_payment', 'examhub_sync_payment_subscription_state', 20, 3 );
+function examhub_sync_payment_subscription_state( $post_id, $post, $update ) {
     if ( ! $update || wp_is_post_revision( $post_id ) ) {
         return;
     }
 
-    if ( 'refunded' !== get_field( 'payment_status', $post_id ) ) {
+    $status = get_field( 'payment_status', $post_id );
+
+    if ( 'paid' === $status ) {
+        examhub_mark_payment_paid( $post_id, (string) get_field( 'transaction_id', $post_id ) );
         return;
     }
 
-    examhub_mark_payment_refunded( $post_id, 'admin_refund_sync' );
+    if ( 'refunded' === $status ) {
+        examhub_mark_payment_refunded( $post_id, 'admin_refund_sync' );
+    }
 }
 
 add_action( 'wp_ajax_eh_admin_approve_payment', 'examhub_ajax_admin_approve_payment' );
