@@ -370,13 +370,17 @@ function examhub_ajax_admin_reject_payment() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+function examhub_can_manage_manual_payments() {
+    return current_user_can( 'edit_eh_payments' ) || current_user_can( 'manage_options' );
+}
+
 add_action( 'admin_menu', 'examhub_register_manual_payment_admin_page' );
 function examhub_register_manual_payment_admin_page() {
     add_submenu_page(
         'edit.php?post_type=eh_payment',
         __( 'Add Manual Subscription', 'examhub' ),
         __( 'Add Manual Subscription', 'examhub' ),
-        'manage_options',
+        'edit_eh_payments',
         'examhub-manual-payment',
         'examhub_render_manual_payment_admin_page'
     );
@@ -384,7 +388,7 @@ function examhub_register_manual_payment_admin_page() {
 
 add_filter( 'views_edit-eh_payment', 'examhub_add_manual_payment_view_link' );
 function examhub_add_manual_payment_view_link( $views ) {
-    if ( ! current_user_can( 'manage_options' ) ) {
+    if ( ! examhub_can_manage_manual_payments() ) {
         return $views;
     }
 
@@ -398,7 +402,7 @@ function examhub_add_manual_payment_view_link( $views ) {
 }
 
 function examhub_render_manual_payment_admin_page() {
-    if ( ! current_user_can( 'manage_options' ) ) {
+    if ( ! examhub_can_manage_manual_payments() ) {
         wp_die( esc_html__( 'You are not allowed to access this page.', 'examhub' ) );
     }
 
@@ -489,7 +493,7 @@ function examhub_render_manual_payment_admin_page() {
 
 add_action( 'admin_post_examhub_create_manual_payment', 'examhub_handle_manual_payment_admin_post' );
 function examhub_handle_manual_payment_admin_post() {
-    if ( ! current_user_can( 'manage_options' ) ) {
+    if ( ! examhub_can_manage_manual_payments() ) {
         wp_die( esc_html__( 'You are not allowed to do this action.', 'examhub' ) );
     }
 
