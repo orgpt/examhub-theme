@@ -19,24 +19,33 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
 <nav class="eh-navbar navbar navbar-expand-lg" id="eh-main-navbar">
   <div class="container-xl">
 
-    <!-- Logo -->
-    <a class="navbar-brand" href="<?php echo home_url(); ?>">
-      <?php
-      $logo_url = get_field( 'site_logo_dark', 'option' );
-      $site_name = get_bloginfo( 'name' );
-      $tagline   = get_bloginfo( 'description' );
-      if ( $logo_url ) : ?>
-        <span class="eh-brand-mark">
-          <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $site_name ); ?>" height="40">
-        </span>
-      <?php endif; ?>
-      <span class="eh-brand-copy">
-        <span class="eh-brand-title"><?php echo esc_html( $site_name ); ?></span>
-        <?php if ( $tagline ) : ?>
-          <span class="eh-brand-tagline"><?php echo esc_html( $tagline ); ?></span>
+    <?php
+    $logo_url = get_field( 'site_logo_dark', 'option' );
+    $site_name = get_bloginfo( 'name' );
+    $tagline   = get_bloginfo( 'description' );
+    $is_affiliate_tab = is_page( 'profile' ) && isset( $_GET['tab'] ) && sanitize_key( wp_unslash( $_GET['tab'] ) ) === 'affiliate';
+    ?>
+
+    <div class="eh-brand-cluster">
+      <a class="eh-nav-float-icon" href="<?php echo esc_url( home_url() ); ?>" aria-label="<?php esc_attr_e( 'الرئيسية', 'examhub' ); ?>" title="<?php esc_attr_e( 'الرئيسية', 'examhub' ); ?>">
+        <i class="bi bi-house-door"></i>
+      </a>
+
+      <!-- Logo -->
+      <a class="navbar-brand" href="<?php echo home_url(); ?>">
+        <?php if ( $logo_url ) : ?>
+          <span class="eh-brand-mark">
+            <img src="<?php echo esc_url( $logo_url ); ?>" alt="<?php echo esc_attr( $site_name ); ?>" height="40">
+          </span>
         <?php endif; ?>
-      </span>
-    </a>
+        <span class="eh-brand-copy">
+          <span class="eh-brand-title"><?php echo esc_html( $site_name ); ?></span>
+          <?php if ( $tagline ) : ?>
+            <span class="eh-brand-tagline"><?php echo esc_html( $tagline ); ?></span>
+          <?php endif; ?>
+        </span>
+      </a>
+    </div>
 
     <!-- Mobile toggle -->
     <button class="navbar-toggler border-0" type="button"
@@ -50,24 +59,43 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
       <!-- Main navigation -->
       <ul class="navbar-nav me-auto mb-2 mb-lg-0 gap-1">
         <li class="nav-item">
-          <a class="nav-link <?php echo is_home() || is_front_page() ? 'active' : ''; ?>" href="<?php echo home_url(); ?>">
-            <i class="bi bi-house me-1"></i><?php esc_html_e( 'الرئيسية', 'examhub' ); ?>
-          </a>
-        </li>
-        <li class="nav-item">
           <a class="nav-link <?php echo is_post_type_archive( 'eh_exam' ) ? 'active' : ''; ?>" href="<?php echo get_post_type_archive_link( 'eh_exam' ); ?>">
             <i class="bi bi-clipboard-check me-1"></i><?php esc_html_e( 'الامتحانات', 'examhub' ); ?>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="<?php echo home_url( '/leaderboard' ); ?>">
-            <i class="bi bi-trophy me-1"></i><?php esc_html_e( 'المتصدرون', 'examhub' ); ?>
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" href="<?php echo home_url( '/pricing' ); ?>">
             <i class="bi bi-star me-1"></i><?php esc_html_e( 'الاشتراك', 'examhub' ); ?>
           </a>
+        </li>
+        <li class="nav-item dropdown eh-nav-more">
+          <a class="nav-link dropdown-toggle <?php echo ( is_page( 'leaderboard' ) || is_page( 'dashboard' ) || is_page( 'my-results' ) || $is_affiliate_tab ) ? 'active' : ''; ?>" href="#" id="ehNavMoreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-grid-3x3-gap me-1"></i><?php esc_html_e( 'المزيد', 'examhub' ); ?>
+          </a>
+          <ul class="dropdown-menu eh-nav-dropdown" aria-labelledby="ehNavMoreDropdown">
+            <li>
+              <a class="dropdown-item <?php echo is_page( 'leaderboard' ) ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/leaderboard' ) ); ?>">
+                <i class="bi bi-trophy"></i><span><?php esc_html_e( 'المتصدرون', 'examhub' ); ?></span>
+              </a>
+            </li>
+            <?php if ( is_user_logged_in() ) : ?>
+              <li>
+                <a class="dropdown-item <?php echo is_page( 'dashboard' ) ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/dashboard' ) ); ?>">
+                  <i class="bi bi-speedometer2"></i><span><?php esc_html_e( 'لوحة التحكم', 'examhub' ); ?></span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item <?php echo is_page( 'my-results' ) ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/my-results' ) ); ?>">
+                  <i class="bi bi-bar-chart"></i><span><?php esc_html_e( 'نتائجي', 'examhub' ); ?></span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item <?php echo $is_affiliate_tab ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/profile/?tab=affiliate' ) ); ?>">
+                  <i class="bi bi-megaphone"></i><span><?php esc_html_e( 'أفليت', 'examhub' ); ?></span>
+                </a>
+              </li>
+            <?php endif; ?>
+          </ul>
         </li>
       </ul>
 
@@ -79,18 +107,6 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
           $xp        = (int) get_user_meta( $user_id, 'eh_xp', true );
           $sub       = examhub_get_user_subscription_status( $user_id );
           ?>
-
-          <div class="eh-desktop-quick-links d-none d-xl-flex align-items-center gap-2">
-            <a href="<?php echo esc_url( home_url( '/dashboard' ) ); ?>" class="eh-quick-link">
-              <i class="bi bi-speedometer2"></i><span><?php esc_html_e( 'لوحة التحكم', 'examhub' ); ?></span>
-            </a>
-            <a href="<?php echo esc_url( home_url( '/my-results' ) ); ?>" class="eh-quick-link">
-              <i class="bi bi-bar-chart"></i><span><?php esc_html_e( 'نتائجي', 'examhub' ); ?></span>
-            </a>
-            <a href="<?php echo esc_url( home_url( '/profile/?tab=affiliate' ) ); ?>" class="eh-quick-link">
-              <i class="bi bi-megaphone"></i><span><?php esc_html_e( 'أفلييت', 'examhub' ); ?></span>
-            </a>
-          </div>
 
           <!-- XP badge -->
           <span class="eh-xp-badge d-none d-md-flex align-items-center gap-1">
