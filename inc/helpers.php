@@ -54,6 +54,68 @@ function examhub_get_plan_slug_from_meta( $post_id, $meta_key ) {
     return '';
 }
 
+/**
+ * Build a WhatsApp URL using the more broadly compatible send endpoint.
+ *
+ * @param string $phone International phone number, digits only or with a leading plus.
+ * @param string $text  Optional prefilled message text.
+ * @return string
+ */
+function examhub_get_whatsapp_url( $phone = '', $text = '' ) {
+    $query = [];
+    $phone = preg_replace( '/[^\d]/', '', (string) $phone );
+
+    if ( '' !== $phone ) {
+        $query['phone'] = $phone;
+    }
+
+    if ( '' !== $text ) {
+        $query['text'] = $text;
+    }
+
+    $url = 'https://api.whatsapp.com/send';
+
+    if ( ! empty( $query ) ) {
+        $url .= '?' . http_build_query( $query, '', '&', PHP_QUERY_RFC3986 );
+    }
+
+    return $url;
+}
+
+/**
+ * Normalize stored WhatsApp URLs away from wa.me to the send endpoint.
+ *
+ * @param string $url Raw WhatsApp URL from options or templates.
+ * @return string
+ */
+function examhub_normalize_whatsapp_url( $url ) {
+    $url = trim( (string) $url );
+
+    if ( '' === $url ) {
+        return '';
+    }
+
+    $parts = wp_parse_url( $url );
+    $host  = strtolower( $parts['host'] ?? '' );
+
+    if ( ! in_array( $host, [ 'wa.me', 'www.wa.me' ], true ) ) {
+        return $url;
+    }
+
+    $path      = trim( (string) ( $parts['path'] ?? '' ), '/' );
+    $query     = [];
+    $raw_query = (string) ( $parts['query'] ?? '' );
+
+    if ( '' !== $raw_query ) {
+        parse_str( $raw_query, $query );
+    }
+
+    $phone = preg_replace( '/[^\d]/', '', $path );
+    $text  = isset( $query['text'] ) ? (string) $query['text'] : '';
+
+    return examhub_get_whatsapp_url( $phone, $text );
+}
+
 // ─── Subscription Status ──────────────────────────────────────────────────────
 
 /**

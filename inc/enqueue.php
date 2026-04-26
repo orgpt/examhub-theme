@@ -51,8 +51,22 @@ function examhub_enqueue_assets() {
 
     // MathJax for math equations
     if ( examhub_page_has_math() ) {
-        wp_enqueue_script( 'mathjax-config', EXAMHUB_ASSETS . 'js/mathjax-config.js', [], $ver, false );
-        wp_enqueue_script( 'mathjax', 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js', [ 'mathjax-config' ], '3', false );
+        wp_register_script( 'mathjax', 'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js', [], '3', false );
+        wp_add_inline_script(
+            'mathjax',
+            'window.MathJax = window.MathJax || {' .
+                'tex: {' .
+                    'inlineMath: [["\\\\(","\\\\)"], ["$", "$"]],' .
+                    'displayMath: [["\\\\[","\\\\]"], ["$$", "$$"]],' .
+                    'processEscapes: true' .
+                '},' .
+                'options: {' .
+                    'skipHtmlTags: ["script", "noscript", "style", "textarea", "pre", "code"]' .
+                '}' .
+            '};',
+            'before'
+        );
+        wp_enqueue_script( 'mathjax' );
     }
 
     // ─── Scripts ───────────────────────────────────────────────────────────
@@ -85,11 +99,6 @@ function examhub_enqueue_assets() {
         // Localize exam data for JS
         $exam_id = get_queried_object_id();
         wp_localize_script( 'examhub-exam-engine', 'examhubExam', examhub_get_exam_js_config( $exam_id ) );
-    }
-
-    // Subscription/payment JS
-    if ( examhub_is_pricing_page() || examhub_is_checkout_page() ) {
-        wp_enqueue_script( 'examhub-payment', EXAMHUB_ASSETS . 'js/payment.js', [ 'examhub-main' ], $ver, true );
     }
 
     // Global AJAX config

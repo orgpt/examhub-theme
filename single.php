@@ -40,7 +40,7 @@ while ( have_posts() ) :
         [
             'label' => __( 'واتساب', 'examhub' ),
             'icon'  => 'bi-whatsapp',
-            'url'   => 'https://wa.me/?text=' . $encoded_title . '%20' . $encoded_url,
+            'url'   => examhub_get_whatsapp_url( '', get_the_title() . ' ' . $permalink ),
         ],
         [
             'label' => __( 'تيليجرام', 'examhub' ),
@@ -293,3 +293,4 @@ while ( have_posts() ) :
 <?php wp_reset_postdata(); ?>
 <?php
 get_footer();
+

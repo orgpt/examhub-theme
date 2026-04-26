@@ -33,6 +33,9 @@ if ( ! $is_exam_mode ) :
           ];
           foreach ( $socials as $key => $social ) :
             $url = get_field( 'social_' . $key, 'option' );
+            if ( 'whatsapp' === $key ) {
+              $url = examhub_normalize_whatsapp_url( $url );
+            }
             if ( $url ) : ?>
               <a href="<?php echo esc_url( $url ); ?>" class="btn btn-ghost btn-sm px-2" target="_blank" rel="noopener" aria-label="<?php echo esc_attr( $social['label'] ); ?>">
                 <i class="bi <?php echo esc_attr( $social['icon'] ); ?>"></i>
@@ -76,7 +79,7 @@ if ( ! $is_exam_mode ) :
         <?php endif; ?>
         <p class="small mb-0 mt-3">
           <i class="bi bi-whatsapp me-2 text-accent"></i>
-          <a href="https://wa.me/201090094039" target="_blank" rel="noopener">واتساب</a>
+          <a href="<?php echo esc_url( examhub_get_whatsapp_url( '201090094039' ) ); ?>" target="_blank" rel="noopener">واتساب</a>
         </p>
       </div>
 
@@ -103,3 +106,4 @@ if ( ! $is_exam_mode ) :
 <?php wp_footer(); ?>
 </body>
 </html>
+
