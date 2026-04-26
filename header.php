@@ -78,25 +78,15 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
             <i class="bi bi-grid-3x3-gap me-1"></i><?php esc_html_e( 'المزيد', 'examhub' ); ?>
           </a>
           <ul class="dropdown-menu eh-nav-dropdown" aria-labelledby="ehNavMoreDropdown">
-            <li>
-              <a class="dropdown-item <?php echo $is_blog_page ? 'active' : ''; ?>" href="<?php echo esc_url( $blog_url ); ?>">
-                <i class="bi bi-journal-text"></i><span><?php esc_html_e( 'المدونة', 'examhub' ); ?></span>
-              </a>
-            </li>
-            <li>
-              <a class="dropdown-item <?php echo is_page( 'leaderboard' ) ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/leaderboard' ) ); ?>">
-                <i class="bi bi-trophy"></i><span><?php esc_html_e( 'المتصدرون', 'examhub' ); ?></span>
-              </a>
-            </li>
             <?php if ( is_user_logged_in() ) : ?>
-              <li>
-                <a class="dropdown-item <?php echo is_page( 'profile' ) && ! $is_affiliate_tab ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/profile' ) ); ?>">
-                  <i class="bi bi-person-circle"></i><span><?php esc_html_e( 'حسابي', 'examhub' ); ?></span>
-                </a>
-              </li>
               <li>
                 <a class="dropdown-item <?php echo is_page( 'dashboard' ) ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/dashboard' ) ); ?>">
                   <i class="bi bi-speedometer2"></i><span><?php esc_html_e( 'لوحة التحكم', 'examhub' ); ?></span>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item <?php echo is_page( 'profile' ) && ! $is_affiliate_tab ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/profile' ) ); ?>">
+                  <i class="bi bi-person-circle"></i><span><?php esc_html_e( 'حسابي', 'examhub' ); ?></span>
                 </a>
               </li>
               <li>
@@ -104,6 +94,18 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
                   <i class="bi bi-bar-chart"></i><span><?php esc_html_e( 'نتائجي', 'examhub' ); ?></span>
                 </a>
               </li>
+            <?php endif; ?>
+            <li>
+              <a class="dropdown-item <?php echo is_page( 'leaderboard' ) ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/leaderboard' ) ); ?>">
+                <i class="bi bi-trophy"></i><span><?php esc_html_e( 'المتصدرون', 'examhub' ); ?></span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item <?php echo $is_blog_page ? 'active' : ''; ?>" href="<?php echo esc_url( $blog_url ); ?>">
+                <i class="bi bi-journal-text"></i><span><?php esc_html_e( 'المدونة', 'examhub' ); ?></span>
+              </a>
+            </li>
+            <?php if ( is_user_logged_in() ) : ?>
               <li>
                 <a class="dropdown-item <?php echo $is_affiliate_tab ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/profile/?tab=affiliate' ) ); ?>">
                   <i class="bi bi-megaphone"></i><span><?php esc_html_e( 'أفليت', 'examhub' ); ?></span>
