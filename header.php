@@ -80,6 +80,11 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
             </li>
             <?php if ( is_user_logged_in() ) : ?>
               <li>
+                <a class="dropdown-item <?php echo is_page( 'profile' ) && ! $is_affiliate_tab ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/profile' ) ); ?>">
+                  <i class="bi bi-person-circle"></i><span><?php esc_html_e( 'حسابي', 'examhub' ); ?></span>
+                </a>
+              </li>
+              <li>
                 <a class="dropdown-item <?php echo is_page( 'dashboard' ) ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/dashboard' ) ); ?>">
                   <i class="bi bi-speedometer2"></i><span><?php esc_html_e( 'لوحة التحكم', 'examhub' ); ?></span>
                 </a>
@@ -133,10 +138,6 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
               <?php esc_html_e( 'ترقية', 'examhub' ); ?>
             </a>
           <?php endif; ?>
-
-          <a class="btn btn-ghost btn-sm p-2" href="<?php echo esc_url( home_url( '/profile' ) ); ?>" title="<?php esc_attr_e( 'حسابي', 'examhub' ); ?>" aria-label="<?php esc_attr_e( 'حسابي', 'examhub' ); ?>">
-            <i class="bi bi-person-circle"></i>
-          </a>
 
           <!-- Logout icon -->
           <a class="btn btn-ghost btn-sm p-2" href="<?php echo esc_url( wp_logout_url( home_url() ) ); ?>" title="<?php esc_attr_e( 'تسجيل الخروج', 'examhub' ); ?>" aria-label="<?php esc_attr_e( 'تسجيل الخروج', 'examhub' ); ?>">

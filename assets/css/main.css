@@ -356,6 +356,15 @@ img { max-width: 100%; height: auto; }
 .eh-navbar .nav-link { color: var(--eh-text-secondary); font-weight: 500; padding: 0.5rem 0.75rem !important; border-radius: var(--eh-radius-sm); }
 .eh-navbar .nav-link:hover { color: var(--eh-text-primary); background-color: var(--eh-bg-tertiary); }
 .eh-navbar .nav-link.active { color: var(--eh-accent); }
+.eh-nav-more .nav-link.show,
+.eh-nav-more .nav-link[aria-expanded="true"] {
+  color: var(--eh-text-primary);
+  background-color: rgba(67,97,238,.08);
+}
+.eh-nav-more .nav-link.show i,
+.eh-nav-more .nav-link[aria-expanded="true"] i {
+  color: var(--eh-accent);
+}
 .eh-nav-more .nav-link {
   display: inline-flex;
   align-items: center;
