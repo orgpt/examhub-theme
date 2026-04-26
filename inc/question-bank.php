@@ -139,6 +139,61 @@ function examhub_question_sortable_columns( $cols ) {
     return $cols;
 }
 
+add_action( 'restrict_manage_posts', 'examhub_question_group_admin_filter' );
+function examhub_question_group_admin_filter( $post_type ) {
+    if ( $post_type !== 'eh_question' ) {
+        return;
+    }
+
+    $selected_group = isset( $_GET['question_group_id'] ) ? (int) $_GET['question_group_id'] : 0;
+    $groups         = get_posts( [
+        'post_type'      => 'eh_lesson',
+        'post_status'    => [ 'publish', 'draft', 'pending', 'private' ],
+        'posts_per_page' => -1,
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+    ] );
+
+    echo '<select name="question_group_id" id="filter-by-question-group">';
+    echo '<option value="">' . esc_html__( 'All Question Groups', 'examhub' ) . '</option>';
+
+    foreach ( $groups as $group ) {
+        printf(
+            '<option value="%1$d" %2$s>%3$s</option>',
+            (int) $group->ID,
+            selected( $selected_group, (int) $group->ID, false ),
+            esc_html( $group->post_title )
+        );
+    }
+
+    echo '</select>';
+}
+
+add_action( 'pre_get_posts', 'examhub_filter_questions_by_group' );
+function examhub_filter_questions_by_group( $query ) {
+    if ( ! is_admin() || ! $query->is_main_query() ) {
+        return;
+    }
+
+    if ( $query->get( 'post_type' ) !== 'eh_question' ) {
+        return;
+    }
+
+    $group_id = isset( $_GET['question_group_id'] ) ? (int) $_GET['question_group_id'] : 0;
+    if ( $group_id <= 0 ) {
+        return;
+    }
+
+    $meta_query   = (array) $query->get( 'meta_query' );
+    $meta_query[] = [
+        'key'     => 'lesson',
+        'value'   => $group_id,
+        'compare' => '=',
+    ];
+
+    $query->set( 'meta_query', $meta_query );
+}
+
 // Question Group admin columns (for easier data auditing)
 add_filter( 'manage_eh_lesson_posts_columns', function( $cols ) {
     return [
