@@ -23,7 +23,12 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
     $logo_url = get_field( 'site_logo_dark', 'option' );
     $site_name = get_bloginfo( 'name' );
     $tagline   = get_bloginfo( 'description' );
+    $blog_page = get_page_by_path( 'blog' );
+    $blog_url  = $blog_page ? get_permalink( $blog_page ) : home_url( '/blog' );
     $is_affiliate_tab = is_page( 'profile' ) && isset( $_GET['tab'] ) && sanitize_key( wp_unslash( $_GET['tab'] ) ) === 'affiliate';
+    $request_path = wp_parse_url( home_url( add_query_arg( [] ) ), PHP_URL_PATH );
+    $blog_path    = wp_parse_url( $blog_url, PHP_URL_PATH );
+    $is_blog_page = $blog_page ? is_page( $blog_page->ID ) : untrailingslashit( (string) $request_path ) === untrailingslashit( (string) $blog_path );
     ?>
 
     <div class="eh-brand-cluster">
@@ -69,10 +74,15 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
           </a>
         </li>
         <li class="nav-item dropdown eh-nav-more">
-          <a class="nav-link dropdown-toggle <?php echo ( is_page( 'leaderboard' ) || is_page( 'dashboard' ) || is_page( 'my-results' ) || $is_affiliate_tab ) ? 'active' : ''; ?>" href="#" id="ehNavMoreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          <a class="nav-link dropdown-toggle <?php echo ( $is_blog_page || is_page( 'leaderboard' ) || is_page( 'dashboard' ) || is_page( 'my-results' ) || $is_affiliate_tab || ( is_page( 'profile' ) && ! $is_affiliate_tab ) ) ? 'active' : ''; ?>" href="#" id="ehNavMoreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="bi bi-grid-3x3-gap me-1"></i><?php esc_html_e( 'المزيد', 'examhub' ); ?>
           </a>
           <ul class="dropdown-menu eh-nav-dropdown" aria-labelledby="ehNavMoreDropdown">
+            <li>
+              <a class="dropdown-item <?php echo $is_blog_page ? 'active' : ''; ?>" href="<?php echo esc_url( $blog_url ); ?>">
+                <i class="bi bi-journal-text"></i><span><?php esc_html_e( 'المدونة', 'examhub' ); ?></span>
+              </a>
+            </li>
             <li>
               <a class="dropdown-item <?php echo is_page( 'leaderboard' ) ? 'active' : ''; ?>" href="<?php echo esc_url( home_url( '/leaderboard' ) ); ?>">
                 <i class="bi bi-trophy"></i><span><?php esc_html_e( 'المتصدرون', 'examhub' ); ?></span>
