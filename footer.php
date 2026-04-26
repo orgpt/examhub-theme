@@ -25,19 +25,36 @@ if ( ! $is_exam_mode ) :
         <!-- Social links -->
         <div class="d-flex gap-2 mt-3">
           <?php
-          $socials = [
-            'facebook'  => [ 'icon' => 'bi-facebook',  'label' => 'Facebook' ],
-            'youtube'   => [ 'icon' => 'bi-youtube',   'label' => 'YouTube' ],
-            'whatsapp'  => [ 'icon' => 'bi-whatsapp',  'label' => 'WhatsApp' ],
-            'telegram'  => [ 'icon' => 'bi-telegram',  'label' => 'Telegram' ],
+          $social_links = [
+            [
+              'url'   => 'https://www.facebook.com/Imthan/',
+              'icon'  => 'bi-facebook',
+              'label' => 'Facebook',
+            ],
+            [
+              'url'   => 'https://www.tiktok.com/@imthan.com',
+              'icon'  => 'bi-tiktok',
+              'label' => 'TikTok',
+            ],
+            [
+              'url'   => get_field( 'social_youtube', 'option' ),
+              'icon'  => 'bi-youtube',
+              'label' => 'YouTube',
+            ],
+            [
+              'url'   => examhub_normalize_whatsapp_url( get_field( 'social_whatsapp', 'option' ) ),
+              'icon'  => 'bi-whatsapp',
+              'label' => 'WhatsApp',
+            ],
+            [
+              'url'   => get_field( 'social_telegram', 'option' ),
+              'icon'  => 'bi-telegram',
+              'label' => 'Telegram',
+            ],
           ];
-          foreach ( $socials as $key => $social ) :
-            $url = get_field( 'social_' . $key, 'option' );
-            if ( 'whatsapp' === $key ) {
-              $url = examhub_normalize_whatsapp_url( $url );
-            }
-            if ( $url ) : ?>
-              <a href="<?php echo esc_url( $url ); ?>" class="btn btn-ghost btn-sm px-2" target="_blank" rel="noopener" aria-label="<?php echo esc_attr( $social['label'] ); ?>">
+          foreach ( $social_links as $social ) :
+            if ( ! empty( $social['url'] ) ) : ?>
+              <a href="<?php echo esc_url( $social['url'] ); ?>" class="btn btn-ghost btn-sm px-2" target="_blank" rel="noopener" aria-label="<?php echo esc_attr( $social['label'] ); ?>">
                 <i class="bi <?php echo esc_attr( $social['icon'] ); ?>"></i>
               </a>
             <?php endif;
