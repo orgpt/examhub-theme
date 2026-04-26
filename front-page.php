@@ -18,6 +18,7 @@ $latest_exams = new WP_Query(
     'post_type'              => 'eh_exam',
     'post_status'            => 'publish',
     'posts_per_page'         => 4,
+    'orderby'                => 'rand',
     'ignore_sticky_posts'    => true,
     'no_found_rows'          => true,
     'update_post_meta_cache' => false,
