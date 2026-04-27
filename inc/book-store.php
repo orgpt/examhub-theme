@@ -694,3 +694,118 @@ function examhub_render_book_order_summary_metabox( $post ) {
     </div>
     <?php
 }
+
+add_action( 'wp_head', 'examhub_output_book_schema', 30 );
+function examhub_output_book_schema() {
+    if ( ! is_singular( 'eh_book' ) ) {
+        return;
+    }
+
+    $book_id    = get_queried_object_id();
+    $book_post  = get_post( $book_id );
+    if ( ! $book_post || 'publish' !== $book_post->post_status ) {
+        return;
+    }
+
+    $price_data   = examhub_get_book_price_data( $book_id );
+    $currency     = function_exists( 'get_field' ) ? (string) get_field( 'payment_currency', 'option' ) : '';
+    $currency     = $currency ? $currency : 'EGP';
+    $description  = wp_strip_all_tags( get_the_excerpt( $book_id ) ?: get_the_content( null, false, $book_id ) );
+    $description  = wp_trim_words( $description, 60, '' );
+    $image_url    = get_the_post_thumbnail_url( $book_id, 'full' );
+    $author_name  = (string) get_field( 'book_author', $book_id );
+    $publisher    = (string) get_field( 'book_publisher', $book_id );
+    $sku          = (string) get_field( 'book_sku', $book_id );
+    $grade_id     = (int) get_field( 'book_grade', $book_id );
+    $subject_id   = (int) get_field( 'book_subject', $book_id );
+    $brand_name   = $publisher ? $publisher : get_bloginfo( 'name' );
+    $availability = examhub_is_book_available( $book_id ) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
+    $book_name    = get_the_title( $book_id );
+    $book_url     = get_permalink( $book_id );
+    $category     = trim(
+        implode(
+            ' / ',
+            array_filter(
+                [
+                    $grade_id ? get_the_title( $grade_id ) : '',
+                    $subject_id ? get_the_title( $subject_id ) : '',
+                    'Books',
+                ]
+            )
+        )
+    );
+
+    $graph = [];
+
+    $book_schema = [
+        '@type'           => 'Book',
+        '@id'             => $book_url . '#book',
+        'url'             => $book_url,
+        'name'            => $book_name,
+        'description'     => $description,
+        'inLanguage'      => determine_locale(),
+        'image'           => $image_url ? [ $image_url ] : [],
+        'bookFormat'      => 'https://schema.org/Paperback',
+        'isAccessibleForFree' => false,
+        'publisher'       => [
+            '@type' => 'Organization',
+            'name'  => $brand_name,
+        ],
+    ];
+
+    if ( $author_name ) {
+        $book_schema['author'] = [
+            '@type' => 'Person',
+            'name'  => $author_name,
+        ];
+    }
+
+    if ( $sku ) {
+        $book_schema['sku'] = $sku;
+    }
+
+    $graph[] = $book_schema;
+
+    $product_schema = [
+        '@type'           => 'Product',
+        '@id'             => $book_url . '#product',
+        'url'             => $book_url,
+        'name'            => $book_name,
+        'description'     => $description,
+        'image'           => $image_url ? [ $image_url ] : [],
+        'sku'             => $sku ?: null,
+        'category'        => $category,
+        'brand'           => [
+            '@type' => 'Brand',
+            'name'  => $brand_name,
+        ],
+        'offers'          => [
+            '@type'         => 'Offer',
+            'priceCurrency' => $currency,
+            'price'         => number_format( (float) $price_data['current'], 2, '.', '' ),
+            'availability'  => $availability,
+            'url'           => $book_url,
+            'itemCondition' => 'https://schema.org/NewCondition',
+        ],
+        'mainEntityOfPage' => $book_url,
+    ];
+
+    if ( $image_url ) {
+        $product_schema['image'] = [ $image_url ];
+    }
+
+    $graph[] = array_filter(
+        $product_schema,
+        static function( $value ) {
+            return null !== $value && '' !== $value && [] !== $value;
+        }
+    );
+
+    $payload = [
+        '@context' => 'https://schema.org',
+        '@graph'   => $graph,
+    ];
+    ?>
+    <script type="application/ld+json"><?php echo wp_json_encode( $payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ); ?></script>
+    <?php
+}
