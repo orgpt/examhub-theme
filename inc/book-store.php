@@ -28,6 +28,46 @@ function examhub_register_book_store_query_vars( $vars ) {
     return $vars;
 }
 
+add_filter( 'request', 'examhub_book_store_request_fallback' );
+function examhub_book_store_request_fallback( $query_vars ) {
+    if ( is_admin() ) {
+        return $query_vars;
+    }
+
+    if ( ! empty( $query_vars['post_type'] ) || ! empty( $query_vars['name'] ) || ! empty( $query_vars['eh_books_page'] ) ) {
+        return $query_vars;
+    }
+
+    $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+    if ( '' === $request_uri ) {
+        return $query_vars;
+    }
+
+    $path = (string) wp_parse_url( home_url( $request_uri ), PHP_URL_PATH );
+    $site_path = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
+
+    if ( '' !== $site_path && 0 === strpos( $path, $site_path ) ) {
+        $path = substr( $path, strlen( $site_path ) );
+    }
+
+    $path = trim( $path, '/' );
+    if ( '' === $path || 0 !== strpos( $path, 'external-books/' ) ) {
+        return $query_vars;
+    }
+
+    $relative = substr( $path, strlen( 'external-books/' ) );
+    $relative = trim( (string) $relative, '/' );
+
+    if ( '' === $relative || in_array( $relative, [ 'cart', 'checkout' ], true ) || 0 === strpos( $relative, 'order-received/' ) ) {
+        return $query_vars;
+    }
+
+    $query_vars['post_type'] = 'eh_book';
+    $query_vars['name']      = sanitize_title( $relative );
+
+    return $query_vars;
+}
+
 add_action( 'after_switch_theme', 'examhub_flush_book_store_rewrites' );
 function examhub_flush_book_store_rewrites() {
     examhub_register_book_store_rewrites();
