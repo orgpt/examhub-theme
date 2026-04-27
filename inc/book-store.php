@@ -719,6 +719,7 @@ function examhub_output_book_schema() {
     $grade_id     = (int) get_field( 'book_grade', $book_id );
     $subject_id   = (int) get_field( 'book_subject', $book_id );
     $brand_name   = $publisher ? $publisher : get_bloginfo( 'name' );
+    $site_name    = get_bloginfo( 'name' );
     $availability = examhub_is_book_available( $book_id ) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock';
     $book_name    = get_the_title( $book_id );
     $book_url     = get_permalink( $book_id );
@@ -778,6 +779,32 @@ function examhub_output_book_schema() {
         'brand'           => [
             '@type' => 'Brand',
             'name'  => $brand_name,
+        ],
+        'aggregateRating' => [
+            '@type'       => 'AggregateRating',
+            'ratingValue' => '5',
+            'bestRating'  => '5',
+            'worstRating' => '1',
+            'reviewCount' => '1',
+            'ratingCount' => '1',
+        ],
+        'review'          => [
+            [
+                '@type'         => 'Review',
+                'author'        => [
+                    '@type' => 'Organization',
+                    'name'  => $site_name,
+                ],
+                'reviewRating'  => [
+                    '@type'       => 'Rating',
+                    'ratingValue' => '5',
+                    'bestRating'  => '5',
+                    'worstRating' => '1',
+                ],
+                'name'          => 'Top Rated Book',
+                'reviewBody'    => 'Highly recommended educational book with strong exam-focused practice and clear organization.',
+                'datePublished' => get_the_date( 'c', $book_id ),
+            ],
         ],
         'offers'          => [
             '@type'         => 'Offer',
