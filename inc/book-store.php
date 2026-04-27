@@ -126,6 +126,8 @@ function examhub_register_book_store_fields() {
         'key'    => 'group_examhub_book',
         'title'  => 'بيانات الكتاب الخارجي',
         'fields' => [
+            [ 'key' => 'field_book_short_description', 'label' => 'وصف قصير', 'name' => 'book_short_description', 'type' => 'textarea', 'rows' => 3 ],
+            [ 'key' => 'field_book_long_description', 'label' => 'وصف طويل', 'name' => 'book_long_description', 'type' => 'wysiwyg', 'tabs' => 'all', 'toolbar' => 'basic', 'media_upload' => 1 ],
             [ 'key' => 'field_book_price', 'label' => 'السعر', 'name' => 'book_price', 'type' => 'number', 'required' => 1, 'min' => 0, 'step' => '0.01' ],
             [ 'key' => 'field_book_sale_price', 'label' => 'سعر بعد الخصم', 'name' => 'book_sale_price', 'type' => 'number', 'min' => 0, 'step' => '0.01' ],
             [ 'key' => 'field_book_sku', 'label' => 'SKU / كود المنتج', 'name' => 'book_sku', 'type' => 'text' ],
@@ -710,7 +712,9 @@ function examhub_output_book_schema() {
     $price_data   = examhub_get_book_price_data( $book_id );
     $currency     = function_exists( 'get_field' ) ? (string) get_field( 'payment_currency', 'option' ) : '';
     $currency     = $currency ? $currency : 'EGP';
-    $description  = wp_strip_all_tags( get_the_excerpt( $book_id ) ?: get_the_content( null, false, $book_id ) );
+    $short_desc   = (string) get_field( 'book_short_description', $book_id );
+    $long_desc    = (string) get_field( 'book_long_description', $book_id );
+    $description  = wp_strip_all_tags( $short_desc ?: get_the_excerpt( $book_id ) ?: $long_desc ?: get_post_field( 'post_content', $book_id ) );
     $description  = wp_trim_words( $description, 60, '' );
     $image_url    = get_the_post_thumbnail_url( $book_id, 'full' );
     $author_name  = (string) get_field( 'book_author', $book_id );

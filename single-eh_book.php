@@ -14,6 +14,8 @@ $publisher = (string) get_field( 'book_publisher', $book_id );
 $sku      = (string) get_field( 'book_sku', $book_id );
 $track    = (bool) get_field( 'book_track_stock', $book_id );
 $stock    = (int) get_field( 'book_stock_qty', $book_id );
+$short_description = (string) get_field( 'book_short_description', $book_id );
+$long_description  = (string) get_field( 'book_long_description', $book_id );
 $terms    = get_field( 'book_store_terms', 'option' );
 ?>
 
@@ -33,6 +35,10 @@ $terms    = get_field( 'book_store_terms', 'option' );
       <div class="eh-book-single">
         <a class="eh-book-single__back" href="<?php echo esc_url( examhub_get_books_archive_url() ); ?>">العودة لكل الكتب</a>
         <h1 class="eh-page-title mb-2"><?php the_title(); ?></h1>
+
+        <?php if ( $short_description ) : ?>
+          <p class="eh-book-single__summary mb-3"><?php echo esc_html( $short_description ); ?></p>
+        <?php endif; ?>
 
         <div class="eh-book-single__chips mb-3">
           <?php if ( $grade ) : ?><span><?php echo esc_html( get_the_title( $grade ) ); ?></span><?php endif; ?>
@@ -58,7 +64,14 @@ $terms    = get_field( 'book_store_terms', 'option' );
 
         <div class="eh-book-single__content card mb-3">
           <div class="card-body">
-            <?php the_content(); ?>
+            <h2 class="h6 mb-3">تفاصيل الكتاب</h2>
+            <?php
+            if ( $long_description ) {
+                echo wp_kses_post( $long_description );
+            } else {
+                the_content();
+            }
+            ?>
           </div>
         </div>
 

@@ -2963,6 +2963,13 @@ button.eh-share-link {
   min-height: 54px;
 }
 
+.eh-book-single__summary {
+  color: #cbd5e1;
+  font-size: 1rem;
+  line-height: 1.9;
+  max-width: 58ch;
+}
+
 .eh-book-card__price strong,
 .eh-book-single__price strong {
   font-size: 1.3rem;
