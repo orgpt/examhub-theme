@@ -183,29 +183,11 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
 <!-- Mobile bottom nav -->
 <?php if ( is_user_logged_in() ) : ?>
 <nav class="eh-mobile-nav" id="eh-mobile-nav" aria-label="<?php esc_attr_e( 'التنقل السريع', 'examhub' ); ?>">
-  <a href="<?php echo home_url(); ?>" class="eh-mobile-nav-item <?php echo is_front_page() ? 'active' : ''; ?>">
-    <i class="bi bi-house"></i><span><?php esc_html_e( 'الرئيسية', 'examhub' ); ?></span>
-  </a>
   <a href="<?php echo get_post_type_archive_link( 'eh_exam' ); ?>" class="eh-mobile-nav-item <?php echo is_post_type_archive( 'eh_exam' ) ? 'active' : ''; ?>">
     <i class="bi bi-clipboard-check"></i><span><?php esc_html_e( 'امتحانات', 'examhub' ); ?></span>
   </a>
-  <a href="<?php echo esc_url( examhub_get_books_archive_url() ); ?>" class="eh-mobile-nav-item <?php echo ( is_post_type_archive( 'eh_book' ) || is_singular( 'eh_book' ) || get_query_var( 'eh_books_page' ) ) ? 'active' : ''; ?>">
-    <i class="bi bi-book-half"></i><span><?php esc_html_e( 'كتب', 'examhub' ); ?></span>
-  </a>
-  <a href="<?php echo esc_url( examhub_get_teachers_page_url() ); ?>" class="eh-mobile-nav-item <?php echo get_query_var( 'eh_teachers_page' ) ? 'active' : ''; ?>">
-    <i class="bi bi-person-workspace"></i><span><?php esc_html_e( 'مدرسين', 'examhub' ); ?></span>
-  </a>
-  <a href="<?php echo home_url( '/dashboard' ); ?>" class="eh-mobile-nav-item">
+  <a href="<?php echo esc_url( home_url( '/dashboard' ) ); ?>" class="eh-mobile-nav-item <?php echo is_page( 'dashboard' ) ? 'active' : ''; ?>">
     <i class="bi bi-speedometer2"></i><span><?php esc_html_e( 'لوحتي', 'examhub' ); ?></span>
-  </a>
-  <a href="<?php echo home_url( '/leaderboard' ); ?>" class="eh-mobile-nav-item">
-    <i class="bi bi-trophy"></i><span><?php esc_html_e( 'متصدرون', 'examhub' ); ?></span>
-  </a>
-  <a href="<?php echo home_url( '/profile' ); ?>" class="eh-mobile-nav-item">
-    <i class="bi bi-person-circle"></i><span><?php esc_html_e( 'حسابي', 'examhub' ); ?></span>
-  </a>
-  <a href="<?php echo home_url( '/affiliate' ); ?>" class="eh-mobile-nav-item">
-    <i class="bi bi-megaphone"></i><span><?php esc_html_e( 'أفلييت', 'examhub' ); ?></span>
   </a>
 </nav>
 <?php endif; ?>
