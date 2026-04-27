@@ -51,6 +51,11 @@ function examhub_book_store_request_fallback( $query_vars ) {
     }
 
     $path = trim( $path, '/' );
+    if ( 'external-books' === $path ) {
+        $query_vars['post_type'] = 'eh_book';
+        return $query_vars;
+    }
+
     if ( '' === $path || 0 !== strpos( $path, 'external-books/' ) ) {
         return $query_vars;
     }
@@ -209,7 +214,7 @@ function examhub_register_book_store_fields() {
 }
 
 function examhub_get_books_archive_url() {
-    return get_post_type_archive_link( 'eh_book' ) ?: home_url( '/external-books/' );
+    return home_url( '/?post_type=eh_book' );
 }
 
 function examhub_get_books_cart_url() {
