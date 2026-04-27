@@ -45,6 +45,9 @@ function examhub_get_cpt_capability_map() {
         'eh_result'             => examhub_get_cpt_capabilities( 'eh_result', 'eh_results', false ),
         'eh_subscription'       => examhub_get_cpt_capabilities( 'eh_subscription', 'eh_subscriptions', false ),
         'eh_payment'            => examhub_get_cpt_capabilities( 'eh_payment', 'eh_payments', false ),
+        'eh_book'               => examhub_get_cpt_capabilities( 'eh_book', 'eh_books' ),
+        'eh_book_order'         => examhub_get_cpt_capabilities( 'eh_book_order', 'eh_book_orders', false ),
+        'eh_teacher_request'    => examhub_get_cpt_capabilities( 'eh_teacher_request', 'eh_teacher_requests', false ),
         'eh_badge'              => examhub_get_cpt_capabilities( 'eh_badge', 'eh_badges' ),
         'eh_affiliate_referral' => examhub_get_cpt_capabilities( 'eh_affiliate_referral', 'eh_affiliate_referrals', false ),
         'eh_affiliate_invite'   => examhub_get_cpt_capabilities( 'eh_affiliate_invite', 'eh_affiliate_invites', false ),
@@ -218,7 +221,52 @@ function examhub_register_cpts() {
         'map_meta_cap' => true,
     ] );
 
-    // 12. Badge
+    // 12. Book
+    register_post_type( 'eh_book', [
+        'labels'       => examhub_cpt_labels( 'كتاب خارجي', 'كتب خارجية', 'Book', 'Books' ),
+        'public'       => true,
+        'show_ui'      => true,
+        'show_in_menu' => 'examhub-content',
+        'show_in_rest' => true,
+        'supports'     => [ 'title', 'editor', 'excerpt', 'thumbnail' ],
+        'menu_icon'    => 'dashicons-book-alt',
+        'rewrite'      => [ 'slug' => 'external-books' ],
+        'has_archive'  => true,
+        'capabilities' => $caps_map['eh_book'],
+        'map_meta_cap' => true,
+    ] );
+
+    // 13. Book Order
+    register_post_type( 'eh_book_order', [
+        'labels'       => examhub_cpt_labels( 'طلب كتاب', 'طلبات الكتب', 'Book Order', 'Book Orders' ),
+        'public'       => false,
+        'show_ui'      => true,
+        'show_in_menu' => 'examhub-content',
+        'show_in_rest' => false,
+        'supports'     => [ 'title', 'author' ],
+        'menu_icon'    => 'dashicons-cart',
+        'rewrite'      => false,
+        'has_archive'  => false,
+        'capabilities' => $caps_map['eh_book_order'],
+        'map_meta_cap' => true,
+    ] );
+
+    // 14. Teacher Request
+    register_post_type( 'eh_teacher_request', [
+        'labels'       => examhub_cpt_labels( 'طلب مدرس', 'طلبات المدرسين', 'Teacher Request', 'Teacher Requests' ),
+        'public'       => false,
+        'show_ui'      => true,
+        'show_in_menu' => 'examhub-content',
+        'show_in_rest' => false,
+        'supports'     => [ 'title', 'author' ],
+        'menu_icon'    => 'dashicons-welcome-write-blog',
+        'rewrite'      => false,
+        'has_archive'  => false,
+        'capabilities' => $caps_map['eh_teacher_request'],
+        'map_meta_cap' => true,
+    ] );
+
+    // 15. Badge
     register_post_type( 'eh_badge', [
         'labels'       => examhub_cpt_labels( 'شارة', 'شارات', 'Badge', 'Badges' ),
         'public'       => false,
@@ -232,7 +280,7 @@ function examhub_register_cpts() {
         'map_meta_cap' => true,
     ] );
 
-    // 13. Affiliate Referral
+    // 16. Affiliate Referral
     register_post_type( 'eh_affiliate_referral', [
         'labels'       => examhub_cpt_labels( 'إحالة أفلييت', 'إحالات أفلييت', 'Affiliate Referral', 'Affiliate Referrals' ),
         'public'       => false,
@@ -246,7 +294,7 @@ function examhub_register_cpts() {
         'map_meta_cap' => true,
     ] );
 
-    // 14. Affiliate Invite
+    // 17. Affiliate Invite
     register_post_type( 'eh_affiliate_invite', [
         'labels'       => examhub_cpt_labels( 'دعوة أفلييت', 'دعوات أفلييت', 'Affiliate Invite', 'Affiliate Invites' ),
         'public'       => false,

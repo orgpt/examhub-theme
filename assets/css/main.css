@@ -2844,3 +2844,243 @@ button.eh-share-link {
     font-size: 1rem;
   }
 }
+
+/* Book Store */
+.eh-books-hero,
+.eh-book-single,
+.eh-book-card,
+.eh-cart-item,
+.eh-check-choice {
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.94), rgba(15, 23, 42, 0.9));
+  border-radius: 24px;
+}
+
+.eh-books-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1.5rem;
+}
+
+.eh-books-hero__eyebrow,
+.eh-book-card__badge,
+.eh-book-single__chips span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.8rem;
+  border-radius: 999px;
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
+  font-size: 0.82rem;
+}
+
+.eh-book-card {
+  overflow: hidden;
+  height: 100%;
+}
+
+.eh-book-card__media,
+.eh-book-single__media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+}
+
+.eh-book-card__media img,
+.eh-book-single__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.eh-book-card__media {
+  aspect-ratio: 4 / 3;
+}
+
+.eh-book-single__media {
+  border-radius: 28px;
+  min-height: 420px;
+}
+
+.eh-book-card__placeholder,
+.eh-book-single__placeholder,
+.eh-cart-item__media span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 3rem;
+}
+
+.eh-book-card__badge {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.eh-book-card__body,
+.eh-book-single {
+  padding: 1.25rem;
+}
+
+.eh-book-card__meta,
+.eh-book-card__footer,
+.eh-book-single__price,
+.eh-cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.eh-book-card__meta {
+  flex-wrap: wrap;
+  margin-bottom: 0.8rem;
+  color: #94a3b8;
+  font-size: 0.85rem;
+}
+
+.eh-book-card__title {
+  font-size: 1.18rem;
+  line-height: 1.5;
+  margin-bottom: 0.65rem;
+}
+
+.eh-book-card__title a,
+.eh-cart-item__title,
+.eh-book-single__back {
+  color: #f8fafc;
+  text-decoration: none;
+}
+
+.eh-book-card__excerpt {
+  color: #94a3b8;
+  min-height: 54px;
+}
+
+.eh-book-card__price strong,
+.eh-book-single__price strong {
+  font-size: 1.3rem;
+  color: #f8fafc;
+}
+
+.eh-book-card__price span,
+.eh-book-single__price span {
+  color: #64748b;
+  text-decoration: line-through;
+  margin-inline-start: 0.45rem;
+}
+
+.eh-book-card__price em,
+.eh-book-single__price em {
+  color: #34d399;
+  font-style: normal;
+  margin-inline-start: 0.45rem;
+}
+
+.eh-book-card__soldout {
+  color: #fca5a5;
+  font-size: 0.9rem;
+}
+
+.eh-book-single__back {
+  display: inline-block;
+  margin-bottom: 0.85rem;
+  color: #93c5fd;
+}
+
+.eh-book-single__chips {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.eh-book-single__info,
+.eh-book-single__content {
+  border-radius: 22px;
+}
+
+.eh-cart-item {
+  padding: 1rem 1.1rem;
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  background: transparent;
+}
+
+.eh-cart-item:last-child {
+  border-bottom: 0;
+}
+
+.eh-cart-item__media {
+  width: 86px;
+  height: 86px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(30, 41, 59, 0.85);
+  flex-shrink: 0;
+}
+
+.eh-cart-item__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.eh-cart-item__body {
+  flex: 1;
+}
+
+.eh-cart-item__qty {
+  width: 92px;
+}
+
+.eh-cart-item__subtotal {
+  min-width: 110px;
+  text-align: end;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.eh-check-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem;
+  cursor: pointer;
+}
+
+.eh-check-choice input {
+  accent-color: #3b82f6;
+}
+
+.eh-book-pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  font-size: 0.93rem;
+  color: #cbd5e1;
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: 16px;
+  padding: 0.9rem;
+  margin-bottom: 0;
+}
+
+@media (max-width: 767px) {
+  .eh-books-hero,
+  .eh-cart-item,
+  .eh-book-card__footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .eh-cart-item__qty,
+  .eh-cart-item__subtotal {
+    width: 100%;
+    text-align: start;
+  }
+}

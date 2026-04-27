@@ -48,6 +48,9 @@ $xp_reward     = (int) get_field( 'exam_xp_reward', $exam_id );
 $show_exp      = get_field( 'show_explanation', $exam_id );
 $max_attempts  = (int) get_field( 'max_attempts', $exam_id );
 $exam_type     = get_field( 'exam_type', $exam_id ) ?: 'standard';
+$secret_required = examhub_exam_requires_secret_code( $exam_id );
+$secret_unlocked = $user_id ? examhub_user_has_valid_exam_secret( $exam_id, $user_id ) : false;
+$secret_notice   = sanitize_text_field( wp_unslash( $_GET['exam_secret'] ?? '' ) );
 
 $grade_name    = $grade_id   ? ( get_field( 'grade_name_ar', $grade_id )   ?: get_the_title( $grade_id )   ) : '';
 $subject_name  = $subject_id ? ( get_field( 'subject_name_ar', $subject_id ) ?: get_the_title( $subject_id ) ) : '';
@@ -221,6 +224,28 @@ $in_progress   = $user_id ? examhub_get_in_progress_result( $exam_id, $user_id )
         <i class="bi bi-person me-2"></i>
         <?php esc_html_e( 'سجل دخول للبدء', 'examhub' ); ?>
       </a>
+
+    <?php elseif ( $secret_required && ! $secret_unlocked ) : ?>
+      <div class="card mx-auto mb-3 text-start" style="max-width:560px;">
+        <div class="card-body p-4">
+          <h5 class="fw-bold text-light mb-2"><?php esc_html_e( 'هذا الامتحان محمي بكود سري', 'examhub' ); ?></h5>
+          <p class="text-muted mb-3"><?php esc_html_e( 'أدخل الكود الذي أرسله لك المدرس حتى تتمكن من بدء الامتحان.', 'examhub' ); ?></p>
+          <?php if ( 'invalid' === $secret_notice ) : ?>
+            <div class="alert alert-danger py-2"><?php esc_html_e( 'الكود غير صحيح. حاول مرة أخرى.', 'examhub' ); ?></div>
+          <?php elseif ( 'unlocked' === $secret_notice ) : ?>
+            <div class="alert alert-success py-2"><?php esc_html_e( 'تم التحقق من الكود بنجاح. يمكنك الآن بدء الامتحان.', 'examhub' ); ?></div>
+          <?php endif; ?>
+          <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+            <?php wp_nonce_field( 'examhub_exam_secret_unlock', 'examhub_exam_secret_nonce' ); ?>
+            <input type="hidden" name="action" value="examhub_exam_secret_unlock">
+            <input type="hidden" name="exam_id" value="<?php echo esc_attr( $exam_id ); ?>">
+            <div class="d-flex flex-wrap gap-2 justify-content-center">
+              <input type="text" name="exam_secret_code" class="form-control" style="max-width:240px;" placeholder="<?php esc_attr_e( 'أدخل كود الامتحان', 'examhub' ); ?>" required>
+              <button type="submit" class="btn btn-primary"><?php esc_html_e( 'تأكيد الكود', 'examhub' ); ?></button>
+            </div>
+          </form>
+        </div>
+      </div>
 
     <?php elseif ( $is_locked ) : ?>
       <?php if ( $lock_code === 'max_attempts' ) : ?>

@@ -325,6 +325,10 @@ function examhub_verify_exam_access( $exam_id, $user_id = 0 ) {
         return new WP_Error( 'invalid_exam', __( 'الامتحان غير موجود.', 'examhub' ) );
     }
 
+    if ( examhub_exam_requires_secret_code( $exam_id ) && ! examhub_user_has_valid_exam_secret( $exam_id, $user_id ) ) {
+        return new WP_Error( 'secret_code_required', __( 'هذا الامتحان محمي بكود سري. أدخل الكود الصحيح أولاً.', 'examhub' ) );
+    }
+
     $access_level = get_field( 'exam_access', $exam_id ) ?: 'free_limit';
     $sub          = examhub_get_user_subscription_status( $user_id );
     $is_paid_user = in_array( $sub['state'], [ 'active', 'trial', 'lifetime' ], true );
@@ -363,6 +367,29 @@ function examhub_verify_exam_access( $exam_id, $user_id = 0 ) {
     }
 
     return true;
+}
+
+function examhub_exam_requires_secret_code( $exam_id ) {
+    return (bool) get_field( 'exam_secret_enabled', $exam_id ) && '' !== trim( (string) get_field( 'exam_secret_code', $exam_id ) );
+}
+
+function examhub_get_exam_secret_code( $exam_id ) {
+    return strtoupper( sanitize_text_field( (string) get_field( 'exam_secret_code', $exam_id ) ) );
+}
+
+function examhub_get_exam_secret_user_meta_key( $exam_id ) {
+    return 'eh_exam_secret_access_' . absint( $exam_id );
+}
+
+function examhub_user_has_valid_exam_secret( $exam_id, $user_id ) {
+    if ( ! $user_id ) {
+        return false;
+    }
+
+    $saved = (string) get_user_meta( $user_id, examhub_get_exam_secret_user_meta_key( $exam_id ), true );
+    $code  = examhub_get_exam_secret_code( $exam_id );
+
+    return '' !== $saved && '' !== $code && hash_equals( $code, strtoupper( sanitize_text_field( $saved ) ) );
 }
 
 /**

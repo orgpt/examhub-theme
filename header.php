@@ -69,6 +69,16 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
           </a>
         </li>
         <li class="nav-item">
+          <a class="nav-link <?php echo ( is_post_type_archive( 'eh_book' ) || is_singular( 'eh_book' ) || get_query_var( 'eh_books_page' ) ) ? 'active' : ''; ?>" href="<?php echo esc_url( examhub_get_books_archive_url() ); ?>">
+            <i class="bi bi-book-half me-1"></i><?php esc_html_e( 'كتب خارجية', 'examhub' ); ?>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link <?php echo get_query_var( 'eh_teachers_page' ) ? 'active' : ''; ?>" href="<?php echo esc_url( examhub_get_teachers_page_url() ); ?>">
+            <i class="bi bi-person-workspace me-1"></i><?php esc_html_e( 'للمدرسين', 'examhub' ); ?>
+          </a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link" href="<?php echo home_url( '/pricing' ); ?>">
             <i class="bi bi-star me-1"></i><?php esc_html_e( 'الاشتراك', 'examhub' ); ?>
           </a>
@@ -178,6 +188,12 @@ $is_exam_mode = is_singular( 'eh_exam' ) && get_query_var( 'exam_mode' ) === 'fo
   </a>
   <a href="<?php echo get_post_type_archive_link( 'eh_exam' ); ?>" class="eh-mobile-nav-item <?php echo is_post_type_archive( 'eh_exam' ) ? 'active' : ''; ?>">
     <i class="bi bi-clipboard-check"></i><span><?php esc_html_e( 'امتحانات', 'examhub' ); ?></span>
+  </a>
+  <a href="<?php echo esc_url( examhub_get_books_archive_url() ); ?>" class="eh-mobile-nav-item <?php echo ( is_post_type_archive( 'eh_book' ) || is_singular( 'eh_book' ) || get_query_var( 'eh_books_page' ) ) ? 'active' : ''; ?>">
+    <i class="bi bi-book-half"></i><span><?php esc_html_e( 'كتب', 'examhub' ); ?></span>
+  </a>
+  <a href="<?php echo esc_url( examhub_get_teachers_page_url() ); ?>" class="eh-mobile-nav-item <?php echo get_query_var( 'eh_teachers_page' ) ? 'active' : ''; ?>">
+    <i class="bi bi-person-workspace"></i><span><?php esc_html_e( 'مدرسين', 'examhub' ); ?></span>
   </a>
   <a href="<?php echo home_url( '/dashboard' ); ?>" class="eh-mobile-nav-item">
     <i class="bi bi-speedometer2"></i><span><?php esc_html_e( 'لوحتي', 'examhub' ); ?></span>

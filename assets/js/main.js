@@ -25,6 +25,7 @@
     initInstallPrompt();
     initOfferCountdown();
     initArticleTools();
+    initBookStoreCheckout();
   });
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -581,3 +582,22 @@
 const _style = document.createElement('style');
 _style.textContent = '@keyframes slideUp { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }';
 document.head.appendChild(_style);
+  function initBookStoreCheckout() {
+    const $checkoutForm = $('form[action*="examhub_book_place_order"]');
+    if (!$checkoutForm.length) return;
+
+    const $shippingInputs = $checkoutForm.find('input[name="shipping_method"]');
+    const $addressInputs = $checkoutForm.find('input[name="customer_governorate"], input[name="customer_city"], input[name="customer_address"]');
+
+    function syncAddressState() {
+      const shippingMethod = $shippingInputs.filter(':checked').val();
+      const requiresAddress = shippingMethod !== 'pickup';
+
+      $addressInputs.each(function () {
+        $(this).prop('required', requiresAddress);
+      });
+    }
+
+    $shippingInputs.on('change', syncAddressState);
+    syncAddressState();
+  }

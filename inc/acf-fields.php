@@ -463,6 +463,8 @@ function examhub_register_acf_fields() {
             [ 'key' => 'field_ex_allow_review', 'label' => 'وضع علامة للمراجعة', 'name' => 'allow_mark_review', 'type' => 'true_false', 'ui' => 1, 'default_value' => 1 ],
             [ 'key' => 'field_ex_resume', 'label' => 'السماح باستكمال الامتحان', 'name' => 'allow_resume', 'type' => 'true_false', 'ui' => 1, 'default_value' => 1 ],
             [ 'key' => 'field_ex_retakes', 'label' => 'عدد المحاولات المسموح بها (0 = غير محدود)', 'name' => 'max_attempts', 'type' => 'number', 'default_value' => 0, 'min' => 0 ],
+            [ 'key' => 'field_ex_secret_enabled', 'label' => 'تفعيل كود امتحان سري', 'name' => 'exam_secret_enabled', 'type' => 'true_false', 'ui' => 1, 'default_value' => 0 ],
+            [ 'key' => 'field_ex_secret_code', 'label' => 'كود الامتحان السري', 'name' => 'exam_secret_code', 'type' => 'text', 'conditional_logic' => [ [ [ 'field' => 'field_ex_secret_enabled', 'operator' => '==', 'value' => 1 ] ] ] ],
 
             // Access control
             [

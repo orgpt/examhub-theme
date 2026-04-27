@@ -38,6 +38,8 @@ $examhub_includes = [
     'inc/payment-fawaterk.php',   // Fawaterk integration
     'inc/payment-vodafone.php',   // Vodafone Cash
     'inc/payment-manual.php',     // Manual payment
+    'inc/book-store.php',         // External books store
+    'inc/teacher-publishing.php', // Teacher exam submission workflow
     'inc/exam-engine.php',        // Exam session logic
     'inc/question-bank.php',      // Question bank utilities
     'inc/ai-integration.php',     // DeepSeek AI
@@ -113,6 +115,18 @@ add_action( 'acf/init', function() {
         acf_add_options_sub_page( [
             'page_title'  => __( 'Email Settings', 'examhub' ),
             'menu_title'  => __( 'Emails', 'examhub' ),
+            'parent_slug' => 'examhub-settings',
+        ] );
+        acf_add_options_sub_page( [
+            'page_title'  => __( 'Book Store Settings', 'examhub' ),
+            'menu_title'  => __( 'Book Store', 'examhub' ),
+            'menu_slug'   => 'book-store-settings',
+            'parent_slug' => 'examhub-settings',
+        ] );
+        acf_add_options_sub_page( [
+            'page_title'  => __( 'Book Shipping & Payment', 'examhub' ),
+            'menu_title'  => __( 'Book Shipping', 'examhub' ),
+            'menu_slug'   => 'book-shipping-settings',
             'parent_slug' => 'examhub-settings',
         ] );
     }
